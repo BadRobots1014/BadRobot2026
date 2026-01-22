@@ -124,7 +124,7 @@ class SwerveModule:
 
         # Calculate the drive output from the drive PID controller.
         driveOutput = self.drivePIDController.calculate(
-            self.driveEncoder.getVelocity(), desiredState.speed
+            (self.driveEncoder.getVelocity() * 2 * math.pi * 0.0475) / 60, desiredState.speed
         )
         #driveOutput += driveFeedforward
 
