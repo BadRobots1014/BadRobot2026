@@ -11,6 +11,8 @@ import wpilib.drive
 import wpimath.filter
 import wpimath.controller
 import drivetrain
+import wpilib
+
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -24,11 +26,19 @@ class MyRobot(wpilib.TimedRobot):
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
+        self.serial = wpilib.RobotController.getSerialNumber()
+
+        self.neo_serial = "032B4B71"
+
+
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
         self.swerve.updateOdometry()
 
     def teleopPeriodic(self) -> None:
+        while True:
+            print(self.serial)
+        print(self.serial)
         self.driveWithJoystick(True)
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
