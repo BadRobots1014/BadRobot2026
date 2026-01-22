@@ -1,70 +1,65 @@
-from typing import Optional
+#!/usr/bin/env python3
+#
+# Copyright (c) FIRST and other WPILib contributors.
+# Open Source Software; you can modify and/or share it under the terms of
+# the WPILib BSD license file in the root directory of this project.
+#
 
-import commands2
 import wpilib
-from ntcore import NetworkTableInstance
-from pathplannerlib.auto import AutoBuilder
+import wpimath
+import wpilib.drive
+import wpimath.filter
+import wpimath.controller
+import drivetrain
 
-from container import RobotContainer
 
-
-class Robot(commands2.TimedCommandRobot):
-    """
-    Robot class is the entry-point of the code, handling initialization and scheduling of commands.
-    """
-
-    # Robot functions are run no matter the mode.
-    # Universal functions should be handled here
-    #
+class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
-        # Init robot and scheduler
-        self.container = RobotContainer()
-        self.scheduler = commands2.CommandScheduler.getInstance()
-        self.autonomous_command: Optional[commands2.Command] = None
+        """Robot initialization function"""
+        self.controller = wpilib.PS4Controller(0)
+        self.swerve = drivetrain.Drivetrain()
 
-        # Init auto path toggle
-        self.auto_chooser = AutoBuilder.buildAutoChooser("MasterAuto")
-        wpilib.SmartDashboard.putData("Auto Chooser", self.auto_chooser)
-
-        # Init high-level network table values
-        self.nt_inst = NetworkTableInstance.getDefault()
-        self.match_time_pub = self.nt_inst.getFloatTopic(
-            "Match Info/Match Time"
-        ).publish()
-
-    def robotPeriodic(self) -> None:
-        # Update network table values
-        match_time = wpilib.DriverStation.getMatchTime()
-        self.match_time_pub.set(match_time)
-
-    # Autonomous functions only run when robot is in "Auto" mode.
-    #
-    def autonomousInit(self) -> None:
-        self.autonomous_command = self.auto_chooser.getSelected()
-        if self.autonomous_command:
-            self.autonomous_command.schedule()
+        # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
+        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
+        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
+        self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
     def autonomousPeriodic(self) -> None:
-        pass
-
-    def autonomousExit(self) -> None:
-        if self.autonomous_command:
-            self.autonomous_command.cancel()
-
-    # Teleop functions only run when robot is in "TeleOp" mode.
-    #
-    def teleopInit(self) -> None:
-        pass
+        self.driveWithJoystick(False)
+        self.swerve.updateOdometry()
 
     def teleopPeriodic(self) -> None:
-        pass
+        self.driveWithJoystick(True)
 
-    # Test functions only run when robot is in "Test" mode.
-    # This should be used for debug testing and added verbosity that is unnecessary in TeleOp and Auto
-    #
-    def testInit(self) -> None:
-        # TODO: Add functionality to hot-swap PID for swerve modules
-        pass
+    def driveWithJoystick(self, fieldRelative: bool) -> None:
+        # Get the x speed. We are inverting this because Xbox controllers return
+        # negative values when we push forward.
+        xSpeed = (
+            -self.xspeedLimiter.calculate(
+                wpimath.applyDeadband(self.controller.getLeftY(), 0.02)
+            )
+            * drivetrain.kMaxSpeed
+        )
 
-    def testPeriodic(self) -> None:
-        pass
+        # Get the y speed or sideways/strafe speed. We are inverting this because
+        # we want a positive value when we pull to the left. Xbox controllers
+        # return positive values when you pull to the right by default.
+        ySpeed = (
+            -self.yspeedLimiter.calculate(
+                wpimath.applyDeadband(self.controller.getLeftX(), 0.02)
+            )
+            * drivetrain.kMaxSpeed
+        )
+
+        # Get the rate of angular rotation. We are inverting this because we want a
+        # positive value when we pull to the left (remember, CCW is positive in
+        # mathematics). Xbox controllers return positive values when you pull to
+        # the right by default.
+        rot = (
+            -self.rotLimiter.calculate(
+                wpimath.applyDeadband(self.controller.getRightX(), 0.02)
+            )
+            * drivetrain.kMaxSpeed
+        )
+
+        self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
