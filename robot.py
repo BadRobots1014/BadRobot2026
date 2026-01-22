@@ -36,9 +36,6 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.updateOdometry()
 
     def teleopPeriodic(self) -> None:
-        while True:
-            print(self.serial)
-        print(self.serial)
         self.driveWithJoystick(True)
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
