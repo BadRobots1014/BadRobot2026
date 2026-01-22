@@ -21,6 +21,11 @@ from phoenix6.hardware import CANcoder
 kModuleMaxAngularVelocity = math.pi*2
 kModuleMaxAngularAcceleration = math.tau
 
+# Values from 2025 Code
+kWheelDiameterMeters = 0.102
+kDriveMotorGearRatio = 1 / 9.1
+kDriveEncoderRot2Meter = kDriveMotorGearRatio * math.pi * kWheelDiameterMeters
+kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60
 
 class SwerveModule:
     def __init__(
@@ -35,8 +40,19 @@ class SwerveModule:
         :param turningMotorChannel:    PWM output for the turning motor.
         :param turningEncoderChannel:   DIO input for the drive encoder channel A
         """
+        self.driveConfig = rev.SparkMaxConfig()
+
+        self.driveConfig.encoder.positionConversionFactor(kDriveEncoderRot2Meter)
+        self.driveConfig.encoder.velocityConversionFactor(kDriveEncoderRPM2MeterPerSec)
+
         self.driveMotor = rev.SparkMax(driveMotorChannel, rev.SparkMax.MotorType.kBrushless)
         self.turningMotor = rev.SparkMax(turningMotorChannel, rev.SparkMax.MotorType.kBrushless)
+
+        self.driveMotor.configure(
+            self.driveConfig, 
+            rev.ResetMode.kResetSafeParameters, 
+            rev.PersistMode.kPersistParameters
+        )
 
         self.driveEncoder = self.driveMotor.getEncoder()
         self.turningEncoder = CANcoder(turningEncoderChannel)
