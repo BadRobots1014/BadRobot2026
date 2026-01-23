@@ -22,8 +22,8 @@ kModuleMaxAngularVelocity = math.pi*2
 kModuleMaxAngularAcceleration = math.tau
 
 # Values from 2025 Code
-kWheelDiameterMeters = 0.102
-kDriveMotorGearRatio = 1 / 9.1
+kWheelDiameterMeters = 0.095
+kDriveMotorGearRatio = 1 / 8.14
 kDriveEncoderRot2Meter = kDriveMotorGearRatio * math.pi * kWheelDiameterMeters
 kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60
 

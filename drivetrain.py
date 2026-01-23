@@ -12,7 +12,7 @@ import wpimath.geometry
 import wpimath.kinematics
 import swervemodule
 
-kMaxSpeed = 3.0  # 3 meters per second
+kMaxSpeed = 8.0  # 3 meters per second
 kMaxAngularSpeed = math.pi  # 1/2 rotation per second
 
 
