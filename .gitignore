@@ -67,7 +67,7 @@ ehthumbs_vista.db
 $RECYCLE.BIN/
 
 # IntelliJ
-.idea/
+#.idea/
 out/
 
 # Fleet
