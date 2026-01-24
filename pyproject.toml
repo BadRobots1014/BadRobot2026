@@ -25,5 +25,6 @@ components = [
 requires = [
     "phoenix6",
     "robotpy-rev",
-    "robotpy-navx"
+    "robotpy-navx",
+    "robotpy-pathplannerlib"
 ]
