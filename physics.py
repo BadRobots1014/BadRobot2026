@@ -1,4 +1,3 @@
-
 #
 # See the documentation for more details on how this works
 #
@@ -22,11 +21,12 @@ from pyfrc.physics.units import units
 import typing
 
 if typing.TYPE_CHECKING:
-  from robot import Robot
+    from robot import Robot
+
 
 class PhysicsEngine:
-  def __init__(self, physics_controller: PhysicsInterface, robot: "Robot"):
-    self.physics_controller = physics_controller
+    def __init__(self, physics_controller: PhysicsInterface, robot: "Robot"):
+        self.physics_controller = physics_controller
 
-  def update_sim(self, now: float, tm_diff: float) -> None:
-    pass
+    def update_sim(self, now: float, tm_diff: float) -> None:
+        pass
