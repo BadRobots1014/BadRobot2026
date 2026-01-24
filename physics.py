@@ -14,6 +14,8 @@
 
 import typing
 
+from pyfrc.physics.core import PhysicsInterface
+
 if typing.TYPE_CHECKING:
     from robot import MyRobot
 
