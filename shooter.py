@@ -20,7 +20,13 @@ from hardware.base.motor import Motor
 
 class Shooter:
     # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
-    def __init__(self, shoot_motor: Motor, turn_motor: Motor, shoot_encoder: Encoder, turn_encoder: Encoder):
+    def __init__(
+        self,
+        shoot_motor: Motor,
+        turn_motor: Motor,
+        shoot_encoder: Encoder,
+        turn_encoder: Encoder,
+    ):
 
         # self.shoot_motor = rev.SparkMax(shoot_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
         # self.turn_motor = rev.SparkMax(turn_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
@@ -30,7 +36,6 @@ class Shooter:
 
         self.shoot_encoder = shoot_encoder
         self.turn_encoder = turn_encoder
-
 
         # self.shoot_encoder = self.shoot_motor.getEncoder()
         # self.turn_encoder = self.turn_motor.getEncoder()

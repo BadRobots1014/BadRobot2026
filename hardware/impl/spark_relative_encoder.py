@@ -17,5 +17,3 @@ class SparkRelativeEncoder(Encoder):
 
     def set_position(self, position: float):
         self.encoder.setPosition(position)
-
-

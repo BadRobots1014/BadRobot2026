@@ -32,6 +32,6 @@ class SparkFlexMotor(Motor):
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
 
-    #Getting active voltage
+    # Getting active voltage
     def get_voltage(self) -> float:
         return self.motor.getBusVoltage() * self.motor.getAppliedOutput()

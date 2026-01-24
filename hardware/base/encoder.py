@@ -5,7 +5,7 @@ from wpiutil import Sendable
 from hardware.base import SendableABCMeta
 
 
-class Encoder(Sendable, ABC, metaclass = SendableABCMeta):
+class Encoder(Sendable, ABC, metaclass=SendableABCMeta):
 
     def get_velocity(self):
         pass

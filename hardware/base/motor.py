@@ -5,7 +5,9 @@ from abc import ABC
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
-class Motor(Sendable, ABC, metaclass = SendableABCMeta):
+
+
+class Motor(Sendable, ABC, metaclass=SendableABCMeta):
 
     def set_voltage(self, voltage: float):
         pass
