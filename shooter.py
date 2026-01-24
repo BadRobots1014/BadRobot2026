@@ -1,23 +1,17 @@
 import math
 
+import phoenix6
+import rev
 import wpilib
 import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.trajectory
-
-import phoenix6
-import rev
-from phoenix6.hardware import CANcoder
-
-import phoenix6
-import rev
 from phoenix6.hardware import CANcoder
 
 
 class shooter:
     def __init__(self, shootMotorChannel: int, turnMotorChannel: int):
-
         self._shootMotor = rev.SparkMax(
             shootMotorChannel, rev.SparkLowLevel.MotorType.kBrushless
         )

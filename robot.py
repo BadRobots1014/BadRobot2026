@@ -6,12 +6,12 @@
 #
 
 import wpilib
-import wpimath
 import wpilib.drive
-import wpimath.filter
+import wpimath
 import wpimath.controller
+import wpimath.filter
+
 import drivetrain
-import wpilib
 
 
 class MyRobot(wpilib.TimedRobot):

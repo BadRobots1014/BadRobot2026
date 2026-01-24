@@ -6,14 +6,13 @@
 
 import math
 
+import phoenix6
+import rev
 import wpilib
 import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.trajectory
-
-import phoenix6
-import rev
 from phoenix6.hardware import CANcoder
 
 # kWheelRadius = 0.0508
