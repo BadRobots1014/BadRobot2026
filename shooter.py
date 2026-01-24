@@ -14,11 +14,16 @@ import phoenix6
 import rev
 from phoenix6.hardware import CANcoder
 
-class shooter():
+
+class shooter:
     def __init__(self, shootMotorChannel: int, turnMotorChannel: int):
 
-        self._shootMotor = rev.SparkMax(shootMotorChannel, rev.SparkLowLevel.MotorType.kBrushless)
-        self._turnMotor = rev.SparkMax(turnMotorChannel, rev.SparkLowLevel.MotorType.kBrushless)
+        self._shootMotor = rev.SparkMax(
+            shootMotorChannel, rev.SparkLowLevel.MotorType.kBrushless
+        )
+        self._turnMotor = rev.SparkMax(
+            turnMotorChannel, rev.SparkLowLevel.MotorType.kBrushless
+        )
         self._shootEncoder = self._shootMotor.getEncoder()
         self._turnEncoder = self._turnMotor.getEncoder()
         self._config()
