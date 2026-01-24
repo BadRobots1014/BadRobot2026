@@ -6,7 +6,6 @@
 
 import math
 
-import phoenix6
 import rev
 import wpilib
 import wpimath.controller
