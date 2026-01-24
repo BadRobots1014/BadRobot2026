@@ -14,7 +14,6 @@ import drivetrain
 import wpilib
 
 
-
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
@@ -29,7 +28,6 @@ class MyRobot(wpilib.TimedRobot):
         self.serial = wpilib.RobotController.getSerialNumber()
 
         self.neo_serial = "032B4B71"
-
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
