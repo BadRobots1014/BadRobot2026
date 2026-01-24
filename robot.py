@@ -10,7 +10,8 @@ import typing
 import commands2
 import wpilib
 from phoenix6 import HootAutoReplay
-from robotcontainer import RobotContainer
+
+from kraken_robot_container import KrakenRobotContainer
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -29,7 +30,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
-        self.container = RobotContainer()
+        self.container = KrakenRobotContainer()
 
         # log and replay timestamp and joystick data
         self._time_and_joystick_replay = (
