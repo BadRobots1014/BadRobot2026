@@ -27,7 +27,7 @@ class shooter:
         self._angle_sim_encoder = rev.SparkRelativeEncoderSim(self._turnMotor)
 
     def set_shoot_voltage(self, volts: float):
-        self._shootMotormotor.setVoltage(volts)
+        self._shootMotor.setVoltage(volts)
 
     def set_turn_voltage(self, volts: float):
         self._turnMotor.setVoltage(volts)

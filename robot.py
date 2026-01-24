@@ -8,7 +8,6 @@
 import typing
 
 import commands2
-import wpilib
 from phoenix6 import HootAutoReplay
 
 from kraken_bot.container import KrakenRobotContainer

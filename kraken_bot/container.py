@@ -15,7 +15,8 @@ from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
 
 from generated.tuner_constants import TunerConstants
-from telemetry import Telemetry
+
+from .telemetry import Telemetry
 
 
 class KrakenRobotContainer:

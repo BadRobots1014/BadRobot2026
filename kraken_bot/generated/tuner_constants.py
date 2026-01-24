@@ -4,7 +4,7 @@ from phoenix6 import CANBus, configs, hardware, signals, swerve, units
 from wpimath.units import inchesToMeters
 
 if TYPE_CHECKING:
-    from subsystems.kraken_swerve import CommandSwerveDrivetrain
+    from ..subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class TunerConstants:
