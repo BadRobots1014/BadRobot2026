@@ -11,7 +11,7 @@ import commands2
 import wpilib
 from phoenix6 import HootAutoReplay
 
-from kraken_robot_container import KrakenRobotContainer
+from kraken_bot.container import KrakenRobotContainer
 
 
 class MyRobot(commands2.TimedCommandRobot):
