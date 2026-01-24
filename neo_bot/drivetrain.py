@@ -7,10 +7,10 @@
 import math
 
 import navx
+import swervemodule
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics
-import swervemodule
 
 kMaxSpeed = 8.0  # 3 meters per second
 kMaxAngularSpeed = math.pi  # 1/2 rotation per second

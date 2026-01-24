@@ -5,66 +5,82 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import typing
+
+import commands2
 import wpilib
-import wpilib.drive
-import wpimath
-import wpimath.controller
-import wpimath.filter
-
-import drivetrain
+from phoenix6 import HootAutoReplay
+from robotcontainer import RobotContainer
 
 
-class MyRobot(wpilib.TimedRobot):
+class MyRobot(commands2.TimedCommandRobot):
+    """
+    Command v2 robots are encouraged to inherit from TimedCommandRobot, which
+    has an implementation of robotPeriodic which runs the scheduler for you
+    """
+
+    autonomousCommand: typing.Optional[commands2.Command] = None
+
     def robotInit(self) -> None:
-        """Robot initialization function"""
-        self.controller = wpilib.PS4Controller(0)
-        self.swerve = drivetrain.Drivetrain()
+        """
+        This function is run when the robot is first started up and should be used for any
+        initialization code.
+        """
 
-        # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
-        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
+        # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+        # autonomous chooser on the dashboard.
+        self.container = RobotContainer()
 
-        self.serial = wpilib.RobotController.getSerialNumber()
+        # log and replay timestamp and joystick data
+        self._time_and_joystick_replay = (
+            HootAutoReplay().with_timestamp_replay().with_joystick_replay()
+        )
 
-        self.neo_serial = "032B4B71"
+    def robotPeriodic(self) -> None:
+        """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
+        that you want ran during disabled, autonomous, teleoperated and test.
+
+        This runs after the mode specific periodic functions, but before LiveWindow and
+        SmartDashboard integrated updating."""
+
+        self._time_and_joystick_replay.update()
+        # Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
+        # commands, running already-scheduled commands, removing finished or interrupted commands,
+        # and running subsystem periodic() methods.  This must be called from the robot's periodic
+        # block in order for anything in the Command-based framework to work.
+        commands2.CommandScheduler.getInstance().run()
+
+    def disabledInit(self) -> None:
+        """This function is called once each time the robot enters Disabled mode."""
+        pass
+
+    def disabledPeriodic(self) -> None:
+        """This function is called periodically when disabled"""
+        pass
+
+    def autonomousInit(self) -> None:
+        """This autonomous runs the autonomous command selected by your RobotContainer class."""
+        self.autonomousCommand = self.container.getAutonomousCommand()
+
+        if self.autonomousCommand:
+            commands2.CommandScheduler.getInstance().schedule(self.autonomousCommand)
 
     def autonomousPeriodic(self) -> None:
-        self.driveWithJoystick(False)
-        self.swerve.updateOdometry()
+        """This function is called periodically during autonomous"""
+        pass
+
+    def teleopInit(self) -> None:
+        # This makes sure that the autonomous stops running when
+        # teleop starts running. If you want the autonomous to
+        # continue until interrupted by another command, remove
+        # this line or comment it out.
+        if self.autonomousCommand:
+            commands2.CommandScheduler.getInstance().cancel(self.autonomousCommand)
 
     def teleopPeriodic(self) -> None:
-        self.driveWithJoystick(True)
+        """This function is called periodically during operator control"""
+        pass
 
-    def driveWithJoystick(self, fieldRelative: bool) -> None:
-        # Get the x speed. We are inverting this because Xbox controllers return
-        # negative values when we push forward.
-        xSpeed = (
-            -self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftY(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
-        )
-
-        # Get the y speed or sideways/strafe speed. We are inverting this because
-        # we want a positive value when we pull to the left. Xbox controllers
-        # return positive values when you pull to the right by default.
-        ySpeed = (
-            -self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftX(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
-        )
-
-        # Get the rate of angular rotation. We are inverting this because we want a
-        # positive value when we pull to the left (remember, CCW is positive in
-        # mathematics). Xbox controllers return positive values when you pull to
-        # the right by default.
-        rot = (
-            -self.rotLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRightX(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
-        )
-
-        self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+    def testInit(self) -> None:
+        # Cancels all running commands at the start of test mode
+        commands2.CommandScheduler.getInstance().cancelAll()
