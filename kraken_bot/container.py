@@ -5,16 +5,14 @@
 #
 
 import commands2
-from commands2 import cmd
 from commands2.button import CommandXboxController, Trigger
 from commands2.sysid import SysIdRoutine
+from generated.tuner_constants import TunerConstants
 from pathplannerlib.auto import AutoBuilder
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
-
-from generated.tuner_constants import TunerConstants
 
 from .telemetry import Telemetry
 

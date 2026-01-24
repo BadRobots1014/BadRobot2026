@@ -232,7 +232,7 @@ class TunerConstants:
         Creates a CommandSwerveDrivetrain instance.
         This should only be called once in your robot program.
         """
-        from subsystems.command_swerve_drivetrain import CommandSwerveDrivetrain
+        from ..subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
         return CommandSwerveDrivetrain(
             cls.drivetrain_constants,

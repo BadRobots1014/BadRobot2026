@@ -1,13 +1,4 @@
-import math
-
-import phoenix6
 import rev
-import wpilib
-import wpimath.controller
-import wpimath.geometry
-import wpimath.kinematics
-import wpimath.trajectory
-from phoenix6.hardware import CANcoder
 
 
 class shooter:
@@ -20,8 +11,8 @@ class shooter:
         )
         self._shootEncoder = self._shootMotor.getEncoder()
         self._turnEncoder = self._turnMotor.getEncoder()
-        self._config()
-        self.reset()
+        # self._config()
+        # self.reset()
 
         self._shoot_sim_encoder = rev.SparkRelativeEncoderSim(self._shootMotor)
         self._angle_sim_encoder = rev.SparkRelativeEncoderSim(self._turnMotor)
