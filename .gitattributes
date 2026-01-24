@@ -1,0 +1,5 @@
+# Set to UNIX line endings universally
+* text=auto eol=lf
+
+# Explicitly mark binaries
+# *.png  binary
