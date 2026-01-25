@@ -3,7 +3,6 @@ from typing import Callable, overload
 
 from commands2 import Command, Subsystem
 from commands2.sysid import SysIdRoutine
-from generated.tuner_constants import TunerSwerveDrivetrain
 from pathplannerlib.auto import AutoBuilder, RobotConfig
 from pathplannerlib.controller import PIDConstants, PPHolonomicDriveController
 from phoenix6 import SignalLogger, swerve, units, utils
@@ -11,6 +10,8 @@ from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.kinematics import ChassisSpeeds
+
+from ..generated.tuner_constants import TunerSwerveDrivetrain
 
 
 class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
