@@ -8,7 +8,6 @@
 import typing
 
 import commands2
-from phoenix6 import HootAutoReplay
 
 from kraken_bot.container import KrakenRobotContainer
 
