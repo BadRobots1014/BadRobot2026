@@ -96,7 +96,9 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
 
-        self._joystick.cross().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
+        self._joystick.cross().whileTrue(
+            self.drivetrain.apply_request(lambda: self._brake)
+        )
         self._joystick.circle().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._point.with_module_direction(

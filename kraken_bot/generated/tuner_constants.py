@@ -66,8 +66,7 @@ class TunerConstants:
         configs.CurrentLimitsConfigs()
         # Swerve azimuth does not require much torque output, so we can set a relatively low
         # stator current limit to help avoid brownouts without impacting performance.
-        .with_stator_current_limit(60.0)
-        .with_stator_current_limit_enable(True)
+        .with_stator_current_limit(60.0).with_stator_current_limit_enable(True)
     )
     _encoder_initial_configs = configs.CANcoderConfiguration()
     # Configs for the Pigeon 2; leave this None to skip applying Pigeon 2 configs
@@ -136,7 +135,6 @@ class TunerConstants:
         .with_drive_friction_voltage(_drive_friction_voltage)
     )
 
-
     # Front Left
     _front_left_drive_motor_id = 21
     _front_left_steer_motor_id = 22
@@ -180,7 +178,6 @@ class TunerConstants:
 
     _back_right_x_pos: units.meter = inchesToMeters(-10.875)
     _back_right_y_pos: units.meter = inchesToMeters(-10.875)
-
 
     front_left = _constants_creator.create_module_constants(
         _front_left_steer_motor_id,
