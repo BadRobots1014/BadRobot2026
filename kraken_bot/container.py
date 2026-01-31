@@ -52,7 +52,7 @@ class KrakenRobotContainer:
 
         self._logger = Telemetry(self._max_speed)
 
-        self._joystick = CommandXboxController(0)
+        self._joystick = CommandPS4Controller(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -96,8 +96,8 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
 
-        self._joystick.a().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
-        self._joystick.b().whileTrue(
+        self._joystick.cross().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
+        self._joystick.circle().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._point.with_module_direction(
                     Rotation2d(-self._joystick.getLeftY(), -self._joystick.getLeftX())
@@ -132,9 +132,9 @@ class KrakenRobotContainer:
         # )
 
         # reset the field-centric heading on left bumper press
-        # self._joystick.leftBumper().onTrue(
-        #     self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
-        # )
+        self._joystick.L1().onTrue(
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+        )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)

@@ -23,7 +23,7 @@ components = [
 # Other pip packages to install, such as vendor packages (each element
 # is equivalent to a line in requirements.txt)
 requires = [
-    "phoenix6",
+    "phoenix6~=26.1",
     "robotpy-rev",
     "robotpy-navx",
     "robotpy-pathplannerlib"
