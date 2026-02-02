@@ -6,12 +6,11 @@ from hardware.base import SendableABCMeta
 
 
 class Encoder(Sendable, ABC, metaclass=SendableABCMeta):
+    def get_velocity(self) -> float:
+        return 0.0
 
-    def get_velocity(self):
-        pass
-
-    def get_position(self):
-        pass
+    def get_position(self) -> float:
+        return 0.0
 
     def set_position(self, position: float):
         pass

@@ -1,19 +1,3 @@
-import math
-
-import wpilib
-import wpimath.controller
-import wpimath.geometry
-import wpimath.kinematics
-import wpimath.trajectory
-
-import phoenix6
-import rev
-from phoenix6.hardware import CANcoder
-
-import phoenix6
-import rev
-from phoenix6.hardware import CANcoder
-
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 
@@ -27,7 +11,6 @@ class Shooter:
         shoot_encoder: Encoder,
         turn_encoder: Encoder,
     ):
-
         # self.shoot_motor = rev.SparkMax(shoot_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
         # self.turn_motor = rev.SparkMax(turn_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
 
