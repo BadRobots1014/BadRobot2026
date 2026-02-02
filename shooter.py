@@ -1,19 +1,3 @@
-import math
-
-import wpilib
-import wpimath.controller
-import wpimath.geometry
-import wpimath.kinematics
-import wpimath.trajectory
-
-import phoenix6
-import rev
-from phoenix6.hardware import CANcoder
-
-import phoenix6
-import rev
-from phoenix6.hardware import CANcoder
-
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 
@@ -26,10 +10,8 @@ class Shooter:
         turn_motor: Motor,
         shoot_encoder: Encoder,
         turn_encoder: Encoder,
+        use_pid: bool = False,
     ):
-
-        # self.shoot_motor = rev.SparkMax(shoot_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
-        # self.turn_motor = rev.SparkMax(turn_motor_id, rev.SparkLowLevel.MotorType.kBrushless)
 
         self.shoot_motor = shoot_motor
         self.turn_motor = turn_motor
@@ -37,14 +19,15 @@ class Shooter:
         self.shoot_encoder = shoot_encoder
         self.turn_encoder = turn_encoder
 
-        # self.shoot_encoder = self.shoot_motor.getEncoder()
-        # self.turn_encoder = self.turn_motor.getEncoder()
+        self.shoot_velocity = 0
 
-        # self._shoot_sim_encoder = rev.SparkRelativeEncoderSim(self.shoot_motor)
-        # self._angle_sim_encoder = rev.SparkRelativeEncoderSim(self.turn_motor)
+        self.use_pid = use_pid
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
+
+    def set_shoot_velocity(self, velocity: float):
+        self.shoot_velocity = velocity
 
     def set_turn_voltage(self, volts: float):
         self.turn_motor.set_voltage(volts)
@@ -54,6 +37,11 @@ class Shooter:
 
     def reset_turn(self):
         self.turn_encoder.set_position(0)
+
+    def shoot_pid_update(self, volts: float):
+        if not self.use_pid:
+            return
+        self.shoot_motor.set_voltage(volts)
 
     @property
     def shoot_distance(self) -> float:
