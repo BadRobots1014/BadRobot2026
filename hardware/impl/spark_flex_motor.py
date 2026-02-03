@@ -25,7 +25,9 @@ class SparkFlexMotor(Motor):
 
     def set_voltage(self, voltage: float):
         self.motor.setVoltage(voltage)
-        self.motor.getClosedLoopController().setReference(1500, rev._rev.SparkLowLevel.ControlType.kVelocity)
+        self.motor.getClosedLoopController().setReference(
+            1500, rev._rev.SparkLowLevel.ControlType.kVelocity
+        )
 
     def set_inverted(self, inverted: bool):
         self.motor.setInverted(inverted)
