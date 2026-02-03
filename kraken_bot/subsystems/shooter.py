@@ -12,7 +12,6 @@ class Shooter:
         turn_encoder: Encoder,
         use_pid: bool = False,
     ):
-
         self.shoot_motor = shoot_motor
         self.turn_motor = turn_motor
 
