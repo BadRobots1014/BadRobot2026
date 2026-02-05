@@ -27,6 +27,10 @@ class Limelight:
         self.pose_sub = self.nt_table.getDoubleArrayTopic("botpose_wpiblue").subscribe(
             [0] * 7
         )
+        # rMegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch, MT2yaw]
+        self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
+            [0] * 12
+        )
         # tv = target valid
         self.tv_sub = self.nt_table.getBooleanTopic("tv").subscribe(False)
         # tc = tag count
@@ -43,7 +47,9 @@ class Limelight:
 
     # algorithm is used to tell the kalman filter how much to trust the pose estimation. lower is more confidant
     def get_deviation(self) -> Tuple[float, float, float]:
-        return 0.7, 0.7, 0.7  # placeholder values
+        arr = self.stddevs_sub.get()
+        # Only use MT2x, MT2y, MT2yaw standard deviations
+        return arr[6], arr[7], arr[11]
 
     def get_vision_measurement(
         self,
