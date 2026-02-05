@@ -5,15 +5,16 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-import drivetrain
+from . import drivetrain
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
+import commands2
 
 
-class MyRobot(wpilib.TimedRobot):
+class NeoBotContainer():
     def robotInit(self) -> None:
         """Robot initialization function"""
         self.controller = wpilib.PS4Controller(0)
@@ -67,3 +68,6 @@ class MyRobot(wpilib.TimedRobot):
         )
 
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+
+    def getAutonomousCommand(self) -> commands2.Command:
+        return commands2.WaitCommand(0)

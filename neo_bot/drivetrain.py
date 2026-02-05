@@ -7,7 +7,7 @@
 import math
 
 import navx
-import swervemodule
+from . import swervemodule
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics
