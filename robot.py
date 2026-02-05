@@ -11,6 +11,7 @@ import commands2
 
 from neo_bot.container import NeoBotContainer
 
+
 class MyRobot(commands2.TimedCommandRobot):
     """
     Command v2 robots are encouraged to inherit from TimedCommandRobot, which

@@ -14,7 +14,7 @@ import wpimath.filter
 import commands2
 
 
-class NeoBotContainer():
+class NeoBotContainer:
     def robotInit(self) -> None:
         """Robot initialization function"""
         self.controller = wpilib.PS4Controller(0)
