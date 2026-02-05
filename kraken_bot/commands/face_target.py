@@ -35,7 +35,8 @@ class FaceTarget(Command):
             (target_point.x - current_position.x) == 0
             and (target_point.y - current_position.y >= 0)
         ):
-            angle = -angle
+            # after pi/2, values start at -pi/2, so adding pi makes it positive
+            angle += math.pi
 
         angle_rotation = Rotation2d(angle)
         target_pose = Pose2d(current_position.x, current_position.y, angle_rotation)
