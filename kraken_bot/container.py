@@ -5,7 +5,8 @@
 #
 
 import commands2
-from commands2.button import CommandPS4Controller, CommandXboxController, Trigger
+from commands2 import cmd
+from commands2.button import CommandXboxController, Trigger
 from commands2.sysid import SysIdRoutine
 from pathplannerlib.auto import AutoBuilder
 from phoenix6 import swerve
@@ -52,7 +53,7 @@ class KrakenRobotContainer:
 
         self._logger = Telemetry(self._max_speed)
 
-        self._joystick = CommandPS4Controller(0)
+        self._joystick = CommandXboxController(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -96,10 +97,8 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
 
-        self._joystick.cross().whileTrue(
-            self.drivetrain.apply_request(lambda: self._brake)
-        )
-        self._joystick.circle().whileTrue(
+        self._joystick.a().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
+        self._joystick.b().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._point.with_module_direction(
                     Rotation2d(-self._joystick.getLeftY(), -self._joystick.getLeftX())
@@ -134,7 +133,7 @@ class KrakenRobotContainer:
         # )
 
         # reset the field-centric heading on left bumper press
-        self._joystick.L1().onTrue(
+        self._joystick.leftBumper().onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
