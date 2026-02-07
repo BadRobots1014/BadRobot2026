@@ -100,6 +100,7 @@ class KrakenRobotContainer:
         self._joystick.b().whileTrue(
             FaceTarget(
                 self.drivetrain,
+                # Blue hub
                 Translation2d(4.719, 3.946),
                 self._drive,
                 self._joystick,
