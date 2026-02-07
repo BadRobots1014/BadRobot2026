@@ -1,5 +1,5 @@
 from commands2 import Command
-from commands2.button import CommandXboxController
+from commands2.button import CommandGenericHID
 from pathplannerlib.controller import PIDController
 from pathplannerlib.pathfinders import Translation2d
 from phoenix6.controls.twinkle_off_animation import math
@@ -12,16 +12,18 @@ def FaceTarget(
     swerve_subsystem: CommandSwerveDrivetrain,
     target_point: Translation2d,
     field: FieldCentric,
-    joystick: CommandXboxController,
+    joystick: CommandGenericHID,
     max_speed: float,
     max_angular_rate: float,
+    left_y_axis: int,
+    left_x_axis: int,
 ) -> Command:
     rotate_pid = PIDController(1, 0, 0)
     rotate_pid.enableContinuousInput(0, 2 * math.pi)
     return swerve_subsystem.apply_request(
         lambda: (
-            field.with_velocity_x(-joystick.getLeftY() * max_speed)
-            .with_velocity_y(-joystick.getLeftX() * max_speed)
+            field.with_velocity_x(-joystick.getRawAxis(left_y_axis) * max_speed)
+            .with_velocity_y(-joystick.getRawAxis(left_x_axis) * max_speed)
             .with_rotational_rate(
                 rotate_pid.calculate(
                     swerve_subsystem.get_state().pose.rotation().radians(),
