@@ -5,14 +5,14 @@
 #
 
 import commands2
-from commands2 import cmd
 from commands2.button import CommandXboxController, Trigger
-from commands2.sysid import SysIdRoutine
 from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
-from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
+
+from kraken_bot.commands.face_target import FaceTarget
 
 from .generated.tuner_constants import TunerConstants
 from .telemetry import Telemetry
@@ -97,12 +97,14 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
 
-        self._joystick.a().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
         self._joystick.b().whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._point.with_module_direction(
-                    Rotation2d(-self._joystick.getLeftY(), -self._joystick.getLeftX())
-                )
+            FaceTarget(
+                self.drivetrain,
+                Translation2d(4.719, 3.946),
+                self._drive,
+                self._joystick,
+                self._max_speed,
+                self._max_angular_rate,
             )
         )
 
