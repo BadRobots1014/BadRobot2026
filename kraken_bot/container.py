@@ -31,7 +31,7 @@ class KrakenRobotContainer:
     # Controller axis mappings
     LEFT_X_AXIS = 0
     LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = 2
+    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
     RIGHT_Y_AXIS = 5
     # Controller button mappings
     CROSS_BUTTON = 1
