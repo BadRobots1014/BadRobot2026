@@ -5,14 +5,15 @@
 #
 
 import commands2
-from commands2 import cmd
-from commands2.button import CommandGenericHID, JoystickButton, Trigger
-from commands2.sysid import SysIdRoutine
+import wpilib
+from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
-from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
+
+from kraken_bot.commands.face_target import FaceTarget
 
 from .generated.tuner_constants import TunerConstants
 from .telemetry import Telemetry
@@ -25,6 +26,18 @@ class KrakenRobotContainer:
     periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
     subsystems, commands, and button mappings) should be declared here.
     """
+
+    # Controller axis mappings
+    LEFT_X_AXIS = 0
+    LEFT_Y_AXIS = 1
+    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
+    RIGHT_Y_AXIS = 5
+    # Controller button mappings
+    CROSS_BUTTON = 1
+    CIRCLE_BUTTON = 2
+    L1_BUTTON = 4
+    POV_UP = 0
+    POV_DOWN = 180
 
     def __init__(self) -> None:
         self._max_speed = (
@@ -55,19 +68,6 @@ class KrakenRobotContainer:
 
         # Use CommandGenericHID for controller compatibility
         self._joystick = CommandGenericHID(0)
-
-        # Controller axis mappings
-        self.LEFT_X_AXIS = 0
-        self.LEFT_Y_AXIS = 1
-        self.RIGHT_X_AXIS = 2
-        self.RIGHT_Y_AXIS = 5
-
-        # Controller button mappings
-        self.CROSS_BUTTON = 1
-        self.CIRCLE_BUTTON = 2
-        self.L1_BUTTON = 4
-        self.POV_UP = 0
-        self.POV_DOWN = 180
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -111,21 +111,17 @@ class KrakenRobotContainer:
         Trigger(DriverStation.isDisabled).whileTrue(
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
-
-        # Cross button (A) - brake
-        self._joystick.button(self.CROSS_BUTTON).whileTrue(
-            self.drivetrain.apply_request(lambda: self._brake)
-        )
-
-        # Circle button (B) - point wheels
         self._joystick.button(self.CIRCLE_BUTTON).whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._point.with_module_direction(
-                    Rotation2d(
-                        -self._joystick.getRawAxis(self.LEFT_Y_AXIS),
-                        -self._joystick.getRawAxis(self.LEFT_X_AXIS),
-                    )
-                )
+            FaceTarget(
+                self.drivetrain,
+                # Blue hub
+                Translation2d(4.719, 3.946),
+                self._drive,
+                self._joystick,
+                self._max_speed,
+                self._max_angular_rate,
+                self.LEFT_Y_AXIS,
+                self.LEFT_X_AXIS,
             )
         )
 
