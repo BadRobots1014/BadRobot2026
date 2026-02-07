@@ -12,62 +12,42 @@ import wpimath
 import wpimath.controller
 import wpimath.filter
 import commands2
-
+from neo_bot import drivetrain
 
 class NeoBotContainer:
-    def robotInit(self) -> None:
-        """Robot initialization function"""
+    def __init__(self) -> None:
         self.controller = wpilib.PS4Controller(0)
-        self.swerve = drivetrain.Drivetrain()
+        self.drivetrain = drivetrain.Drivetrain()
 
-        # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
-        self.serial = wpilib.RobotController.getSerialNumber()
+        self.configureButtonBindings()
 
-        self.neo_serial = "032B4B71"
+    def configureButtonBindings(self) -> None:
+        """
+        Defines the default command for the drivetrain inside this method.
+        """
 
-    def autonomousPeriodic(self) -> None:
-        self.driveWithJoystick(False)
-        self.swerve.updateOdometry()
+        def drive_logic():
+            x_input = -self.controller.getLeftY()
+            x_input = wpimath.applyDeadband(x_input, 0.02)
+            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain.kMaxSpeed
 
-    def teleopPeriodic(self) -> None:
-        self.driveWithJoystick(True)
+            y_input = -self.controller.getLeftX()
+            y_input = wpimath.applyDeadband(y_input, 0.02)
+            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain.kMaxSpeed
 
-    def driveWithJoystick(self, fieldRelative: bool) -> None:
-        # Get the x speed. We are inverting this because Xbox controllers return
-        # negative values when we push forward.
-        xSpeed = (
-            -self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftY(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
+            rot_input = -self.controller.getRightX()
+            rot_input = wpimath.applyDeadband(rot_input, 0.02)
+            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain.kMaxSpeed
+
+            self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
+
+        self.drivetrain.setDefaultCommand(
+            commands2.RunCommand(drive_logic, self.drivetrain)
         )
-
-        # Get the y speed or sideways/strafe speed. We are inverting this because
-        # we want a positive value when we pull to the left. Xbox controllers
-        # return positive values when you pull to the right by default.
-        ySpeed = (
-            -self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftX(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
-        )
-
-        # Get the rate of angular rotation. We are inverting this because we want a
-        # positive value when we pull to the left (remember, CCW is positive in
-        # mathematics). Xbox controllers return positive values when you pull to
-        # the right by default.
-        rot = (
-            -self.rotLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRightX(), 0.02)
-            )
-            * drivetrain.kMaxSpeed
-        )
-
-        self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
 
     def getAutonomousCommand(self) -> commands2.Command:
         return commands2.WaitCommand(0)

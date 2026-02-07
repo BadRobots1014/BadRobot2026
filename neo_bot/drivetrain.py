@@ -5,9 +5,10 @@
 #
 
 import math
+import commands2
 
 import navx
-from . import swervemodule
+from neo_bot import swervemodule
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics
@@ -16,12 +17,14 @@ kMaxSpeed = 8.0  # 3 meters per second
 kMaxAngularSpeed = math.pi  # 1/2 rotation per second
 
 
-class Drivetrain:
+class Drivetrain(commands2.Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
 
     def __init__(self) -> None:
+        super().__init__()
+
         self.frontLeftLocation = wpimath.geometry.Translation2d(0.381, 0.381)
         self.frontRightLocation = wpimath.geometry.Translation2d(0.381, -0.381)
         self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
@@ -55,6 +58,9 @@ class Drivetrain:
         wpilib.SmartDashboard.putData("gyro", self.gyro)
 
         self.gyro.reset()
+
+    def periodic(self) -> None:
+        self.updateOdometry()
 
     def drive(
         self,
