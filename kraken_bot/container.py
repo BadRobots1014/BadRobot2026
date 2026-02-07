@@ -53,7 +53,21 @@ class KrakenRobotContainer:
 
         self._logger = Telemetry(self._max_speed)
 
-        self._joystick = CommandXboxController(0)
+        # Use CommandGenericHID for controller compatibility
+        self._joystick = CommandGenericHID(0)
+
+        # Controller axis mappings
+        self.LEFT_X_AXIS = 0
+        self.LEFT_Y_AXIS = 1
+        self.RIGHT_X_AXIS = 2
+        self.RIGHT_Y_AXIS = 5
+
+        # Controller button mappings
+        self.CROSS_BUTTON = 1
+        self.CIRCLE_BUTTON = 2
+        self.L1_BUTTON = 4
+        self.POV_UP = 0
+        self.POV_DOWN = 180
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -78,13 +92,14 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._joystick.getLeftY() * self._max_speed
+                        -self._joystick.getRawAxis(self.LEFT_Y_AXIS) * self._max_speed
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        -self._joystick.getLeftX() * self._max_speed
+                        -self._joystick.getRawAxis(self.LEFT_X_AXIS) * self._max_speed
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        -self._joystick.getRightX() * self._max_angular_rate
+                        -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
+                        * self._max_angular_rate
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -109,11 +124,14 @@ class KrakenRobotContainer:
             )
         )
 
+        # POV up - drive forward
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0.5).with_velocity_y(0)
             )
         )
+
+        # POV down - drive backward
         self._joystick.povDown().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(-0.5).with_velocity_y(0)
@@ -122,21 +140,21 @@ class KrakenRobotContainer:
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
-        # (self._joystick.back() & self._joystick.y()).whileTrue(
+        # (self._joystick.button(8) & self._joystick.button(3)).whileTrue(
         #     self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
         # )
-        # (self._joystick.back() & self._joystick.x()).whileTrue(
+        # (self._joystick.button(8) & self._joystick.button(0)).whileTrue(
         #     self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
         # )
-        # (self._joystick.start() & self._joystick.y()).whileTrue(
+        # (self._joystick.button(9) & self._joystick.button(3)).whileTrue(
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
         # )
-        # (self._joystick.start() & self._joystick.x()).whileTrue(
+        # (self._joystick.button(9) & self._joystick.button(0)).whileTrue(
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # reset the field-centric heading on left bumper press
-        self._joystick.leftBumper().onTrue(
+        # Reset the field-centric heading on L1 button press (left bumper)
+        self._joystick.button(self.L1_BUTTON).onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
