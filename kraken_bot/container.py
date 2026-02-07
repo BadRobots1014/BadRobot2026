@@ -13,6 +13,7 @@ from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
+from hardware.impl.limelight import Limelight
 from kraken_bot.commands.face_target import FaceTarget
 
 from .generated.tuner_constants import TunerConstants
@@ -30,7 +31,7 @@ class KrakenRobotContainer:
     # Controller axis mappings
     LEFT_X_AXIS = 0
     LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
+    RIGHT_X_AXIS = 2
     RIGHT_Y_AXIS = 5
     # Controller button mappings
     CROSS_BUTTON = 1
@@ -70,6 +71,11 @@ class KrakenRobotContainer:
         self._joystick = CommandGenericHID(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        # TODO: conditional to disable limelight in sim!!
+        #
+        # Initialize limelight
+        self.camera = Limelight()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")

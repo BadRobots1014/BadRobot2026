@@ -43,6 +43,15 @@ class MyRobot(commands2.TimedCommandRobot):
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
 
+        # TODO: Make conditional based on robot and if in sim
+        #
+        # Add vision
+        cam_measurement = self.container.camera.get_vision_measurement()
+        if self.container.camera.tc_sub.get() > 0:
+            self.container.drivetrain.add_vision_measurement(
+                cam_measurement[0], cam_measurement[1], cam_measurement[2]
+            )
+
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""
         pass

@@ -54,6 +54,7 @@ class Limelight:
     def get_vision_measurement(
         self,
     ) -> tuple[Pose2d, float, tuple[float, float, float]]:
+
         # get pose array
         arr = self.pose_sub.get()
 
