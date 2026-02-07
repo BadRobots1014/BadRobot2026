@@ -31,7 +31,9 @@ class KrakenRobotContainer:
     # Controller axis mappings
     LEFT_X_AXIS = 0
     LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
+    RIGHT_X_AXIS = (
+        2 if wpilib.RobotBase.isReal() else 4
+    )  # prevent robot from spinning in real life and in sim
     RIGHT_Y_AXIS = 5
     # Controller button mappings
     CROSS_BUTTON = 1
