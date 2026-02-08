@@ -44,8 +44,15 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().run()
 
         # Push gyro data to limelight (set to external IMU)
-        # gyro = self.container.drivetrain.pigeon2
-        # self.container.camera.robot_orientation_set(gyro)
+        gyro = self.container.drivetrain.pigeon2
+        self.container.camera.robot_orientation_set(
+            gyro.get_yaw().value,
+            gyro.get_angular_velocity_z_device().value,  # Yaw Velocity
+            gyro.get_pitch().value,
+            gyro.get_angular_velocity_y_device().value,  # Pitch Velocity
+            gyro.get_roll().value,
+            gyro.get_angular_velocity_x_device().value,  # Roll Velocity
+        )
 
         # Add vision
         cam_measurement = self.container.camera.get_vision_measurement()
