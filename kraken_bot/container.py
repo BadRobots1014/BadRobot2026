@@ -63,7 +63,7 @@ class KrakenRobotContainer:
         )
         self._brake = swerve.requests.SwerveDriveBrake()
         self._point = swerve.requests.PointWheelsAt()
-        self._forward_straight = swerve.requests.FieldCentric().with_drive_request_type(
+        self._forward_straight = swerve.requests.RobotCentric().with_drive_request_type(
             swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
         )
 

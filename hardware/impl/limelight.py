@@ -23,6 +23,8 @@ class Limelight:
             self.enabled_topic, ntcore.EventFlags.kValueAll, self._enabled_changed
         )
 
+        # Getters
+
         # returns [x, y, x, roll, pitch, yaw, latency]
         self.pose_sub = self.nt_table.getDoubleArrayTopic(
             "botpose_orb_wpiblue"
@@ -35,6 +37,13 @@ class Limelight:
         self.tv_sub = self.nt_table.getBooleanTopic("tv").subscribe(False)
         # tc = tag count
         self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
+
+        # Setters
+
+        # Used in robot_orientation_set
+        self.orientation_set_pub = self.nt_table.getDoubleArrayTopic(
+            "robot_orientation_set"
+        ).publish()
 
     def _enabled_changed(self, event: ntcore.Event):
         self.enabled = event.data.value.getBoolean()
@@ -63,3 +72,15 @@ class Limelight:
         timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
         return pose, timestamp, deviation
+
+    # Set Robot Orientation and angular velocities in degrees and degrees per second
+    def robot_orientation_set(
+        self,
+        yaw: float,
+        yawrate: float,
+        pitch: float,
+        pitchrate: float,
+        roll: float,
+        rollrate: float,
+    ):
+        self.orientation_set_pub.set([yaw, yawrate, pitch, pitchrate, roll, rollrate])

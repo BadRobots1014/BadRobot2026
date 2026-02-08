@@ -43,8 +43,10 @@ class MyRobot(commands2.TimedCommandRobot):
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
 
-        # TODO: Make conditional based on robot and if in sim
-        #
+        # Push gyro data to limelight (set to external IMU)
+        # gyro = self.container.drivetrain.pigeon2
+        # self.container.camera.robot_orientation_set(gyro)
+
         # Add vision
         cam_measurement = self.container.camera.get_vision_measurement()
         if self.container.camera.tc_sub.get() > 0:
