@@ -82,6 +82,7 @@ class KrakenRobotContainer:
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
+        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
         # Configure the button bindings
         self.configureButtonBindings()
