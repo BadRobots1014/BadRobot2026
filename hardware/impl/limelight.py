@@ -35,8 +35,8 @@ class Limelight:
         )
         # tv = target valid
         self.tv_sub = self.nt_table.getBooleanTopic("tv").subscribe(False)
-        # tc = tag count
-        self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
+        # tc = count
+        # self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
 
         # Setters
 

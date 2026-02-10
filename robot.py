@@ -57,7 +57,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Add vision
         cam_measurement = self.container.camera.get_vision_measurement()
-        if self.container.camera.tc_sub.get() > 0:
+        if self.container.camera.tv_sub.get() > 0:
             self.container.drivetrain.add_vision_measurement(
                 cam_measurement[0], cam_measurement[1], cam_measurement[2]
             )
