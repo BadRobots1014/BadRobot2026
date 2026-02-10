@@ -38,7 +38,7 @@ class KrakenRobotContainer:
     # Controller button mappings
     CROSS_BUTTON = 1
     CIRCLE_BUTTON = 2
-    L1_BUTTON = 4
+    L1_BUTTON = 5
     POV_UP = 0
     POV_DOWN = 180
 
