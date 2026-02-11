@@ -14,6 +14,7 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
 from kraken_bot.commands.face_target import FaceTarget
+from kraken_bot.commands.extend_hopper import ExtendHopper
 
 from .generated.tuner_constants import TunerConstants
 from .telemetry import Telemetry
@@ -36,6 +37,7 @@ class KrakenRobotContainer:
     CROSS_BUTTON = 1
     CIRCLE_BUTTON = 2
     L1_BUTTON = 4
+    R1_BUTTON = 5
     POV_UP = 0
     POV_DOWN = 180
 
@@ -124,6 +126,9 @@ class KrakenRobotContainer:
                 self.LEFT_X_AXIS,
             )
         )
+
+        if self._joystick.button(self.R1_BUTTON).onTrue:
+            pass
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
