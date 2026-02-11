@@ -1,5 +1,6 @@
 from hardware.base.motor import Motor
 
+
 class Intake:
     def __init__(
         self,
