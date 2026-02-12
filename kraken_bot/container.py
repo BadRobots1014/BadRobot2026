@@ -82,16 +82,16 @@ class KrakenRobotContainer:
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        return -self._joystick.getLeftX() ** 3
+        return -self._joystick.getRawAxis(self.LEFT_X_AXIS) ** 3
 
     def getLeftY(self):
-        return -self._joystick.getLeftY() ** 3
+        return -self._joystick.getRawAxis(self.LEFT_Y_AXIS) ** 3
 
     def getRightX(self):
-        return -self._joystick.getRightX() ** 3
+        return -self._joystick.getRawAxis(self.RIGHT_X_AXIS) ** 3
 
     def getRightY(self):
-        return -self._joystick.getRightY() ** 3
+        return -self._joystick.getRawAxis(self.RIGHT_Y_AXIS) ** 3
 
     def configureButtonBindings(self) -> None:
         """
