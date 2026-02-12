@@ -13,11 +13,11 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
 
-from .generated.tuner_constants import TunerConstants
-from .telemetry import Telemetry
+from generated.tuner_constants import TunerConstants
+from telemetry import Telemetry
 
 
-class KrakenRobotContainer:
+class RobotContainer:
     """
     This class is where the bulk of the robot should be declared. Since Command-based is a
     "declarative" paradigm, very little robot logic should actually be handled in the :class:`.Robot`

@@ -5,20 +5,20 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-from . import drivetrain
+from . import drivetrain_1014
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
 import commands2
-from neo_bot import drivetrain
+from neo_bot import drivetrain_1014
 
 
 class NeoBotContainer:
     def __init__(self) -> None:
         self.controller = wpilib.PS4Controller(0)
-        self.drivetrain = drivetrain.Drivetrain()
+        self.drivetrain = drivetrain_1014.Drivetrain()
 
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
@@ -34,15 +34,15 @@ class NeoBotContainer:
         def drive_logic():
             x_input = -self.controller.getLeftY()
             x_input = wpimath.applyDeadband(x_input, 0.02)
-            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain.kMaxSpeed
+            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain_1014.kMaxSpeed
 
             y_input = -self.controller.getLeftX()
             y_input = wpimath.applyDeadband(y_input, 0.02)
-            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain.kMaxSpeed
+            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain_1014.kMaxSpeed
 
             rot_input = -self.controller.getRightX()
             rot_input = wpimath.applyDeadband(rot_input, 0.02)
-            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain.kMaxSpeed
+            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_1014.kMaxSpeed
 
             self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
 

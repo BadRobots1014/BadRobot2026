@@ -9,7 +9,7 @@ import typing
 
 import commands2
 
-from neo_bot.container import NeoBotContainer
+from container import RobotContainer
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -28,7 +28,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
-        self.container = NeoBotContainer()
+        self.container = RobotContainer()
 
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
