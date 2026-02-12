@@ -9,15 +9,16 @@ class SparkFlexMotor(Motor):
     def __init__(self, motor_id: int):
         super().__init__()
         self.motor = rev.SparkFlex(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.controller = self.motor.getClosedLoopController()
 
     def set_voltage(self, voltage: float):
         self.motor.setVoltage(voltage)
-        self.motor.getClosedLoopController().setReference(
-            1500, rev._rev.SparkLowLevel.ControlType.kVelocity
-        )
 
     def set_inverted(self, inverted: bool):
         self.motor.setInverted(inverted)
+
+    def set_velocity(self, velocity: float):
+        self.controller.setSetpoint(velocity, rev._rev.SparkLowLevel.ControlType.kVelocity)
 
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
