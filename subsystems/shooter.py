@@ -1,3 +1,4 @@
+from ntcore import NetworkTableInstance
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_flex_motor import SparkFlexMotor
@@ -14,6 +15,20 @@ class Shooter:
 
         self.shoot_velocity = 0
 
+        self._inst = NetworkTableInstance.getDefault()
+        self._shooter_table = self._inst.getTable("ShooterTable")
+        self._shooter_motor_velocity_sub = self._shooter_table.getDoubleTopic(
+            "ShooterMotorVelocity"
+        ).subscribe(
+            0.0
+        )
+
+        self._kicker_motor_velocity_sub = self._shooter_table.getDoubleTopic(
+            "KickerMotorVelocity"
+        ).subscribe(
+            0.0
+        )
+
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
 
@@ -21,8 +36,15 @@ class Shooter:
         self.shoot_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
 
+    def set_shoot_velocity_from_networktables(self):
+        self.set_shoot_velocity(self._shooter_motor_velocity_sub.get())
+
+
     def set_kick_voltage(self, volts: float):
         self.kick_motor.set_voltage(volts)
+
+    def set_kick_velocity_from_networktables(self):
+        self.set_kick_velocity(self.__motor_velocity_sub.get())
 
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
