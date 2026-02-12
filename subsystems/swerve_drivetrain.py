@@ -157,10 +157,13 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 # Reduce dynamic voltage to 4 V to prevent brownout
                 stepVoltage=4.0,
                 # Log state with SignalLogger class
-                recordState=lambda state: SignalLogger.write_string(
-                    "SysIdTranslation_State", SysIdRoutineLog.stateEnumToString(state)
-                )
-                and None,
+                recordState=lambda state: (
+                    SignalLogger.write_string(
+                        "SysIdTranslation_State",
+                        SysIdRoutineLog.stateEnumToString(state),
+                    )
+                    and None
+                ),
             ),
             SysIdRoutine.Mechanism(
                 lambda output: self.set_control(
@@ -178,10 +181,12 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 # Use dynamic voltage of 7 V
                 stepVoltage=7.0,
                 # Log state with SignalLogger class
-                recordState=lambda state: SignalLogger.write_string(
-                    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
-                )
-                and None,
+                recordState=lambda state: (
+                    SignalLogger.write_string(
+                        "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
+                    )
+                    and None
+                ),
             ),
             SysIdRoutine.Mechanism(
                 lambda output: self.set_control(
@@ -201,21 +206,25 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 stepVoltage=7.0,
                 # Use default timeout (10 s)
                 # Log state with SignalLogger class
-                recordState=lambda state: SignalLogger.write_string(
-                    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
-                )
-                and None,
+                recordState=lambda state: (
+                    SignalLogger.write_string(
+                        "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
+                    )
+                    and None
+                ),
             ),
             SysIdRoutine.Mechanism(
                 lambda output: (
-                    # output is actually radians per second, but SysId only supports "volts"
-                    self.set_control(
-                        self._rotation_characterization.with_rotational_rate(output)
-                    ),
-                    # also log the requested output for SysId
-                    SignalLogger.write_double("Rotational_Rate", output),
-                )
-                and None,
+                    (
+                        # output is actually radians per second, but SysId only supports "volts"
+                        self.set_control(
+                            self._rotation_characterization.with_rotational_rate(output)
+                        ),
+                        # also log the requested output for SysId
+                        SignalLogger.write_double("Rotational_Rate", output),
+                    )
+                    and None
+                ),
                 lambda log: None,
                 self,
             ),
@@ -259,8 +268,10 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
             ),
             config,
             # Assume the path needs to be flipped for Red vs Blue, this is normally the case
-            lambda: (DriverStation.getAlliance() or DriverStation.Alliance.kBlue)
-            == DriverStation.Alliance.kRed,
+            lambda: (
+                (DriverStation.getAlliance() or DriverStation.Alliance.kBlue)
+                == DriverStation.Alliance.kRed
+            ),
             self,  # Subsystem for requirements
         )
 
