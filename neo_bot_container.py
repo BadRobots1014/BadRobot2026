@@ -5,14 +5,13 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-from . import drivetrain_1014
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
 import commands2
-from neo_bot import drivetrain_1014
+from subsystems import drivetrain_1014
 
 
 class NeoBotContainer:

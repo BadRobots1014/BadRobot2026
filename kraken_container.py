@@ -17,7 +17,7 @@ from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
 
 
-class RobotContainer:
+class KrakenRobotContainer:
     """
     This class is where the bulk of the robot should be declared. Since Command-based is a
     "declarative" paradigm, very little robot logic should actually be handled in the :class:`.Robot`
