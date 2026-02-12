@@ -35,7 +35,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # autonomous chooser on the dashboard.
 
         serial = wpilib.RobotController.getSerialNumber()
-        if not wpilib.RobotBase.isReal(): serial = kraken_serial
+        if not wpilib.RobotBase.isReal():
+            serial = kraken_serial
 
         if serial == kraken_serial:
             self.container = KrakenRobotContainer()
@@ -43,7 +44,6 @@ class MyRobot(commands2.TimedCommandRobot):
             self.container = NeoBotContainer()
         else:
             print(f"Roborio Serial: {serial}")
-
 
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
