@@ -14,7 +14,7 @@ class Telemetry:
         :type max_speed: units.meters_per_second
         """
         self._max_speed = max_speed
-        SignalLogger.start()
+        # SignalLogger.start()
 
         # What to publish over networktables for telemetry
         self._inst = NetworkTableInstance.getDefault()
