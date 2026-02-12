@@ -24,6 +24,9 @@ class Shooter:
     def set_kick_voltage(self, volts: float):
         self.kick_motor.set_voltage(volts)
 
+    def set_kick_velocity(self, velocity: float):
+        self.kick_motor.set_velocity(velocity)
+
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
 
