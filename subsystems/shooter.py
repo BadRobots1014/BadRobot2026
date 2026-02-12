@@ -19,15 +19,11 @@ class Shooter:
         self._shooter_table = self._inst.getTable("ShooterTable")
         self._shooter_motor_velocity_sub = self._shooter_table.getDoubleTopic(
             "ShooterMotorVelocity"
-        ).subscribe(
-            0.0
-        )
+        ).subscribe(0.0)
 
         self._kicker_motor_velocity_sub = self._shooter_table.getDoubleTopic(
             "KickerMotorVelocity"
-        ).subscribe(
-            0.0
-        )
+        ).subscribe(0.0)
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
@@ -39,9 +35,11 @@ class Shooter:
     def set_shoot_velocity_from_networktables(self):
         self.set_shoot_velocity(self._shooter_motor_velocity_sub.get())
 
-
     def set_kick_voltage(self, volts: float):
         self.kick_motor.set_voltage(volts)
+
+    def set_kick_velocity(self, velocity: float):
+        self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
         self.set_kick_velocity(self.__motor_velocity_sub.get())
