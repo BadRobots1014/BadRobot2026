@@ -5,9 +5,10 @@
 #
 
 import math
+import commands2
 
 import navx
-import swervemodule
+from subsystems import swervemodule_1014
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics
@@ -16,21 +17,23 @@ kMaxSpeed = 8.0  # 3 meters per second
 kMaxAngularSpeed = math.pi  # 1/2 rotation per second
 
 
-class Drivetrain:
+class Drivetrain(commands2.Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
 
     def __init__(self) -> None:
+        super().__init__()
+
         self.frontLeftLocation = wpimath.geometry.Translation2d(0.381, 0.381)
         self.frontRightLocation = wpimath.geometry.Translation2d(0.381, -0.381)
         self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
         self.backRightLocation = wpimath.geometry.Translation2d(-0.381, -0.381)
 
-        self.frontLeft = swervemodule.SwerveModule(21, 22, 23)
-        self.frontRight = swervemodule.SwerveModule(11, 12, 13)
-        self.backLeft = swervemodule.SwerveModule(31, 32, 33)
-        self.backRight = swervemodule.SwerveModule(41, 42, 43)
+        self.frontLeft = swervemodule_1014.SwerveModule(21, 22, 23)
+        self.frontRight = swervemodule_1014.SwerveModule(11, 12, 13)
+        self.backLeft = swervemodule_1014.SwerveModule(31, 32, 33)
+        self.backRight = swervemodule_1014.SwerveModule(41, 42, 43)
 
         self.gyro = navx.AHRS(navx.AHRS.NavXComType.kMXP_SPI)
 
@@ -55,6 +58,9 @@ class Drivetrain:
         wpilib.SmartDashboard.putData("gyro", self.gyro)
 
         self.gyro.reset()
+
+    def periodic(self) -> None:
+        self.updateOdometry()
 
     def drive(
         self,

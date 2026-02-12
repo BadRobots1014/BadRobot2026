@@ -8,8 +8,13 @@
 import typing
 
 import commands2
+import wpilib
 
-from kraken_bot.container import KrakenRobotContainer
+from kraken_container import KrakenRobotContainer
+from neo_bot_container import NeoBotContainer
+
+kraken_serial = "032B4B71"
+neo_bot_serial = "032B4B44"
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -28,7 +33,17 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
-        self.container = KrakenRobotContainer()
+
+        serial = wpilib.RobotController.getSerialNumber()
+        if not wpilib.RobotBase.isReal():
+            serial = kraken_serial
+
+        if serial == kraken_serial:
+            self.container = KrakenRobotContainer()
+        elif serial == neo_bot_serial:
+            self.container = NeoBotContainer()
+        else:
+            print(f"Roborio Serial: {serial}")
 
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics

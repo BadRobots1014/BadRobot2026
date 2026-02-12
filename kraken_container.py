@@ -14,10 +14,9 @@ from phoenix6.swerve.requests import ForwardPerspectiveValue
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
-from kraken_bot.commands.face_target import FaceTarget
-
-from .generated.tuner_constants import TunerConstants
-from .telemetry import Telemetry
+from commands.face_target import FaceTarget
+from generated.tuner_constants import TunerConstants
+from telemetry import Telemetry
 
 
 class KrakenRobotContainer:

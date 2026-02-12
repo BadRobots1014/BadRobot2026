@@ -5,7 +5,7 @@ from pathplannerlib.pathfinders import Translation2d
 from phoenix6.controls.twinkle_off_animation import math
 from phoenix6.swerve.requests import FieldCentric
 
-from kraken_bot.subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 def FaceTarget(

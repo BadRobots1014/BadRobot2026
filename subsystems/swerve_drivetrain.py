@@ -11,7 +11,7 @@ from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.kinematics import ChassisSpeeds
 
-from ..generated.tuner_constants import TunerSwerveDrivetrain
+from generated.tuner_constants import TunerSwerveDrivetrain
 
 
 class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
