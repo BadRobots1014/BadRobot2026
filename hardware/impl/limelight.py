@@ -34,7 +34,7 @@ class Limelight:
             [0] * 12
         )
         # tv = target valid
-        self.tv_sub = self.nt_table.getBooleanTopic("tv").subscribe(False)
+        self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
         # tc = count
         # self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
 
@@ -71,6 +71,7 @@ class Limelight:
         # arr[6] is latency in ms, and is used to compute absolute timestamp of pose estimate
         timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
+        # print("pose: " + pose.__str__() + " timestamp: " + timestamp.__str__(), "deviation: " + deviation.__str__())
         return pose, timestamp, deviation
 
     # Set Robot Orientation and angular velocities in degrees and degrees per second
