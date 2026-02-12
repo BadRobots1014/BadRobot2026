@@ -77,7 +77,7 @@ class KrakenRobotContainer:
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
 
-        #shooter
+        # shooter
         self._shooter = shooter.Shooter()
 
         # Configure the button bindings

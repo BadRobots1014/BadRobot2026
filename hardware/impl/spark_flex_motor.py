@@ -18,7 +18,9 @@ class SparkFlexMotor(Motor):
         self.motor.setInverted(inverted)
 
     def set_velocity(self, velocity: float):
-        self.controller.setSetpoint(velocity, rev._rev.SparkLowLevel.ControlType.kVelocity)
+        self.controller.setSetpoint(
+            velocity, rev._rev.SparkLowLevel.ControlType.kVelocity
+        )
 
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
