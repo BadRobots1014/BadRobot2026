@@ -78,7 +78,7 @@ class TunerConstants:
 
     # Theoretical free speed (m/s) at 12 V applied output;
     # This needs to be tuned to your individual robot
-    speed_at_12_volts: units.meters_per_second = 3.79
+    speed_at_12_volts: units.meters_per_second = 3.68
 
     # Every 1 rotation of the azimuth results in _couple_ratio drive motor turns;
     # This may need to be tuned to your individual robot
@@ -139,7 +139,7 @@ class TunerConstants:
     _front_left_drive_motor_id = 21
     _front_left_steer_motor_id = 22
     _front_left_encoder_id = 23
-    _front_left_encoder_offset: units.rotation = -0.05810546875
+    _front_left_encoder_offset: units.rotation = 0.076904296875
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
@@ -150,7 +150,7 @@ class TunerConstants:
     _front_right_drive_motor_id = 11
     _front_right_steer_motor_id = 12
     _front_right_encoder_id = 13
-    _front_right_encoder_offset: units.rotation = -0.17333984375
+    _front_right_encoder_offset: units.rotation = -0.11474609375
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
@@ -161,7 +161,7 @@ class TunerConstants:
     _back_left_drive_motor_id = 31
     _back_left_steer_motor_id = 32
     _back_left_encoder_id = 33
-    _back_left_encoder_offset: units.rotation = -0.116943359375
+    _back_left_encoder_offset: units.rotation = -0.175048828125
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
@@ -172,7 +172,7 @@ class TunerConstants:
     _back_right_drive_motor_id = 41
     _back_right_steer_motor_id = 42
     _back_right_encoder_id = 43
-    _back_right_encoder_offset: units.rotation = 0.07666015625
+    _back_right_encoder_offset: units.rotation = -0.06103515625
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 
@@ -319,11 +319,11 @@ class TunerSwerveDrivetrain(
                                             CAN FD, and 100 Hz on CAN 2.0.
         :type odometry_update_frequency:    units.hertz
         :param odometry_standard_deviation: The standard deviation for odometry calculation
-                                            in the form [x, y, theta]ᵀ, with units in meters
+                                            in the form [x, y, theta]áµ€, with units in meters
                                             and radians
         :type odometry_standard_deviation:  tuple[float, float, float]
         :param vision_standard_deviation:   The standard deviation for vision calculation
-                                            in the form [x, y, theta]ᵀ, with units in meters
+                                            in the form [x, y, theta]áµ€, with units in meters
                                             and radians
         :type vision_standard_deviation:    tuple[float, float, float]
         :param modules:                     Constants for each specific module

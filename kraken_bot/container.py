@@ -10,6 +10,7 @@ from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
+from phoenix6.swerve.requests import ForwardPerspectiveValue
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
@@ -78,6 +79,20 @@ class KrakenRobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
+    # Joysticks need to be inverted or drive won't work properly
+
+    def getLeftX(self):
+        return -self._joystick.getRawAxis(self.LEFT_X_AXIS) ** 3
+
+    def getLeftY(self):
+        return -self._joystick.getRawAxis(self.LEFT_Y_AXIS) ** 3
+
+    def getRightX(self):
+        return -self._joystick.getRawAxis(self.RIGHT_X_AXIS) ** 3
+
+    def getRightY(self):
+        return -self._joystick.getRawAxis(self.RIGHT_Y_AXIS) ** 3
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by
@@ -92,14 +107,13 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._joystick.getRawAxis(self.LEFT_Y_AXIS) * self._max_speed
+                        self.getLeftY() * self._max_speed
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        -self._joystick.getRawAxis(self.LEFT_X_AXIS) * self._max_speed
+                        self.getLeftX() * self._max_speed
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
-                        * self._max_angular_rate
+                        self.getRightX() * self._max_angular_rate
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
