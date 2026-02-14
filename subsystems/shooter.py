@@ -6,9 +6,16 @@ from hardware.base.motor import Motor
 from hardware.impl.spark_flex_motor import SparkFlexMotor
 import math
 
+
 class Shooter:
     # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
-    def __init__(self, shoot_motor: Motor, kick_motor: Motor, kick_encoder: Encoder, shoot_encoder: Encoder):
+    def __init__(
+        self,
+        shoot_motor: Motor,
+        kick_motor: Motor,
+        kick_encoder: Encoder,
+        shoot_encoder: Encoder,
+    ):
         self.shoot_motor = shoot_motor
         self.kick_motor = kick_motor
 
@@ -51,7 +58,6 @@ class Shooter:
     def set_shoot_velocity(self, velocity: float):
         self.shoot_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
-
 
     def set_shoot_velocity_from_networktables(self):
         self.set_shoot_velocity(self._shooter_motor_velocity_sub.get())
