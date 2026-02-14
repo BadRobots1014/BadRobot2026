@@ -1,20 +1,24 @@
+import wpilib
 from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_flex_motor import SparkFlexMotor
-
+import math
 
 class Shooter:
     # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
-    def __init__(self):
-        self.shoot_motor = SparkFlexMotor(0)
-        self.kick_motor = SparkFlexMotor(1)
+    def __init__(self, shoot_motor: Motor, kick_motor: Motor, kick_encoder: Encoder, shoot_encoder: Encoder):
+        self.shoot_motor = shoot_motor
+        self.kick_motor = kick_motor
 
-        self.shoot_encoder = self.shoot_motor.get_encoder()
-        self.kick_encoder = self.kick_motor.get_encoder()
+        self.shoot_encoder = shoot_encoder
+        self.kick_encoder = kick_encoder
 
         self.shoot_velocity = 0
+        self.kick_velocity = 0
+
+        self.time_of_stall = -1
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
@@ -47,6 +51,7 @@ class Shooter:
         self.shoot_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
 
+
     def set_shoot_velocity_from_networktables(self):
         self.set_shoot_velocity(self._shooter_motor_velocity_sub.get())
 
@@ -54,6 +59,7 @@ class Shooter:
         self.kick_motor.set_voltage(volts)
 
     def set_kick_velocity(self, velocity: float):
+        self.kick_velocity = velocity
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
@@ -64,6 +70,24 @@ class Shooter:
 
     def reset_kick(self):
         self.kick_encoder.set_position(0)
+
+    def kicker_jammed(self) -> bool:
+        if self.kick_encoder.get_velocity() > 50:
+            self.time_of_stall = -1
+        elif self.kick_encoder.get_velocity() <= 50 and self.time_of_stall == -1:
+            self.time_of_stall = wpilib.RobotController.getFPGATime()
+        else:
+            if wpilib.RobotController.getFPGATime() - self.time_of_stall > 1 * 1000000:
+                return True
+        return False
+
+
+
+    def periodic(self) -> None:
+        if self.kicker_jammed():
+            self.kick_motor.set_velocity(-self.kick_velocity)
+        else:
+            self.kick_motor.set_velocity(self.kick_velocity)
 
     @property
     def shoot_distance(self) -> float:
