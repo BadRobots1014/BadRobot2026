@@ -26,5 +26,8 @@ class SparkFlexMotor(Motor):
     def get_voltage(self) -> float:
         return self.motor.getBusVoltage() * self.motor.getAppliedOutput()
 
-    def get_forward_switch(self) -> bool:
+    def get_forward_limit(self) -> bool:
         return self.motor.getForwardLimitSwitch().get()
+
+    def get_backward_limit(self) -> bool:
+        return self.motor.getReverseLimitSwitch().get()
