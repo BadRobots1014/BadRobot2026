@@ -4,6 +4,7 @@ import wpilib
 import os
 import logging
 
+
 class Music(Subsystem):
     def __init__(self, motors, drivetrain):
         super().__init__()
@@ -14,7 +15,8 @@ class Music(Subsystem):
             self.orchestra.add_instrument(motor)
 
         deploy_path = wpilib.getDeployDirectory()
-        full_path = os.path.join(deploy_path, "still_alive.chrp")
+        file_name = "still_alive.chrp"
+        full_path = os.path.join(deploy_path, file_name)
 
         status = self.orchestra.load_music(full_path)
 
@@ -25,9 +27,7 @@ class Music(Subsystem):
 
     def play_song(self) -> Command:
         return StartEndCommand(
-            self.orchestra.play,
-            self.orchestra.stop,
-            self, self.drivetrain
+            self.orchestra.play, self.orchestra.stop, self, self.drivetrain
         )
 
     def isFinished(self):

@@ -167,9 +167,7 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(self.SHARE_BUTTON).toggleOnTrue(
-            self.music.play_song()
-        )
+        self._joystick.button(self.SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
@@ -205,9 +203,9 @@ class KrakenRobotContainer:
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
-        self.drivetrain.register_telemetry(
-            lambda state: self._logger.telemeterize(state)
-        )
+        # self.drivetrain.register_telemetry(
+        #    lambda state: self._logger.telemeterize(state)
+        # )
 
     def getAutonomousCommand(self) -> commands2.Command:
         """
