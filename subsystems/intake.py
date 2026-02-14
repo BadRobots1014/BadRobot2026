@@ -22,6 +22,7 @@ class Intake(Subsystem):
     def extension_voltage(self):
         return self.extension.get_voltage()
 
+    # Don't make a property
     def forward_extended(self) -> bool:
         return self.extension.get_forward_limit()
 
