@@ -25,6 +25,7 @@ class Shooter:
         self.shoot_velocity = 0
         self.kick_velocity = 0
 
+        # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
 
@@ -79,25 +80,31 @@ class Shooter:
         self.kick_encoder.set_position(0)
 
     def kick_unjam(self):
+        # first if checks for first instance of jamming
         if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < 50:
             self.time_of_stall = wpilib.RobotController.getFPGATime()
             return
+        # gets current time jammed
         time_stalled = wpilib.RobotController.getFPGATime() - self.time_of_stall
+        # check if jammed for more than once second
         if (
             self.time_of_stall != -1
             and self.kick_encoder.get_velocity() < 50
             and time_stalled > 1
         ):
+            # start unjam process and track time
             self.start_unjam = wpilib.RobotController.getFPGATime()
             self.kick_motor.set_velocity(-self.kick_velocity)
             return
         time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
+        # go normal if unjamming for more than one second
         if time_unjamming > 1:
             self.kick_motor.set_velocity(self.kick_velocity)
             return
         return
 
     def periodic(self) -> None:
+        # constantly checks procedure for unjam
         self.kick_unjam()
 
     @property
