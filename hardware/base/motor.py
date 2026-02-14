@@ -20,3 +20,6 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
 
     def get_voltage(self) -> float:
         pass
+
+    def get_forward_limit(self) -> bool:
+        pass
