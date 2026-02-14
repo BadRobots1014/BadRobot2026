@@ -13,7 +13,7 @@ class ExtendHopper(commands2.Command):
         if self.extend:
             self.intake.set_extension_voltage(-4)
         else:
-            self.intake.set_intake_voltage(0)
+            self.intake.set_intake_voltage(4)
 
     def isFinished(self) -> bool:
         if (self.extend and self.intake.forward_extended()) or (
