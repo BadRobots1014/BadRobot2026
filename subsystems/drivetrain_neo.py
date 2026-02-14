@@ -8,7 +8,7 @@ import math
 import commands2
 
 import navx
-from subsystems import swervemodule_1014
+from subsystems import swervemodule_neo
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics

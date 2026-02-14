@@ -12,8 +12,8 @@ import wpilib
 
 from kraken_container import KrakenRobotContainer
 
-kraken_serial = "032B4B71"
-neo_bot_serial = "032B4B44"
+KRAKEN_SERIAL = "032B4B71"
+NEO_BOT_SERIAL = "032B4B44"
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -34,11 +34,11 @@ class MyRobot(commands2.TimedCommandRobot):
         # autonomous chooser on the dashboard.
         serial = wpilib.RobotController.getSerialNumber()
         if not wpilib.RobotBase.isReal():
-            serial = kraken_serial
+            serial = KRAKEN_SERIAL
 
-        if serial == kraken_serial:
+        if serial == KRAKEN_SERIAL:
             self.container = KrakenRobotContainer()
-        elif serial == neo_bot_serial:
+        elif serial == NEO_BOT_SERIAL:
             # self.container = NeoBotContainer()
             pass
         else:
@@ -57,23 +57,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
 
-        # Push gyro data to limelight (set to external IMU)
-        robot_yaw = self.container.drivetrain.get_state().pose.rotation().degrees()
-        self.container.camera.robot_orientation_set(robot_yaw)
-
-        # Add vision
-        cam_measurement = self.container.camera.get_vision_measurement()
-        reject_pose = self.container.camera.tv_sub.get() < 1
-        if not reject_pose:
-            # TODO: change the angular velocity after limelight upgrade
-            reject_pose = (
-                self.container.drivetrain.pigeon2.get_angular_velocity_z_device().value
-                > 10
-            )
-        if not reject_pose:
-            self.container.drivetrain.add_vision_measurement(
-                cam_measurement[0], cam_measurement[1], cam_measurement[2]
-            )
+        self.container.robotPeriodic()  # to be implemented for neo
 
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""

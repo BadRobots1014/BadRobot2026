@@ -11,7 +11,7 @@ import wpimath
 import wpimath.controller
 import wpimath.filter
 import commands2
-from subsystems import drivetrain_1014
+from subsystems import drivetrain_neo
 
 
 class NeoBotContainer:
@@ -48,6 +48,9 @@ class NeoBotContainer:
         self.drivetrain.setDefaultCommand(
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
+
+    def robotPeriodic(self):
+        pass
 
     def getAutonomousCommand(self) -> commands2.Command:
         return commands2.WaitCommand(0)
