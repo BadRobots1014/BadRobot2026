@@ -20,6 +20,9 @@ from telemetry import Telemetry
 
 from subsystems import shooter
 
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
+
 
 class KrakenRobotContainer:
     """
@@ -90,8 +93,15 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
+        self.shoot_motor = SparkFlexMotor(51)
+        self.kick_motor = SparkFlexMotor(52)
+        self.shoot_encoder = self.shoot_motor.get_encoder()
+        self.kick_encoder = self.kick_motor.get_encoder()
+
         # shooter
-        self._shooter = shooter.Shooter()
+        self._shooter = shooter.Shooter(
+            self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
