@@ -54,6 +54,7 @@ JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
+from hardware.impl.spark_flex_motor import SparkFlexMotor
 
 
 class KrakenRobotContainer:
@@ -110,8 +111,15 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
+        self.shoot_motor = SparkFlexMotor(51)
+        self.kick_motor = SparkFlexMotor(52)
+        self.shoot_encoder = self.shoot_motor.get_encoder()
+        self.kick_encoder = self.kick_motor.get_encoder()
+
         # shooter
-        self._shooter = shooter.Shooter()
+        self._shooter = shooter.Shooter(
+            self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
