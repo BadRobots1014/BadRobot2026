@@ -6,19 +6,18 @@
 
 import commands2
 import wpilib
-import wpimath.filter
 from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-from hardware.impl.limelight import Limelight
-from commands.face_target import FaceTarget
-from generated.tuner_constants import TunerConstants
-from telemetry import Telemetry
 
-from subsystems import shooter
+from kraken_bot.commands.face_target import FaceTarget
+from kraken_bot.commands.extend_hopper import ExtendHopper
+
+from .generated.tuner_constants import TunerConstants
+from .telemetry import Telemetry
 
 
 class KrakenRobotContainer:
@@ -32,14 +31,13 @@ class KrakenRobotContainer:
     # Controller axis mappings
     LEFT_X_AXIS = 0
     LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = (
-        2 if wpilib.RobotBase.isReal() else 4
-    )  # prevent robot from spinning in real life and in sim
+    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
     RIGHT_Y_AXIS = 5
     # Controller button mappings
     CROSS_BUTTON = 1
     CIRCLE_BUTTON = 2
-    L1_BUTTON = 5
+    L1_BUTTON = 4
+    R1_BUTTON = 5
     POV_UP = 0
     POV_DOWN = 180
 
@@ -73,46 +71,14 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self._joystick = CommandGenericHID(0)
 
-        self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.left_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.right_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-
         self.drivetrain = TunerConstants.create_drivetrain()
-
-        # TODO: conditional to disable limelight in sim!!
-        #
-        # Initialize limelight
-        self.camera = Limelight()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
-        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
-
-        # shooter
-        self._shooter = shooter.Shooter()
 
         # Configure the button bindings
         self.configureButtonBindings()
-
-    # Joysticks need to be inverted or drive won't work properly
-
-    def getLeftX(self):
-        raw = -self._joystick.getRawAxis(self.LEFT_X_AXIS)
-        return self.left_x_speed_limiter.calculate(raw)
-
-    def getLeftY(self):
-        raw = -self._joystick.getRawAxis(self.LEFT_Y_AXIS)
-        return self.left_y_speed_limiter.calculate(raw)
-
-    def getRightX(self):
-        raw = -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
-        return self.right_x_speed_limiter.calculate(raw)
-
-    def getRightY(self):
-        raw = -self._joystick.getRawAxis(self.RIGHT_Y_AXIS)
-        return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
         """
@@ -128,13 +94,14 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        self.getLeftY() * self._max_speed
+                        -self._joystick.getRawAxis(self.LEFT_Y_AXIS) * self._max_speed
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        self.getLeftX() * self._max_speed
+                        -self._joystick.getRawAxis(self.LEFT_X_AXIS) * self._max_speed
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        self.getRightX() * self._max_angular_rate
+                        -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
+                        * self._max_angular_rate
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -159,6 +126,9 @@ class KrakenRobotContainer:
                 self.LEFT_X_AXIS,
             )
         )
+
+        if self._joystick.button(self.R1_BUTTON).onTrue:
+            pass
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
