@@ -4,10 +4,11 @@
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
-
+import math
 import typing
 
 import commands2
+from wpimath.geometry import Pose2d
 
 from kraken_bot.container import KrakenRobotContainer
 
@@ -46,14 +47,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # Push gyro data to limelight (set to external IMU)
         gyro = self.container.drivetrain.pigeon2
         robot_yaw = self.container.drivetrain.get_state().pose.rotation().degrees()
-        self.container.camera.robot_orientation_set(
-            robot_yaw,
-            gyro.get_angular_velocity_z_device().value,  # Yaw Velocity
-            gyro.get_pitch().value,
-            gyro.get_angular_velocity_y_device().value,  # Pitch Velocity
-            gyro.get_roll().value,
-            gyro.get_angular_velocity_x_device().value,  # Roll Velocity
-        )
+        self.container.camera.robot_orientation_set(robot_yaw)
 
         # Add vision
         cam_measurement = self.container.camera.get_vision_measurement()

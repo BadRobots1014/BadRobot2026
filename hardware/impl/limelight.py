@@ -26,9 +26,9 @@ class Limelight:
         # Getters
 
         # returns [x, y, x, roll, pitch, yaw, latency]
-        self.pose_sub = self.nt_table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(
-            [0] * 7
-        )
+        self.pose_sub = self.nt_table.getDoubleArrayTopic(
+            "botpose_orb_wpiblue"
+        ).subscribe([0] * 7)
         # MegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch, MT2yaw]
         self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
             [0] * 12
@@ -57,8 +57,9 @@ class Limelight:
     # algorithm is used to tell the kalman filter how much to trust the pose estimation. lower is more confidant
     def get_deviation(self) -> Tuple[float, float, float]:
         arr = self.stddevs_sub.get()
-        # Only use MT2x, MT2y, MT2yaw standard deviations
-        return arr[6], arr[7], arr[11]
+        # Only use MT2x, MT2y
+        # yaw standard deviation needs to be really high so the kalman filter ignores the yaw from limelight
+        return arr[6], arr[7], 99999
 
     def get_vision_measurement(
         self,
@@ -71,17 +72,11 @@ class Limelight:
         # arr[6] is latency in ms, and is used to compute absolute timestamp of pose estimate
         timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
-        # print("pose: " + pose.__str__() + " timestamp: " + timestamp.__str__(), "deviation: " + deviation.__str__())
         return pose, timestamp, deviation
 
     # Set Robot Orientation and angular velocities in degrees and degrees per second
     def robot_orientation_set(
         self,
         yaw: float,
-        yawrate: float,
-        pitch: float,
-        pitchrate: float,
-        roll: float,
-        rollrate: float,
     ):
-        self.orientation_set_pub.set([yaw, yawrate, pitch, pitchrate, roll, rollrate])
+        self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])
