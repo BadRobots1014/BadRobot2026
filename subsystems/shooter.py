@@ -86,13 +86,13 @@ class Shooter:
         if (
             self.time_of_stall != -1
             and self.kick_encoder.get_velocity() < 50
-            and time_stalled > 1 * 1_000_000
+            and time_stalled > 1
         ):
             self.start_unjam = wpilib.RobotController.getFPGATime()
             self.kick_motor.set_velocity(-self.kick_velocity)
             return
         time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
-        if time_unjamming > 1 * 1_000_000:
+        if time_unjamming > 1:
             self.kick_motor.set_velocity(self.kick_velocity)
             return
         return
