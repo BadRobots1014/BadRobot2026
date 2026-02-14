@@ -23,6 +23,8 @@ class Limelight:
             self.enabled_topic, ntcore.EventFlags.kValueAll, self._enabled_changed
         )
 
+        # Getters
+
         # returns [x, y, x, roll, pitch, yaw, latency]
         self.pose_sub = self.nt_table.getDoubleArrayTopic(
             "botpose_orb_wpiblue"
@@ -32,9 +34,16 @@ class Limelight:
             [0] * 12
         )
         # tv = target valid
-        self.tv_sub = self.nt_table.getBooleanTopic("tv").subscribe(False)
-        # tc = tag count
-        self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
+        self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
+        # tc = count
+        # self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
+
+        # Setters
+
+        # Used in robot_orientation_set
+        self.orientation_set_pub = self.nt_table.getDoubleArrayTopic(
+            "robot_orientation_set"
+        ).publish()
 
     def _enabled_changed(self, event: ntcore.Event):
         self.enabled = event.data.value.getBoolean()
@@ -48,12 +57,14 @@ class Limelight:
     # algorithm is used to tell the kalman filter how much to trust the pose estimation. lower is more confidant
     def get_deviation(self) -> Tuple[float, float, float]:
         arr = self.stddevs_sub.get()
-        # Only use MT2x, MT2y, MT2yaw standard deviations
-        return arr[6], arr[7], arr[11]
+        # Only use MT2x, MT2y
+        # yaw standard deviation needs to be really high so the kalman filter ignores the yaw from limelight
+        return arr[6], arr[7], 99999
 
     def get_vision_measurement(
         self,
     ) -> tuple[Pose2d, float, tuple[float, float, float]]:
+
         # get pose array
         arr = self.pose_sub.get()
 
@@ -62,3 +73,10 @@ class Limelight:
         timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
         return pose, timestamp, deviation
+
+    # Set Robot Orientation and angular velocities in degrees and degrees per second
+    def robot_orientation_set(
+        self,
+        yaw: float,
+    ):
+        self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])
