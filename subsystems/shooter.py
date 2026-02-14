@@ -19,6 +19,7 @@ class Shooter:
         self.kick_velocity = 0
 
         self.time_of_stall = -1
+        self.start_unjam = -1
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
@@ -71,23 +72,27 @@ class Shooter:
     def reset_kick(self):
         self.kick_encoder.set_position(0)
 
-    def kicker_jammed(self) -> bool:
-        if self.kick_encoder.get_velocity() > 50:
-            self.time_of_stall = -1
-        elif self.kick_encoder.get_velocity() <= 50 and self.time_of_stall == -1:
+    def kick_unjam(self):
+        if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < 50:
             self.time_of_stall = wpilib.RobotController.getFPGATime()
-        else:
-            if wpilib.RobotController.getFPGATime() - self.time_of_stall > 1 * 1000000:
-                return True
-        return False
-
-
+            return
+        time_stalled = wpilib.RobotController.getFPGATime() - self.time_of_stall
+        if (
+            self.time_of_stall != -1
+            and self.kick_encoder.get_velocity() < 50
+            and time_stalled > 1 * 1_000_000
+        ):
+            self.start_unjam = wpilib.RobotController.getFPGATime()
+            self.kick_motor.set_velocity(-self.kick_velocity)
+            return
+        time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
+        if time_unjamming > 1 * 1_000_000:
+            self.kick_motor.set_velocity(self.kick_velocity)
+            return
+        return
 
     def periodic(self) -> None:
-        if self.kicker_jammed():
-            self.kick_motor.set_velocity(-self.kick_velocity)
-        else:
-            self.kick_motor.set_velocity(self.kick_velocity)
+        self.kick_unjam()
 
     @property
     def shoot_distance(self) -> float:
