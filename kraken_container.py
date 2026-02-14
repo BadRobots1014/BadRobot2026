@@ -199,7 +199,7 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(self.SHARE_BUTTON).toggleOnTrue(self.music.play_song())
+        self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
@@ -239,9 +239,9 @@ class KrakenRobotContainer:
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
-        #self.drivetrain.register_telemetry(
+        # self.drivetrain.register_telemetry(
         #    lambda state: self._logger.telemeterize(state)
-        #)
+        # )
 
     def robotPeriodic(self):
         # Push gyro data to limelight (set to external IMU)
