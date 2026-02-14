@@ -15,7 +15,6 @@ class ExtendHopper(commands2.Command):
         else:
             self.intake.set_intake_voltage(0)
 
-
     def isFinished(self) -> bool:
         if (self.extend and self.intake.forward_extended()) or (
             self.extend and self.intake.backward_extended()
