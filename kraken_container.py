@@ -6,6 +6,7 @@
 
 import commands2
 import wpilib
+import wpimath.filter
 from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
@@ -75,6 +76,11 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self._joystick = CommandGenericHID(0)
 
+        self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.left_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.right_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+
         self.drivetrain = TunerConstants.create_drivetrain()
 
         # TODO: conditional to disable limelight in sim!!
@@ -103,16 +109,20 @@ class KrakenRobotContainer:
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        return -self._joystick.getRawAxis(self.LEFT_X_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.LEFT_X_AXIS)
+        return self.left_x_speed_limiter.calculate(raw)
 
     def getLeftY(self):
-        return -self._joystick.getRawAxis(self.LEFT_Y_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.LEFT_Y_AXIS)
+        return self.left_y_speed_limiter.calculate(raw)
 
     def getRightX(self):
-        return -self._joystick.getRawAxis(self.RIGHT_X_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
+        return self.right_x_speed_limiter.calculate(raw)
 
     def getRightY(self):
-        return -self._joystick.getRawAxis(self.RIGHT_Y_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.RIGHT_Y_AXIS)
+        return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
         """
