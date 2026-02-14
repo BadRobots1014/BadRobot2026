@@ -1,4 +1,5 @@
 from ntcore import NetworkTableInstance
+
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_flex_motor import SparkFlexMotor
@@ -17,13 +18,27 @@ class Shooter:
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
-        self._shooter_motor_velocity_sub = self._shooter_table.getDoubleTopic(
+        # Create nt topics
+        self._shooter_motor_velocity_topic = self._shooter_table.getDoubleTopic(
             "ShooterMotorVelocity"
-        ).subscribe(0.0)
-
-        self._kicker_motor_velocity_sub = self._shooter_table.getDoubleTopic(
+        )
+        self._kicker_motor_velocity_topic = self._shooter_table.getDoubleTopic(
             "KickerMotorVelocity"
-        ).subscribe(0.0)
+        )
+
+        # create nt subscribers
+        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
+            0.0
+        )
+        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
+            0.0
+        )
+
+        # set nt defaults
+        shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
+        shooter_motor_velocity_pub.set(0.0)
+        kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
+        kicker_motor_velocity_pub.set(0.0)
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
@@ -42,7 +57,7 @@ class Shooter:
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
-        self.set_kick_velocity(self.__motor_velocity_sub.get())
+        self.set_kick_velocity(self._kicker_motor_velocity_sub.get())
 
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
