@@ -18,7 +18,7 @@ from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
 
-from subsystems import shooter
+from subsystems import shooter, music
 
 
 class KrakenRobotContainer:
@@ -39,6 +39,7 @@ class KrakenRobotContainer:
     # Controller button mappings
     CROSS_BUTTON = 1
     CIRCLE_BUTTON = 2
+    SHARE_BUTTON = 9
     L1_BUTTON = 5
     POV_UP = 0
     POV_DOWN = 180
@@ -79,6 +80,12 @@ class KrakenRobotContainer:
         self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        music_motors = []
+        for module in self.drivetrain.modules:
+            music_motors.append(module.drive_motor)
+            music_motors.append(module.steer_motor)
+        self.music = music.Music(music_motors, self.drivetrain)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -158,6 +165,10 @@ class KrakenRobotContainer:
                 self.LEFT_Y_AXIS,
                 self.LEFT_X_AXIS,
             )
+        )
+
+        self._joystick.button(self.SHARE_BUTTON).toggleOnTrue(
+            self.music.play_song()
         )
 
         # POV up - drive forward
