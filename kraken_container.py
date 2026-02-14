@@ -17,6 +17,8 @@ from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
 
+from subsystems import shooter
+
 
 class KrakenRobotContainer:
     """
@@ -81,6 +83,9 @@ class KrakenRobotContainer:
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
+
+        # shooter
+        self._shooter = shooter.Shooter()
 
         # Configure the button bindings
         self.configureButtonBindings()
