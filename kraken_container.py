@@ -55,7 +55,7 @@ JOYSTICK_SLEW_RATE = 3
 # point towards locations
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 
-#shooter can id
+# shooter can id
 SHOOT_MOTOR_ID = 0
 KICK_MOTOR_ID = 1
 

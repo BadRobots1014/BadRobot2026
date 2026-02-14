@@ -2,8 +2,8 @@ import commands2
 
 from subsystems.intake import Intake
 
-
 MOTOR_VOLTAGE = 4
+
 
 class ExtendHopper(commands2.Command):
     def __init__(self, intake: Intake):

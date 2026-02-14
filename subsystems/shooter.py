@@ -4,9 +4,10 @@ from ntcore import NetworkTableInstance
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 
-UNJAM_SPIN_TIME = 1 #time to spin to unjam in seconds
-JAM_TIME = 1 #time to be considered jammed in seconds
-JAM_RPM = 50 #rpm threshold to be considered jammed
+UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
+JAM_TIME = 1  # time to be considered jammed in seconds
+JAM_RPM = 50  # rpm threshold to be considered jammed
+
 
 class Shooter:
 
