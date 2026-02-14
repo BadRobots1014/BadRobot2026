@@ -66,7 +66,10 @@ class MyRobot(commands2.TimedCommandRobot):
         reject_pose = self.container.camera.tv_sub.get() < 1
         if not reject_pose:
             # TODO: change the angular velocity after limelight upgrade
-            reject_pose = self.container.drivetrain.pigeon2.get_angular_velocity_z_device().value > 10
+            reject_pose = (
+                self.container.drivetrain.pigeon2.get_angular_velocity_z_device().value
+                > 10
+            )
         if not reject_pose:
             self.container.drivetrain.add_vision_measurement(
                 cam_measurement[0], cam_measurement[1], cam_measurement[2]
