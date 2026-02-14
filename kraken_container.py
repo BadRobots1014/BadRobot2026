@@ -93,7 +93,9 @@ class KrakenRobotContainer:
         self.kick_encoder = self.kick_motor.get_encoder()
 
         # shooter
-        self._shooter = shooter.Shooter(self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder)
+        self._shooter = shooter.Shooter(
+            self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
