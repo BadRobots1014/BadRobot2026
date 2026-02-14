@@ -1,7 +1,8 @@
 import commands2
 
-from kraken_bot.subsystems.intake import Intake
-from commands2 import Command
+from subsystems.intake import Intake
+
+MOTOR_VOLTAGE = 4
 
 
 class ExtendHopper(commands2.Command):
@@ -11,9 +12,9 @@ class ExtendHopper(commands2.Command):
         self.extend = False if self.intake.forward_extended() else True
 
         if self.extend:
-            self.intake.set_extension_voltage(-4)
+            self.intake.set_extension_voltage(-MOTOR_VOLTAGE)
         else:
-            self.intake.set_intake_voltage(4)
+            self.intake.set_intake_voltage(MOTOR_VOLTAGE)
 
     def isFinished(self) -> bool:
         if (self.extend and self.intake.forward_extended()) or (

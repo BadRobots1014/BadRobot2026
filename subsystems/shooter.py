@@ -3,12 +3,14 @@ from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
-from hardware.impl.spark_flex_motor import SparkFlexMotor
-import math
+
+UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
+JAM_TIME = 1  # time to be considered jammed in seconds
+JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
 class Shooter:
-    # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
+
     def __init__(
         self,
         shoot_motor: Motor,
@@ -81,7 +83,7 @@ class Shooter:
 
     def kick_unjam(self):
         # first if checks for first instance of jamming
-        if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < 50:
+        if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < JAM_RPM:
             self.time_of_stall = wpilib.RobotController.getFPGATime()
             return
         # gets current time jammed
@@ -89,8 +91,8 @@ class Shooter:
         # check if jammed for more than once second
         if (
             self.time_of_stall != -1
-            and self.kick_encoder.get_velocity() < 50
-            and time_stalled > 1
+            and self.kick_encoder.get_velocity() < JAM_RPM
+            and time_stalled > JAM_TIME
         ):
             # start unjam process and track time
             self.start_unjam = wpilib.RobotController.getFPGATime()
@@ -98,7 +100,7 @@ class Shooter:
             return
         time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
         # go normal if unjamming for more than one second
-        if time_unjamming > 1:
+        if time_unjamming > UNJAM_SPIN_TIME:
             self.kick_motor.set_velocity(self.kick_velocity)
             return
         return
