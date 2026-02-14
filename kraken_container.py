@@ -6,6 +6,7 @@
 
 import commands2
 import wpilib
+import wpimath.filter
 from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
@@ -16,6 +17,8 @@ from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
+
+from subsystems import shooter
 
 
 class KrakenRobotContainer:
@@ -70,6 +73,11 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self._joystick = CommandGenericHID(0)
 
+        self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.left_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.right_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+
         self.drivetrain = TunerConstants.create_drivetrain()
 
         # TODO: conditional to disable limelight in sim!!
@@ -82,22 +90,29 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
+        # shooter
+        self._shooter = shooter.Shooter()
+
         # Configure the button bindings
         self.configureButtonBindings()
 
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        return -self._joystick.getRawAxis(self.LEFT_X_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.LEFT_X_AXIS)
+        return self.left_x_speed_limiter.calculate(raw)
 
     def getLeftY(self):
-        return -self._joystick.getRawAxis(self.LEFT_Y_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.LEFT_Y_AXIS)
+        return self.left_y_speed_limiter.calculate(raw)
 
     def getRightX(self):
-        return -self._joystick.getRawAxis(self.RIGHT_X_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
+        return self.right_x_speed_limiter.calculate(raw)
 
     def getRightY(self):
-        return -self._joystick.getRawAxis(self.RIGHT_Y_AXIS) ** 3
+        raw = -self._joystick.getRawAxis(self.RIGHT_Y_AXIS)
+        return self.right_y_speed_limiter(raw)
 
     def configureButtonBindings(self) -> None:
         """
