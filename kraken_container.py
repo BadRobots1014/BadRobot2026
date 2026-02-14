@@ -112,7 +112,7 @@ class KrakenRobotContainer:
 
     def getRightY(self):
         raw = -self._joystick.getRawAxis(self.RIGHT_Y_AXIS)
-        return self.right_y_speed_limiter(raw)
+        return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
         """
