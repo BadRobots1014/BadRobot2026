@@ -11,7 +11,6 @@ import commands2
 import wpilib
 
 from kraken_container import KrakenRobotContainer
-from neo_bot_container import NeoBotContainer
 
 kraken_serial = "032B4B71"
 neo_bot_serial = "032B4B44"
@@ -33,7 +32,6 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
-
         serial = wpilib.RobotController.getSerialNumber()
         if not wpilib.RobotBase.isReal():
             serial = kraken_serial
@@ -41,7 +39,8 @@ class MyRobot(commands2.TimedCommandRobot):
         if serial == kraken_serial:
             self.container = KrakenRobotContainer()
         elif serial == neo_bot_serial:
-            self.container = NeoBotContainer()
+            # self.container = NeoBotContainer()
+            pass
         else:
             print(f"Roborio Serial: {serial}")
 
@@ -57,6 +56,17 @@ class MyRobot(commands2.TimedCommandRobot):
         # and running subsystem periodic() methods.  This must be called from the robot's periodic
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
+
+        # Push gyro data to limelight (set to external IMU)
+        robot_yaw = self.container.drivetrain.get_state().pose.rotation().degrees()
+        self.container.camera.robot_orientation_set(robot_yaw)
+
+        # Add vision
+        cam_measurement = self.container.camera.get_vision_measurement()
+        if self.container.camera.tv_sub.get() > 0:
+            self.container.drivetrain.add_vision_measurement(
+                cam_measurement[0], cam_measurement[1], cam_measurement[2]
+            )
 
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""

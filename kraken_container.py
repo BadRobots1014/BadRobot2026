@@ -11,13 +11,14 @@ from commands2.button import CommandGenericHID, Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
-from phoenix6.swerve.requests import ForwardPerspectiveValue
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-
+from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
+
+from subsystems import shooter
 
 
 class KrakenRobotContainer:
@@ -31,12 +32,14 @@ class KrakenRobotContainer:
     # Controller axis mappings
     LEFT_X_AXIS = 0
     LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = 2 if wpilib.RobotBase.isReal() else 4
+    RIGHT_X_AXIS = (
+        2 if wpilib.RobotBase.isReal() else 4
+    )  # prevent robot from spinning in real life and in sim
     RIGHT_Y_AXIS = 5
     # Controller button mappings
     CROSS_BUTTON = 1
     CIRCLE_BUTTON = 2
-    L1_BUTTON = 4
+    L1_BUTTON = 5
     POV_UP = 0
     POV_DOWN = 180
 
@@ -77,9 +80,18 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
+        # TODO: conditional to disable limelight in sim!!
+        #
+        # Initialize limelight
+        self.camera = Limelight()
+
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
+        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
+
+        # shooter
+        self._shooter = shooter.Shooter()
 
         # Configure the button bindings
         self.configureButtonBindings()
