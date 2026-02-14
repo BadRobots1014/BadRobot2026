@@ -26,3 +26,6 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
 
     def get_forward_limit(self) -> bool:
         pass
+
+    def get_backward_limit(self) -> bool:
+        pass

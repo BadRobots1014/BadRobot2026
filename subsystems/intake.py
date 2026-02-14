@@ -1,16 +1,12 @@
 from commands2 import Subsystem
 from hardware.base.motor import Motor
 
+
 class Intake(Subsystem):
     def __init__(self, intake: Motor, extension: Motor) -> None:
         super().__init__()
-        # self.intake = SparkMax(intake, SparkLowLevel.MotorType.kBrushless)
-        # self.extension = SparkMax(extension, SparkLowLevel.MotorType.kBrushless)
-
         self.intake = intake
         self.extension = extension
-
-        self.extension.getForwardLimitSwitch()
 
     def set_intake_voltage(self, voltage: float):
         self.intake.set_voltage(voltage)
@@ -26,5 +22,8 @@ class Intake(Subsystem):
     def extension_voltage(self):
         return self.extension.get_voltage()
 
-    def is_extended(self) -> bool:
+    def forward_extended(self) -> bool:
         return self.extension.get_forward_limit()
+
+    def backward_extended(self) -> bool:
+        return self.extension.get_backward_limit()
