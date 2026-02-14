@@ -9,7 +9,7 @@ class Shooter:
     # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
     def __init__(self):
         self.shoot_motor = SparkFlexMotor(0)
-        self.kick_motor = SparkFlexMotor(0)
+        self.kick_motor = SparkFlexMotor(1)
 
         self.shoot_encoder = self.shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
