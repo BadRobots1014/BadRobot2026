@@ -28,7 +28,7 @@ class Music(Subsystem):
     def play_song(self) -> Command:
         return StartEndCommand(
             self.orchestra.play, self.orchestra.stop, self, self.drivetrain
-        )
+        ).until(self.song_finished)
 
-    def isFinished(self):
+    def song_finished(self):
         return not self.orchestra.is_playing()
