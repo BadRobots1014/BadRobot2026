@@ -2,6 +2,7 @@ import commands2
 
 from subsystems.lights import Lights
 
+
 class PartyMode(commands2.InstantCommand):
     def __init__(self, light_system: Lights):
         super().__init__()

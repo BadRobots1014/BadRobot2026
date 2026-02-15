@@ -2,6 +2,7 @@ import commands2
 
 from subsystems.lights import Lights
 
+
 class SetSolid(commands2.InstantCommand):
     def __init__(self, light_system: Lights, r: int, g: int, b: int):
         super().__init__()

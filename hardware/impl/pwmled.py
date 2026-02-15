@@ -17,7 +17,9 @@ class PWMLED(LEDController):
         return LEDPattern.solid(Color(r, g, b))
 
     def get_rainbow(self, saturation: int, value: int, speed: float):
-        return LEDPattern.rainbow(saturation, value).scrollAtAbsoluteSpeed(speed, self.spacing)
+        return LEDPattern.rainbow(saturation, value).scrollAtAbsoluteSpeed(
+            speed, self.spacing
+        )
 
     def get_gradient(self, continuous: bool, colors: list[tuple]):
         return LEDPattern.gradient(
