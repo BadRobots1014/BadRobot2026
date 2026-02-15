@@ -20,6 +20,47 @@ from telemetry import Telemetry
 
 from subsystems import shooter
 
+LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
+
+# Controller axis mappings
+LEFT_X_AXIS = 0
+LEFT_Y_AXIS = 1
+RIGHT_X_AXIS = (
+    2 if wpilib.RobotBase.isReal() else 4
+)  # prevent robot from spinning in real life and in sim
+RIGHT_Y_AXIS = 5
+
+# Controller button mappings
+CROSS_BUTTON = 1
+CIRCLE_BUTTON = 2
+L1_BUTTON = 5
+POV_UP = 0
+POV_DOWN = 180
+
+# drive speeds/limits
+MAX_SPEED = (
+    1.0 * TunerConstants.speed_at_12_volts
+)  # speed_at_12_volts desired top speed
+NUDGE_SPEED = 0.5
+MAX_ANGULAR_SPEED = rotationsToRadians(
+    0.75
+)  # 3/4 of a rotation per second max angular velocity
+DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
+ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
+
+# joysticks
+PRIMARY_JOYSTICK = 0
+JOYSTICK_SLEW_RATE = 3
+
+# point towards locations
+BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
+
+# shooter can id
+SHOOT_MOTOR_ID = 0
+KICK_MOTOR_ID = 1
+
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+
 
 class KrakenRobotContainer:
     """
@@ -29,35 +70,12 @@ class KrakenRobotContainer:
     subsystems, commands, and button mappings) should be declared here.
     """
 
-    # Controller axis mappings
-    LEFT_X_AXIS = 0
-    LEFT_Y_AXIS = 1
-    RIGHT_X_AXIS = (
-        2 if wpilib.RobotBase.isReal() else 4
-    )  # prevent robot from spinning in real life and in sim
-    RIGHT_Y_AXIS = 5
-    # Controller button mappings
-    CROSS_BUTTON = 1
-    CIRCLE_BUTTON = 2
-    L1_BUTTON = 5
-    POV_UP = 0
-    POV_DOWN = 180
-
     def __init__(self) -> None:
-        self._max_speed = (
-            1.0 * TunerConstants.speed_at_12_volts
-        )  # speed_at_12_volts desired top speed
-        self._max_angular_rate = rotationsToRadians(
-            0.75
-        )  # 3/4 of a rotation per second max angular velocity
-
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
-            .with_deadband(self._max_speed * 0.1)
-            .with_rotational_deadband(
-                self._max_angular_rate * 0.1
-            )  # Add a 10% deadband
+            .with_deadband(DRIVE_DEADBAND)
+            .with_rotational_deadband(ANGULAR_DEADBAND)
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
@@ -68,15 +86,23 @@ class KrakenRobotContainer:
             swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
         )
 
-        self._logger = Telemetry(self._max_speed)
+        self._logger = Telemetry(MAX_SPEED)
 
         # Use CommandGenericHID for controller compatibility
-        self._joystick = CommandGenericHID(0)
+        self._joystick = CommandGenericHID(PRIMARY_JOYSTICK)
 
-        self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.left_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.right_x_speed_limiter = wpimath.filter.SlewRateLimiter(3)
-        self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(3)
+        self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
+            JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
+        )
+        self.left_y_speed_limiter = wpimath.filter.SlewRateLimiter(
+            JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
+        )
+        self.right_x_speed_limiter = wpimath.filter.SlewRateLimiter(
+            JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
+        )
+        self.right_y_speed_limiter = wpimath.filter.SlewRateLimiter(
+            JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
+        )
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -90,8 +116,15 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
+        self.shoot_motor = SparkFlexMotor(SHOOT_MOTOR_ID)
+        self.kick_motor = SparkFlexMotor(KICK_MOTOR_ID)
+        self.shoot_encoder = self.shoot_motor.get_encoder()
+        self.kick_encoder = self.kick_motor.get_encoder()
+
         # shooter
-        self._shooter = shooter.Shooter()
+        self._shooter = shooter.Shooter(
+            self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -99,19 +132,19 @@ class KrakenRobotContainer:
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        raw = -self._joystick.getRawAxis(self.LEFT_X_AXIS)
+        raw = -self._joystick.getRawAxis(LEFT_X_AXIS)
         return self.left_x_speed_limiter.calculate(raw)
 
     def getLeftY(self):
-        raw = -self._joystick.getRawAxis(self.LEFT_Y_AXIS)
+        raw = -self._joystick.getRawAxis(LEFT_Y_AXIS)
         return self.left_y_speed_limiter.calculate(raw)
 
     def getRightX(self):
-        raw = -self._joystick.getRawAxis(self.RIGHT_X_AXIS)
+        raw = -self._joystick.getRawAxis(RIGHT_X_AXIS)
         return self.right_x_speed_limiter.calculate(raw)
 
     def getRightY(self):
-        raw = -self._joystick.getRawAxis(self.RIGHT_Y_AXIS)
+        raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS)
         return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
@@ -128,13 +161,13 @@ class KrakenRobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        self.getLeftY() * self._max_speed
+                        self.getLeftY() * MAX_SPEED
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        self.getLeftX() * self._max_speed
+                        self.getLeftX() * MAX_SPEED
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        self.getRightX() * self._max_angular_rate
+                        self.getRightX() * MAX_SPEED
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -146,31 +179,34 @@ class KrakenRobotContainer:
         Trigger(DriverStation.isDisabled).whileTrue(
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
-        self._joystick.button(self.CIRCLE_BUTTON).whileTrue(
+        self._joystick.button(CIRCLE_BUTTON).whileTrue(
             FaceTarget(
                 self.drivetrain,
-                # Blue hub
-                Translation2d(4.719, 3.946),
+                BLUE_HUB_TRANSLATION,
                 self._drive,
                 self._joystick,
-                self._max_speed,
-                self._max_angular_rate,
-                self.LEFT_Y_AXIS,
-                self.LEFT_X_AXIS,
+                MAX_SPEED,
+                MAX_ANGULAR_SPEED,
+                LEFT_Y_AXIS,
+                LEFT_X_AXIS,
             )
         )
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0.5).with_velocity_y(0)
+                lambda: self._forward_straight.with_velocity_x(
+                    NUDGE_SPEED
+                ).with_velocity_y(0)
             )
         )
 
         # POV down - drive backward
         self._joystick.povDown().whileTrue(
             self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(-0.5).with_velocity_y(0)
+                lambda: self._forward_straight.with_velocity_x(
+                    -NUDGE_SPEED
+                ).with_velocity_y(0)
             )
         )
 
@@ -190,13 +226,32 @@ class KrakenRobotContainer:
         # )
 
         # Reset the field-centric heading on L1 button press (left bumper)
-        self._joystick.button(self.L1_BUTTON).onTrue(
+        self._joystick.button(L1_BUTTON).onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
         )
+
+    def robotPeriodic(self):
+        # Push gyro data to limelight (set to external IMU)
+        robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
+        self.camera.robot_orientation_set(robot_yaw)
+
+        # Add vision
+        cam_measurement = self.camera.get_vision_measurement()
+        reject_pose = self.camera.tv_sub.get() < 1
+        if not reject_pose:
+            # TODO: change the angular velocity after limelight upgrade
+            reject_pose = (
+                self.drivetrain.pigeon2.get_angular_velocity_z_device().value
+                > LIMELIGHT_MAX_ANGULAR_VELOCITY
+            )
+        if not reject_pose:
+            self.drivetrain.add_vision_measurement(
+                cam_measurement[0], cam_measurement[1], cam_measurement[2]
+            )
 
     def getAutonomousCommand(self) -> commands2.Command:
         """

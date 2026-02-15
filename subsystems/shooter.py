@@ -1,20 +1,35 @@
+import wpilib
 from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+
+UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
+JAM_TIME = 1  # time to be considered jammed in seconds
+JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
 class Shooter:
-    # def __init__(self, shoot_motor_id: int, turn_motor_id: int):
-    def __init__(self):
-        self.shoot_motor = SparkFlexMotor(0)
-        self.kick_motor = SparkFlexMotor(1)
 
-        self.shoot_encoder = self.shoot_motor.get_encoder()
-        self.kick_encoder = self.kick_motor.get_encoder()
+    def __init__(
+        self,
+        shoot_motor: Motor,
+        kick_motor: Motor,
+        kick_encoder: Encoder,
+        shoot_encoder: Encoder,
+    ):
+        self.shoot_motor = shoot_motor
+        self.kick_motor = kick_motor
+
+        self.shoot_encoder = shoot_encoder
+        self.kick_encoder = kick_encoder
 
         self.shoot_velocity = 0
+        self.kick_velocity = 0
+
+        # tracks time for automatic jamming procedures
+        self.time_of_stall = -1
+        self.start_unjam = -1
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
@@ -54,6 +69,7 @@ class Shooter:
         self.kick_motor.set_voltage(volts)
 
     def set_kick_velocity(self, velocity: float):
+        self.kick_velocity = velocity
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
@@ -64,6 +80,34 @@ class Shooter:
 
     def reset_kick(self):
         self.kick_encoder.set_position(0)
+
+    def kick_unjam(self):
+        # first if checks for first instance of jamming
+        if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < JAM_RPM:
+            self.time_of_stall = wpilib.RobotController.getFPGATime()
+            return
+        # gets current time jammed
+        time_stalled = wpilib.RobotController.getFPGATime() - self.time_of_stall
+        # check if jammed for more than once second
+        if (
+            self.time_of_stall != -1
+            and self.kick_encoder.get_velocity() < JAM_RPM
+            and time_stalled > JAM_TIME
+        ):
+            # start unjam process and track time
+            self.start_unjam = wpilib.RobotController.getFPGATime()
+            self.kick_motor.set_velocity(-self.kick_velocity)
+            return
+        time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
+        # go normal if unjamming for more than one second
+        if time_unjamming > UNJAM_SPIN_TIME:
+            self.kick_motor.set_velocity(self.kick_velocity)
+            return
+        return
+
+    def periodic(self) -> None:
+        # constantly checks procedure for unjam
+        self.kick_unjam()
 
     @property
     def shoot_distance(self) -> float:
