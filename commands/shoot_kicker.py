@@ -3,7 +3,7 @@ import commands2
 from subsystems.shooter import Shooter
 
 
-class Shoot(commands2.Command):
+class Shoot_Kicker(commands2.Command):
     shooter: Shooter
 
     def __init__(self, shooter: Shooter):
@@ -11,7 +11,7 @@ class Shoot(commands2.Command):
         self.shooter = shooter
 
     def execute(self):
-        self.shooter.set_shoot_velocity_from_networktables()
+        self.shooter.set_kick_velocity_from_networktables()
 
     def end(self, interrupted: bool):
-        self.shooter.shoot_motor.disable()
+        self.shooter.kick_motor.disable()

@@ -13,12 +13,13 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-from hardware.impl.limelight import Limelight
+
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
+from hardware.impl.limelight import Limelight
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+from subsystems import music, shooter
 from telemetry import Telemetry
-
-from subsystems import shooter, music
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -58,10 +59,8 @@ JOYSTICK_SLEW_RATE = 3
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 
 # shooter can id
-SHOOT_MOTOR_ID = 0
-KICK_MOTOR_ID = 1
-
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+SHOOT_MOTOR_ID = 59
+KICK_MOTOR_ID = 51
 
 
 class KrakenRobotContainer:
@@ -200,9 +199,7 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(L1_BUTTON).whileTrue(
-            self._shooter.set_kick_velocity()
-        )
+        self._joystick.button(L1_BUTTON).whileTrue(self._shooter.set_kick_velocity())
 
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
@@ -223,8 +220,6 @@ class KrakenRobotContainer:
                 ).with_velocity_y(0)
             )
         )
-
-
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
