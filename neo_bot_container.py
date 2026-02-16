@@ -17,7 +17,7 @@ from subsystems import drivetrain_neo
 class NeoBotContainer:
     def __init__(self) -> None:
         self.controller = wpilib.PS4Controller(0)
-        self.drivetrain = drivetrain_1014.Drivetrain()
+        self.drivetrain = drivetrain_neo.Drivetrain()
 
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
@@ -33,15 +33,15 @@ class NeoBotContainer:
         def drive_logic():
             x_input = -self.controller.getLeftY()
             x_input = wpimath.applyDeadband(x_input, 0.02)
-            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain_1014.kMaxSpeed
+            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain_neo.kMaxSpeed
 
             y_input = -self.controller.getLeftX()
             y_input = wpimath.applyDeadband(y_input, 0.02)
-            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain_1014.kMaxSpeed
+            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain_neo.kMaxSpeed
 
             rot_input = -self.controller.getRightX()
             rot_input = wpimath.applyDeadband(rot_input, 0.02)
-            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_1014.kMaxSpeed
+            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_neo.kMaxSpeed
 
             self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
 
