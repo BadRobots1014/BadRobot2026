@@ -4,9 +4,6 @@ Our goal for **BadRobot2026** is to maintain a solid, working swerve drivetrain 
 
 **Everyone is welcome** to use or contribute to this code. Just a heads-up: this is primarily built for Team 1014’s specific robots, so expect some breaking changes as we tweak and add things.
 
-> [!NOTE]
-> Keep this repo clean. Any changes to swerve or its core components happen here. At the start of a new season, we fork this repo so that season-specific code doesn't clutter up the main template.
-
 ## Team Wiki
 
 The [**Wiki**](https://github.com/BadRobots1014/pybase-2026/wiki) is our central hub for everything FRC, programming, and codebase-related.
