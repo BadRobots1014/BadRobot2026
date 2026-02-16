@@ -35,6 +35,7 @@ CROSS_BUTTON = 1
 CIRCLE_BUTTON = 2
 SHARE_BUTTON = 9
 L1_BUTTON = 5
+R1_BUTTON = 6
 POV_UP = 0
 POV_DOWN = 180
 
@@ -199,6 +200,10 @@ class KrakenRobotContainer:
             )
         )
 
+        self._joystick.button(L1_BUTTON).whileTrue(
+            self._shooter.set_kick_velocity()
+        )
+
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward
@@ -219,6 +224,8 @@ class KrakenRobotContainer:
             )
         )
 
+
+
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
         # (self._joystick.button(8) & self._joystick.button(3)).whileTrue(
@@ -234,10 +241,10 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # Reset the field-centric heading on L1 button press (left bumper)
-        self._joystick.button(L1_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
-        )
+        # # Reset the field-centric heading on L1 button press (left bumper)
+        # self._joystick.button(L1_BUTTON).onTrue(
+        #     self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+        # )
 
         # self.drivetrain.register_telemetry(
         #    lambda state: self._logger.telemeterize(state)
