@@ -15,6 +15,8 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
 from commands.face_target import FaceTarget
+from commands.shoot import Shoot
+from commands.shoot_kicker import Shoot_Kicker
 from generated.tuner_constants import TunerConstants
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
@@ -186,6 +188,8 @@ class KrakenRobotContainer:
         Trigger(DriverStation.isDisabled).whileTrue(
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
+
+        # Face target
         self._joystick.button(CIRCLE_BUTTON).whileTrue(
             FaceTarget(
                 self.drivetrain,
@@ -199,8 +203,13 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(L1_BUTTON).whileTrue(self._shooter.set_kick_velocity())
+        # Run main wheel
+        self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
 
+        # Run kicker wheel
+        self._joystick.button(L1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+
+        # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward
