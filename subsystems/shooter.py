@@ -24,8 +24,8 @@ class Shooter(Subsystem):
         self.shoot_encoder = shoot_encoder
         self.kick_encoder = kick_encoder
 
-        self.shoot_velocity = 0
-        self.kick_velocity = 0
+        self.shoot_velocity = 4500
+        self.kick_velocity = 600
 
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
