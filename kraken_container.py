@@ -207,7 +207,7 @@ class KrakenRobotContainer:
         self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
 
         # Run kicker wheel
-        self._joystick.button(L1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+        self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
 
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
