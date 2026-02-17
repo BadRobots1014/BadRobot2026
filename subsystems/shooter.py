@@ -64,7 +64,6 @@ class Shooter(Subsystem):
 
     def set_shoot_velocity_from_networktables(self):
         velocity = self._shooter_motor_velocity_sub.get()
-        self.shoot_velocity = velocity
         self.set_shoot_velocity(velocity)
 
     def set_kick_voltage(self, volts: float):
@@ -76,8 +75,7 @@ class Shooter(Subsystem):
 
     def set_kick_velocity_from_networktables(self):
         velocity = self._kicker_motor_velocity_sub.get()
-        self.shoot_velocity = velocity
-        self.set_shoot_velocity(velocity)
+        self.set_kick_velocity(velocity)
 
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
