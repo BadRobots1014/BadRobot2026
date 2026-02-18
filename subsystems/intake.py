@@ -1,5 +1,8 @@
 from commands2 import Subsystem
+
 from hardware.base.motor import Motor
+
+# Dumping velocity should be 1500
 
 
 class Intake(Subsystem):
