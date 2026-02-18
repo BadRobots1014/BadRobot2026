@@ -18,7 +18,7 @@ from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
 
-from subsystems import shooter
+from subsystems import shooter, music
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -33,6 +33,7 @@ RIGHT_Y_AXIS = 5
 # Controller button mappings
 CROSS_BUTTON = 1
 CIRCLE_BUTTON = 2
+SHARE_BUTTON = 9
 L1_BUTTON = 5
 POV_UP = 0
 POV_DOWN = 180
@@ -105,6 +106,12 @@ class KrakenRobotContainer:
         )
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        music_motors = []
+        for module in self.drivetrain.modules:
+            music_motors.append(module.drive_motor)
+            music_motors.append(module.steer_motor)
+        self.music = music.Music(music_motors, self.drivetrain)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -192,6 +199,8 @@ class KrakenRobotContainer:
             )
         )
 
+        self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
+
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
@@ -230,9 +239,9 @@ class KrakenRobotContainer:
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
-        self.drivetrain.register_telemetry(
-            lambda state: self._logger.telemeterize(state)
-        )
+        # self.drivetrain.register_telemetry(
+        #    lambda state: self._logger.telemeterize(state)
+        # )
 
     def robotPeriodic(self):
         # Push gyro data to limelight (set to external IMU)

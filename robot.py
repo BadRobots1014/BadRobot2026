@@ -11,6 +11,7 @@ import commands2
 import wpilib
 
 from kraken_container import KrakenRobotContainer
+from neo_bot_container import NeoBotContainer
 
 KRAKEN_SERIAL = "032B4B71"
 NEO_BOT_SERIAL = "032B4B44"
@@ -39,8 +40,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if serial == KRAKEN_SERIAL:
             self.container = KrakenRobotContainer()
         elif serial == NEO_BOT_SERIAL:
-            # self.container = NeoBotContainer()
-            pass
+            self.container = NeoBotContainer()
         else:
             print(f"Roborio Serial: {serial}")
 

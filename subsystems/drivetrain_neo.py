@@ -30,10 +30,10 @@ class Drivetrain(commands2.Subsystem):
         self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
         self.backRightLocation = wpimath.geometry.Translation2d(-0.381, -0.381)
 
-        self.frontLeft = swervemodule_1014.SwerveModule(21, 22, 23)
-        self.frontRight = swervemodule_1014.SwerveModule(11, 12, 13)
-        self.backLeft = swervemodule_1014.SwerveModule(31, 32, 33)
-        self.backRight = swervemodule_1014.SwerveModule(41, 42, 43)
+        self.frontLeft = swervemodule_neo.SwerveModule(21, 22, 23)
+        self.frontRight = swervemodule_neo.SwerveModule(11, 12, 13)
+        self.backLeft = swervemodule_neo.SwerveModule(31, 32, 33)
+        self.backRight = swervemodule_neo.SwerveModule(41, 42, 43)
 
         self.gyro = navx.AHRS(navx.AHRS.NavXComType.kMXP_SPI)
 
