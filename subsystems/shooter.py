@@ -38,7 +38,7 @@ class Shooter(Subsystem):
 
         self.follower_config = rev.SparkFlexConfig()
         self.follower_config.inverted(True)
-        self.follower_config.follow(self.f_shoot_motor.get_motor_controller())
+        self.follower_config.follow(self.shoot_motor.get_motor_controller())
 
         self.f_shoot_motor.get_motor_controller().configure(
             self.follower_config,
