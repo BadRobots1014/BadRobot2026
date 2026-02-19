@@ -61,7 +61,8 @@ JOYSTICK_SLEW_RATE = 3
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 
 # shooter can id
-SHOOT_MOTOR_ID = 59
+MAIN_SHOOT_MOTOR_ID = 59
+FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
 
 
@@ -125,14 +126,19 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
-        self.shoot_motor = SparkFlexMotor(SHOOT_MOTOR_ID)
+        self.main_shoot_motor = SparkFlexMotor(MAIN_SHOOT_MOTOR_ID)
+        self.follower_shoot_motor = SparkFlexMotor(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotor(KICK_MOTOR_ID)
-        self.shoot_encoder = self.shoot_motor.get_encoder()
+        self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
         # shooter
         self._shooter = shooter.Shooter(
-            self.shoot_motor, self.kick_motor, self.kick_encoder, self.shoot_encoder
+            self.main_shoot_motor,
+            self.follower_shoot_motor,
+            self.shoot_encoder,
+            self.kick_motor,
+            self.kick_encoder,
         )
 
         # Configure the button bindings

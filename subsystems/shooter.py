@@ -4,6 +4,8 @@ from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
+import rev
+from rev import ResetMode, PersistMode
 
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
@@ -13,12 +15,15 @@ JAM_RPM = 50  # rpm threshold to be considered jammed
 class Shooter(Subsystem):
     def __init__(
         self,
-        shoot_motor: Motor,
+        main_shoot_motor: Motor,
+        follower_shoot_motor: Motor,
+        shoot_encoder: Encoder,
         kick_motor: Motor,
         kick_encoder: Encoder,
-        shoot_encoder: Encoder,
     ):
-        self.shoot_motor = shoot_motor
+        self.shoot_motor = main_shoot_motor
+        self.f_shoot_motor = follower_shoot_motor
+
         self.kick_motor = kick_motor
 
         self.shoot_encoder = shoot_encoder
@@ -30,6 +35,16 @@ class Shooter(Subsystem):
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
+
+        self.follower_config = rev.SparkFlexConfig()
+        self.follower_config.inverted(True)
+        self.follower_config.follow(self.f_shoot_motor.get_motor_controller())
+
+        self.f_shoot_motor.get_motor_controller().configure(
+            self.follower_config,
+            ResetMode.kResetSafeParameters,
+            PersistMode.kPersistParameters,
+        )
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
