@@ -13,11 +13,12 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-
-from commands.face_target import FaceTarget
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
+from hardware.impl.limelight import Limelight
+from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
+from hardware.impl.spark_flex_motor import SparkFlexMotor
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
 from subsystems import music, shooter
@@ -34,13 +35,24 @@ RIGHT_X_AXIS = (
 RIGHT_Y_AXIS = 5
 
 # Controller button mappings
-CROSS_BUTTON = 1
-CIRCLE_BUTTON = 2
+CROSS_BUTTON = 2
+CIRCLE_BUTTON = 3
+SQUARE_BUTTON = 1
+TRIANGLE_BUTTON = 4
 SHARE_BUTTON = 9
 L1_BUTTON = 5
 R1_BUTTON = 6
+L2_BUTTON = 7
+R2_BUTTON = 8
 POV_UP = 0
+POV_RIGHT = 90
+POV_LEFT = 270
 POV_DOWN = 180
+OPTIONS_BUTTON = 10
+PADDLE_LEFT = 11
+PADDLE_RIGHT = 12
+HOME_BUTTON = 13
+TRACKPAD = 14
 
 # drive speeds/limits
 MAX_SPEED = (
@@ -251,10 +263,10 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # # Reset the field-centric heading on L1 button press (left bumper)
-        # self._joystick.button(L1_BUTTON).onTrue(
-        #     self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
-        # )
+        # Reset the field-centric heading on L1 button press (left bumper)
+        self._joystick.button(L1_BUTTON).onTrue(
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+        )
 
         # self.drivetrain.register_telemetry(
         #    lambda state: self._logger.telemeterize(state)

@@ -142,3 +142,7 @@ class Shooter(Subsystem):
     @property
     def kick_voltage(self) -> float:
         return self.kick_motor.get_voltage()
+
+    def get_shoot_velocity_from_networktables(self) -> float:
+        velocity = self._shooter_motor_velocity_sub.get()
+        return velocity
