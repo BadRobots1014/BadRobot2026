@@ -110,10 +110,10 @@ class KrakenRobotContainer:
         )
 
         self.drivetrain = TunerConstants.create_drivetrain()
-        
+
         self.music = music.Music(self.drivetrain)
 
-        self.led_controller = PWMLED(0, 5)
+        self.led_controller = PWMLED(0, 60)
         self.lights = lights.Lights(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!

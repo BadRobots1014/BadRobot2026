@@ -23,8 +23,6 @@ class Music(Subsystem):
 
         if not status.is_ok():
             logging.error(f"Music failed to load: {status.name}")
-        else:
-            logging.info("Music loaded successfully!")
 
     def play_song(self) -> Command:
         self.orchestra.play()

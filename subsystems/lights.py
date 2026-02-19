@@ -24,8 +24,6 @@ class Lights(Subsystem):
         if self.current_pattern == None:
             self.set_solid(255, 255, 255)
 
-        apply_pattern: LEDPattern = (
-            self.current_pattern
-        )
+        apply_pattern: LEDPattern = self.current_pattern
 
         self.controller.apply_pattern(apply_pattern)

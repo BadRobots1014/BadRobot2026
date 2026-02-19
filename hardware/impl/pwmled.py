@@ -2,6 +2,8 @@ from wpilib import AddressableLED, LEDPattern, Color
 
 from hardware.base.ledcontroller import LEDController
 
+import logging
+
 
 class PWMLED(LEDController):
 
@@ -11,12 +13,17 @@ class PWMLED(LEDController):
         self.buffer = [AddressableLED.LEDData()] * length
         self.controller.setLength(length)
 
-        self.spacing = 0.05
+        self.spacing = 0.015
+
+        logging.info("Lights initalized")
 
     def get_solid(self, r: int, g: int, b: int):
         return LEDPattern.solid(Color(r, g, b))
 
     def get_rainbow(self, saturation: int, value: int, speed: float):
+        logging.info(
+            "Setting Lights to Rainbow EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+        )
         return LEDPattern.rainbow(saturation, value).scrollAtAbsoluteSpeed(
             speed, self.spacing
         )
