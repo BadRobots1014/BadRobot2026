@@ -11,7 +11,7 @@ class Shoot(commands2.Command):
         self.shooter = shooter
 
     def execute(self):
-        desired_velocity = self.shooter.get_shoot_velocity_from_networktables
+        desired_velocity = self.shooter.get_shoot_velocity_from_networktables()
         if desired_velocity > self.shooter.shoot_velocity:
             self.shooter.set_shoot_voltage(12)
         else:
