@@ -4,6 +4,7 @@ from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
+from rev import SparkBase
 
 
 class Motor(Sendable, ABC, metaclass=SendableABCMeta):
@@ -26,6 +27,9 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
         pass
 
     def get_backward_limit(self) -> bool:
+        pass
+
+    def get_motor_controller(self) -> SparkBase:
         pass
 
     def disable(self) -> None:

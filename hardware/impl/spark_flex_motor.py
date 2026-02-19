@@ -3,6 +3,7 @@ import rev
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
+from rev import SparkBase
 
 
 class SparkFlexMotor(Motor):
@@ -24,6 +25,9 @@ class SparkFlexMotor(Motor):
 
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
+
+    def get_motor_controller(self) -> SparkBase:
+        return self.motor
 
     # Getting active voltage
     def get_voltage(self) -> float:
