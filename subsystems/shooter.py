@@ -1,4 +1,5 @@
 import wpilib
+from commands2 import Subsystem
 from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
@@ -9,8 +10,7 @@ JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
-class Shooter:
-
+class Shooter(Subsystem):
     def __init__(
         self,
         shoot_motor: Motor,
@@ -24,8 +24,8 @@ class Shooter:
         self.shoot_encoder = shoot_encoder
         self.kick_encoder = kick_encoder
 
-        self.shoot_velocity = 0
-        self.kick_velocity = 0
+        self.shoot_velocity = 4500
+        self.kick_velocity = 600
 
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
@@ -63,7 +63,8 @@ class Shooter:
         self.shoot_motor.set_velocity(velocity)
 
     def set_shoot_velocity_from_networktables(self):
-        self.set_shoot_velocity(self._shooter_motor_velocity_sub.get())
+        velocity = self._shooter_motor_velocity_sub.get()
+        self.set_shoot_velocity(velocity)
 
     def set_kick_voltage(self, volts: float):
         self.kick_motor.set_voltage(volts)
@@ -73,7 +74,8 @@ class Shooter:
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
-        self.set_kick_velocity(self._kicker_motor_velocity_sub.get())
+        velocity = self._kicker_motor_velocity_sub.get()
+        self.set_kick_velocity(velocity)
 
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
@@ -107,7 +109,8 @@ class Shooter:
 
     def periodic(self) -> None:
         # constantly checks procedure for unjam
-        self.kick_unjam()
+        # self.kick_unjam()
+        return
 
     @property
     def shoot_distance(self) -> float:

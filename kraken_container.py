@@ -13,12 +13,15 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-from hardware.impl.limelight import Limelight
-from commands.face_target import FaceTarget
-from generated.tuner_constants import TunerConstants
-from telemetry import Telemetry
 
-from subsystems import shooter, music
+from commands.face_target import FaceTarget
+from commands.shoot import Shoot
+from commands.shoot_kicker import Shoot_Kicker
+from generated.tuner_constants import TunerConstants
+from hardware.impl.limelight import Limelight
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+from subsystems import music, shooter
+from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -35,6 +38,7 @@ CROSS_BUTTON = 1
 CIRCLE_BUTTON = 2
 SHARE_BUTTON = 9
 L1_BUTTON = 5
+R1_BUTTON = 6
 POV_UP = 0
 POV_DOWN = 180
 
@@ -57,10 +61,8 @@ JOYSTICK_SLEW_RATE = 3
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 
 # shooter can id
-SHOOT_MOTOR_ID = 0
-KICK_MOTOR_ID = 1
-
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+SHOOT_MOTOR_ID = 59
+KICK_MOTOR_ID = 51
 
 
 class KrakenRobotContainer:
@@ -186,6 +188,8 @@ class KrakenRobotContainer:
         Trigger(DriverStation.isDisabled).whileTrue(
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
+
+        # Face target
         self._joystick.button(CIRCLE_BUTTON).whileTrue(
             FaceTarget(
                 self.drivetrain,
@@ -199,6 +203,13 @@ class KrakenRobotContainer:
             )
         )
 
+        # Run main wheel
+        self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
+
+        # Run kicker wheel
+        self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+
+        # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward
@@ -234,10 +245,10 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # Reset the field-centric heading on L1 button press (left bumper)
-        self._joystick.button(L1_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
-        )
+        # # Reset the field-centric heading on L1 button press (left bumper)
+        # self._joystick.button(L1_BUTTON).onTrue(
+        #     self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+        # )
 
         # self.drivetrain.register_telemetry(
         #    lambda state: self._logger.telemeterize(state)
