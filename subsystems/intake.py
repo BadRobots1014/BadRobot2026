@@ -44,7 +44,7 @@ class Intake(Subsystem):
         return self.extension_motor.get_backward_limit()
 
     def seesaw_forward_extended(self):
-        return self.seesaw_motor.get_forward_limit() # have to add spark max limits
+        return self.seesaw_motor.get_forward_limit()  # have to add spark max limits
 
     def seesaw_backward_extended(self):
-        return self.seesaw_motor.get_backward_limit() # have to add spark max limits
+        return self.seesaw_motor.get_backward_limit()  # have to add spark max limits
