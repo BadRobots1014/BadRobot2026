@@ -14,7 +14,7 @@ class Lights(Subsystem):
         self.current_pattern = self.controller.get_solid(r, g, b)
 
     def set_rainbow(self, saturation: int, value: int):
-        self.current_pattern = self.controller.get_rainbow(saturation, value)
+        self.current_pattern = self.controller.get_rainbow(saturation, value, 0.5)
 
     def set_gradient(self, continuous: bool, colors: list[tuple]):
         self.current_pattern = self.controller.get_gradient(continuous, colors)
