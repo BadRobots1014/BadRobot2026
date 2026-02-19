@@ -13,6 +13,8 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
+from commands.shoot import Shoot
+from commands.shoot_kicker import Shoot_Kicker
 from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
