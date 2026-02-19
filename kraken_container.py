@@ -16,9 +16,11 @@ from wpimath.units import rotationsToRadians
 from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+from hardware.impl.limelight import Limelight
+from hardware.impl.spark_flex_motor import SparkFlexMotor
+from subsystems import music, shooter
 from telemetry import Telemetry
-
-from subsystems import shooter, music
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -69,10 +71,8 @@ JOYSTICK_SLEW_RATE = 3
 BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 
 # shooter can id
-SHOOT_MOTOR_ID = 0
-KICK_MOTOR_ID = 1
-
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+SHOOT_MOTOR_ID = 59
+KICK_MOTOR_ID = 51
 
 
 class KrakenRobotContainer:
@@ -198,6 +198,8 @@ class KrakenRobotContainer:
         Trigger(DriverStation.isDisabled).whileTrue(
             self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
         )
+
+        # Face target
         self._joystick.button(CIRCLE_BUTTON).whileTrue(
             FaceTarget(
                 self.drivetrain,
@@ -211,6 +213,13 @@ class KrakenRobotContainer:
             )
         )
 
+        # Run main wheel
+        self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
+
+        # Run kicker wheel
+        self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+
+        # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # POV up - drive forward

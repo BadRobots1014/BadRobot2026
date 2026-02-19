@@ -1,13 +1,8 @@
-# PyBase 2026
+# BadRobot2026
 
-Our goal for **PyBase** is to maintain a solid, working swerve drivetrain so that we have a strong foundation to build on every single year.
-
-2026 is the year we officially made the switch from Java to Python. This is an orphaned version of [EWall25/swervepy](https://github.com/EWall25/swervepy) that is tailored specifically for our team's needs.
+Our goal for **BadRobot2026** is to maintain a solid, working swerve drivetrain so that we have a strong foundation to build on every single year.
 
 **Everyone is welcome** to use or contribute to this code. Just a heads-up: this is primarily built for Team 1014’s specific robots, so expect some breaking changes as we tweak and add things.
-
-> [!NOTE]
-> Keep this repo clean. Any changes to swerve or its core components happen here. At the start of a new season, we fork this repo so that season-specific code doesn't clutter up the main template.
 
 ## Team Wiki
 
