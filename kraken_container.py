@@ -17,10 +17,12 @@ from wpimath.units import rotationsToRadians
 from commands.face_target import FaceTarget
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
+from commands.party_mode import PartyMode
 from generated.tuner_constants import TunerConstants
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
-from subsystems import music, shooter
+from hardware.impl.pwmled import PWMLED
+from subsystems import music, shooter, lights
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -108,12 +110,11 @@ class KrakenRobotContainer:
         )
 
         self.drivetrain = TunerConstants.create_drivetrain()
+        
+        self.music = music.Music(self.drivetrain)
 
-        music_motors = []
-        for module in self.drivetrain.modules:
-            music_motors.append(module.drive_motor)
-            music_motors.append(module.steer_motor)
-        self.music = music.Music(music_motors, self.drivetrain)
+        self.led_controller = PWMLED(0, 5)
+        self.lights = lights.Lights(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -209,8 +210,10 @@ class KrakenRobotContainer:
         # Run kicker wheel
         self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
 
-        # Play music
-        self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
+        # Party Mode
+        self._joystick.button(SHARE_BUTTON).toggleOnTrue(
+            PartyMode(self.lights, self.music)
+        )
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(

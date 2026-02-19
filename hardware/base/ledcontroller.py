@@ -1,5 +1,6 @@
 from abc import ABC
 
+from wpilib import LEDPattern
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
@@ -15,5 +16,5 @@ class LEDController(Sendable, ABC, metaclass=SendableABCMeta):
     def get_gradient(self, continuous: bool, colors: list[tuple]):
         pass
 
-    def apply_pattern(self, pattern):
+    def apply_pattern(self, pattern: LEDPattern):
         pass

@@ -1,4 +1,5 @@
 from commands2 import Subsystem
+from wpilib import LEDPattern
 from hardware.base.ledcontroller import LEDController
 
 
@@ -19,10 +20,12 @@ class Lights(Subsystem):
         self.current_pattern = self.controller.get_gradient(continuous, colors)
 
     def periodic(self):
-        apply_pattern = (
+
+        if self.current_pattern == None:
+            self.set_solid(255, 255, 255)
+
+        apply_pattern: LEDPattern = (
             self.current_pattern
-            if self.current_pattern
-            else self.set_solid(255, 255, 255)
         )
 
         self.controller.apply_pattern(apply_pattern)
