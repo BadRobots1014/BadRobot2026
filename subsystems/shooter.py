@@ -13,14 +13,9 @@ JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
 class Shooter(Subsystem):
-    def __init__(
-        self,
-        main_shoot_motor: Motor,
-        follower_shoot_motor: Motor,
-        shoot_encoder: Encoder,
-        kick_motor: Motor,
-        kick_encoder: Encoder,
-    ):
+    def __init__(self, main_shoot_motor: Motor, follower_shoot_motor: Motor, shoot_encoder: Encoder, kick_motor: Motor,
+                 kick_encoder: Encoder):
+        super().__init__()
         self.shoot_motor = main_shoot_motor
         self.f_shoot_motor = follower_shoot_motor
 
