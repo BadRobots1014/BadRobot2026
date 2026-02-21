@@ -12,6 +12,7 @@ class IdleMode(Enum):
     kBrake = 0
     kCoast = 1
 
+
 class Motor(Sendable, ABC, metaclass=SendableABCMeta):
     def set_voltage(self, voltage: float) -> None:
         pass

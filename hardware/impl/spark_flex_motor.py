@@ -49,4 +49,3 @@ class SparkFlexMotor(Motor):
             self.motor.IdleMode = SparkBase.IdleMode.kBrake
         elif idle_mode == IdleMode.kCoast:
             self.motor.IdleMode = SparkBase.IdleMode.kCoast
-

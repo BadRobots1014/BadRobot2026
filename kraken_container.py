@@ -159,7 +159,6 @@ class KrakenRobotContainer:
 
         self._seesaw = seesaw.Seesaw(self.seesaw_motor)
 
-
         # Configure the button bindings
         self.configureButtonBindings()
 
@@ -237,10 +236,10 @@ class KrakenRobotContainer:
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
-        #run seesaw
+        # run seesaw
         seesaw_forward = run_seesaw.RunSeesaw(self._seesaw, True)
         self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
-        #forward
+        # forward
         seesaw_backward = run_seesaw.RunSeesaw(self._seesaw, False)
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
