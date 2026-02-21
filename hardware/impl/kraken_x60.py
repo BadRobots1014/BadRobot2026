@@ -1,8 +1,4 @@
-import rev
-
-from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
-from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 import phoenix6
 
 
@@ -10,6 +6,7 @@ class Kraken(Motor):
     def __init__(self, motor_id: int):
         super().__init__()
         self.motor = phoenix6.hardware.talon_fx.TalonFX(motor_id)
+        self.motor_id = motor_id
 
     def set_voltage(self, voltage: float):
         self.motor.setVoltage(voltage)
@@ -24,12 +21,18 @@ class Kraken(Motor):
         )
         self.motor.configurator.apply(configuration)
 
+    def set_leader(self, leader: int) -> None:
+        self.motor.set_control(phoenix6.controls.follower.Follower(leader, phoenix6.signals.MotorAlignmentValue.OPPOSED))
+
     def get_motor_controller(self) -> phoenix6.hardware.talon_fx.TalonFX:
         return self.motor
 
     # Getting active voltage
     def get_voltage(self) -> float:
         return self.motor.get_motor_voltage().value
+
+    def get_motor_id(self) -> int:
+        return self.motor_id
 
     def disable(self) -> None:
         self.motor.disable()
