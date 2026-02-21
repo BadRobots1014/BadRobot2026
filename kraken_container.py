@@ -240,6 +240,9 @@ class KrakenRobotContainer:
         #run seesaw
         seesaw_forward = run_seesaw.RunSeesaw(self._seesaw, True)
         self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        #forward
+        seesaw_backward = run_seesaw.RunSeesaw(self._seesaw, False)
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
