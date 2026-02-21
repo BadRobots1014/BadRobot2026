@@ -17,8 +17,8 @@ class RunSeesaw(commands2.Command):
             self.intake.set_seesaw_voltage(-MOTOR_VOLTAGE)
 
     def isFinished(self) -> bool:
-        if (self.dump and self.intake.seesaw_forward_extended()) or (
-            self.dump and self.intake.seesaw_backward_extended()
+        if (self.intake.seesaw_forward_extended()) or (
+            self.intake.seesaw_backward_extended()
         ):
             self.intake.set_seesaw_voltage(0)
             return True
