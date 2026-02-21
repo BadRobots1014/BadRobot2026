@@ -22,6 +22,9 @@ class SparkFlexMotor(Motor):
     def set_inverted(self, inverted: bool):
         self.motor.setInverted(inverted)
 
+    def get_inverted(self) -> bool:
+        return self.motor.getInverted()
+
     def set_velocity(self, velocity: float) -> None:
         self.controller.setSetpoint(
             velocity, rev._rev.SparkLowLevel.ControlType.kVelocity

@@ -34,7 +34,7 @@ class Intake(Subsystem):
         return self.seesaw_motor.get_voltage()
 
     def seesaw_inverted(self):
-        return self.seesaw_motor.set_inverted()
+        return self.seesaw_motor.get_inverted()
 
     # Don't make a property
     def forward_extended(self) -> bool:
