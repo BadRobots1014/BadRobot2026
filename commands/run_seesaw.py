@@ -8,10 +8,8 @@ MOTOR_VOLTAGE = 4
 class RunSeesaw(commands2.Command):
     def __init__(self, intake: Intake, dump: bool = True):
         super().__init__()
-        self.intake = intake 
+        self.intake = intake
         self.dump = dump
-
-
 
         if dump:
             self.intake.set_seesaw_voltage(MOTOR_VOLTAGE)
