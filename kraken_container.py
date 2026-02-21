@@ -56,7 +56,7 @@ TRACKPAD = 14
 
 # drive speeds/limits
 MAX_SPEED = (
-    1.0 * TunerConstants.speed_at_12_volts
+    0.25 * TunerConstants.speed_at_12_volts
 )  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
