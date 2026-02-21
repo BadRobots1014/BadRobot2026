@@ -22,6 +22,7 @@ class Shooter(Subsystem):
         kick_encoder: Encoder,
     ):
         super().__init__()
+
         self.shoot_motor = main_shoot_motor
         self.f_shoot_motor = follower_shoot_motor
 
