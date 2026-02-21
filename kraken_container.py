@@ -15,10 +15,12 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
+from commands.test_intake import TestIntake
 from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
 from hardware.impl.spark_flex_motor import SparkFlexMotor
+from hardware.impl.kraken_x60 import Kraken
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
 from subsystems import music, shooter
@@ -153,6 +155,9 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
+        self.right = Kraken(45)
+        self.left = Kraken(46)
+
         # Configure the button bindings
         self.configureButtonBindings()
 
@@ -246,6 +251,13 @@ class KrakenRobotContainer:
                     -NUDGE_SPEED
                 ).with_velocity_y(0)
             )
+        )
+
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+            TestIntake(self.left, self.right, True)
+        )
+        self._joystick.button(SQUARE_BUTTON).whileTrue(
+            TestIntake(self.left, self.right, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

@@ -13,8 +13,14 @@ JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
 class Shooter(Subsystem):
-    def __init__(self, main_shoot_motor: Motor, follower_shoot_motor: Motor, shoot_encoder: Encoder, kick_motor: Motor,
-                 kick_encoder: Encoder):
+    def __init__(
+        self,
+        main_shoot_motor: Motor,
+        follower_shoot_motor: Motor,
+        shoot_encoder: Encoder,
+        kick_motor: Motor,
+        kick_encoder: Encoder,
+    ):
         super().__init__()
         super().__init__()
 
@@ -76,7 +82,7 @@ class Shooter(Subsystem):
         self.shoot_motor.set_velocity(velocity)
 
     def set_shoot_velocity_from_networktables(self):
-        #velocity = self._shooter_motor_velocity_sub.get()
+        # velocity = self._shooter_motor_velocity_sub.get()
         self.set_shoot_velocity(self.shoot_velocity)
 
     def set_kick_voltage(self, volts: float):
@@ -87,7 +93,7 @@ class Shooter(Subsystem):
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
-        #velocity = self._kicker_motor_velocity_sub.get()
+        # velocity = self._kicker_motor_velocity_sub.get()
         self.set_kick_velocity(self.kick_velocity)
 
     def reset_shoot(self):
