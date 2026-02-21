@@ -1,7 +1,9 @@
+from enum import Enum
+
 import rev
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motor import Motor, IdleMode
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 from rev import SparkBase
 
@@ -41,3 +43,10 @@ class SparkFlexMotor(Motor):
 
     def disable(self) -> None:
         self.motor.disable()
+
+    def set_idle_mode(self, idle_mode: IdleMode):
+        if idle_mode == IdleMode.kBrake:
+            self.motor.IdleMode = SparkBase.IdleMode.kBrake
+        elif idle_mode == IdleMode.kCoast:
+            self.motor.IdleMode = SparkBase.IdleMode.kCoast
+

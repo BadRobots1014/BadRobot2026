@@ -3,7 +3,7 @@ from commands2 import Subsystem
 from ntcore import NetworkTableInstance
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motor import Motor, IdleMode
 import rev
 from rev import ResetMode, PersistMode
 
@@ -37,7 +37,9 @@ class Shooter(Subsystem):
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
-
+        self.shoot_motor.set_idle_mode(IdleMode.kCoast)
+        self.f_shoot_motor.set_idle_mode(IdleMode.kCoast)
+        self.kick_motor.set_idle_mode(IdleMode.kBrake)
         self.follower_config = rev.SparkFlexConfig()
         self.follower_config.inverted(True)
         self.follower_config.follow(self.shoot_motor.get_motor_controller())

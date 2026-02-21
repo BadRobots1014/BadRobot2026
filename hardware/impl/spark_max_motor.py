@@ -6,7 +6,7 @@ from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 from rev import SparkBase
 
 
-class SparkFlexMotor(Motor):
+class SparkMaxMotor(Motor):
     def __init__(
         self,
         motor_id: int,

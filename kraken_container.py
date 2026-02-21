@@ -18,11 +18,13 @@ from commands.shoot_kicker import Shoot_Kicker
 from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+from hardware.impl.spark_max_motor import SparkMaxMotor
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
 from subsystems import music, shooter
 from telemetry import Telemetry
+from subsystems import seesaw
+from commands import run_seesaw
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -76,6 +78,7 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 11
 
 
 class KrakenRobotContainer:
@@ -141,6 +144,7 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotor(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotor(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotor(KICK_MOTOR_ID)
+        self.seesaw_motor = SparkMaxMotor(SEESAW_MOTOR_ID)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -152,6 +156,9 @@ class KrakenRobotContainer:
             self.kick_motor,
             self.kick_encoder,
         )
+
+        self._seesaw = seesaw.Seesaw(self.seesaw_motor)
+
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -229,6 +236,10 @@ class KrakenRobotContainer:
 
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
+
+        #run seesaw
+        seesaw_forward = run_seesaw.RunSeesaw(self._seesaw, True)
+        self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
