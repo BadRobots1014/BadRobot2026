@@ -8,11 +8,11 @@ from subsystems.seesaw import Seesaw
 
 
 class ExtendAndIntake(ParallelCommandGroup):
-    def __init__(self, intake: Intake, seesaw: Seesaw):
+    def __init__(self, intake: Intake, seesaw: Seesaw, dump: bool):
         super().__init__()
         self.addCommands(
             SequentialCommandGroup(
-                ExtendHopper(intake, True), RunIntake(intake, False)
+                ExtendHopper(intake, True), RunIntake(intake, dump)
             ),
-            RunSeesaw(seesaw, False),
+            RunSeesaw(seesaw, dump),
         )
