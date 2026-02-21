@@ -7,7 +7,11 @@ from rev import SparkBase
 
 
 class SparkFlexMotor(Motor):
-    def __init__(self, motor_id: int):
+    def __init__(
+        self,
+        motor_id: int,
+        motor_type: rev.SparkLowLevel.MotorType = rev.SparkLowLevel.MotorType.kBrushless,
+    ):
         super().__init__()
         self.motor = rev.SparkMax(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.controller = self.motor.getClosedLoopController()
