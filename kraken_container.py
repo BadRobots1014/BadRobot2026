@@ -15,7 +15,7 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
-from commands.test_intake import TestIntake
+from commands.intake_demo import IntakeDemo
 from hardware.impl.limelight import Limelight
 from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
@@ -254,10 +254,10 @@ class KrakenRobotContainer:
         )
 
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-            TestIntake(self.left, self.right, True)
+            IntakeDemo(self.left, self.right, True)
         )
         self._joystick.button(SQUARE_BUTTON).whileTrue(
-            TestIntake(self.left, self.right, False)
+            IntakeDemo(self.left, self.right, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

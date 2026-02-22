@@ -6,7 +6,7 @@ from subsystems.intake import Intake
 MOTOR_VOLTAGE = 2
 
 
-class TestIntake(commands2.Command):
+class IntakeDemo(commands2.Command):
     def __init__(self, left: Motor, right: Motor, forward: bool):
         super().__init__()
         self.left = left
