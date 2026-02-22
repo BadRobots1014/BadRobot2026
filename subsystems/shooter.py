@@ -22,7 +22,6 @@ class Shooter(Subsystem):
         kick_encoder: Encoder,
     ):
         super().__init__()
-        super().__init__()
 
         self.shoot_motor = main_shoot_motor
         self.f_shoot_motor = follower_shoot_motor
@@ -40,7 +39,8 @@ class Shooter(Subsystem):
         self.start_unjam = -1
 
         self.follower_config = rev.SparkFlexConfig()
-        self.follower_config.follow(self.shoot_motor.get_motor_controller(), True)
+        self.follower_config.inverted(True)
+        self.follower_config.follow(self.shoot_motor.get_motor_controller())
 
         self.f_shoot_motor.get_motor_controller().configure(
             self.follower_config,
@@ -48,31 +48,29 @@ class Shooter(Subsystem):
             PersistMode.kPersistParameters,
         )
 
-        # self._inst = NetworkTableInstance.getDefault()
-        # self._shooter_table = self._inst.getTable("ShooterTable")
-        # # Create nt topics
-        # self._shooter_motor_velocity_topic = self._shooter_table.getDoubleTopic(
-        #     "ShooterMotorVelocity"
-        # )
-        # self._kicker_motor_velocity_topic = self._shooter_table.getDoubleTopic(
-        #     "KickerMotorVelocity"
-        # )
-
-        print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+        self._inst = NetworkTableInstance.getDefault()
+        self._shooter_table = self._inst.getTable("ShooterTable")
+        # Create nt topics
+        self._shooter_motor_velocity_topic = self._shooter_table.getDoubleTopic(
+            "ShooterMotorVelocity"
+        )
+        self._kicker_motor_velocity_topic = self._shooter_table.getDoubleTopic(
+            "KickerMotorVelocity"
+        )
 
         # create nt subscribers
-        # self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-        #     0.0
-        # )
-        # self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-        #     0.0
-        # )
-        #
-        # # set nt defaults
-        # shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
-        # shooter_motor_velocity_pub.set(0.0)
-        # kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
-        # kicker_motor_velocity_pub.set(0.0)
+        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
+            0.0
+        )
+        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
+            0.0
+        )
+
+        # set nt defaults
+        shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
+        shooter_motor_velocity_pub.set(0.0)
+        kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
+        kicker_motor_velocity_pub.set(0.0)
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
@@ -82,8 +80,8 @@ class Shooter(Subsystem):
         self.shoot_motor.set_velocity(velocity)
 
     def set_shoot_velocity_from_networktables(self):
-        # velocity = self._shooter_motor_velocity_sub.get()
-        self.set_shoot_velocity(self.shoot_velocity)
+        velocity = self._shooter_motor_velocity_sub.get()
+        self.set_shoot_velocity(velocity)
 
     def set_kick_voltage(self, volts: float):
         self.kick_motor.set_voltage(volts)
@@ -93,8 +91,8 @@ class Shooter(Subsystem):
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_velocity_from_networktables(self):
-        # velocity = self._kicker_motor_velocity_sub.get()
-        self.set_kick_velocity(self.kick_velocity)
+        velocity = self._kicker_motor_velocity_sub.get()
+        self.set_kick_velocity(velocity)
 
     def reset_shoot(self):
         self.shoot_encoder.set_position(0)
