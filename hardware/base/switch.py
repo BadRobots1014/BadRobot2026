@@ -6,5 +6,5 @@ from hardware.base import SendableABCMeta
 
 
 class LimitSwitch(Sendable, ABC, metaclass=SendableABCMeta):
-    def get_activated(self) -> bool:
+    def get_state(self) -> bool:
         pass

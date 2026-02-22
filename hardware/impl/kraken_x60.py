@@ -21,8 +21,17 @@ class Kraken(Motor):
         )
         self.motor.configurator.apply(configuration)
 
-    def set_leader(self, leader: int) -> None:
-        self.motor.set_control(phoenix6.controls.follower.Follower(leader, phoenix6.signals.MotorAlignmentValue.OPPOSED))
+    def set_leader(self, leader: int, oppose: bool) -> None:
+        self.motor.set_control(
+            phoenix6.controls.follower.Follower(
+                leader,
+                motor_alignment=(
+                    phoenix6.signals.MotorAlignmentValue.OPPOSED
+                    if oppose
+                    else phoenix6.signals.MotorAlignmentValue.ALIGNED
+                ),
+            )
+        )
 
     def get_motor_controller(self) -> phoenix6.hardware.talon_fx.TalonFX:
         return self.motor

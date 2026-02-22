@@ -17,7 +17,7 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
     def set_inverted(self, inverted: bool) -> None:
         pass
 
-    def set_leader(self, leader: int) -> None:
+    def set_leader(self, leader: int, oppose: bool) -> None:
         pass
 
     def get_inverted(self, inverted: bool) -> None:
