@@ -17,6 +17,9 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
     def set_inverted(self, inverted: bool) -> None:
         pass
 
+    def set_leader(self, leader: int, oppose: bool) -> None:
+        pass
+
     def get_inverted(self, inverted: bool) -> None:
         pass
 
@@ -33,6 +36,9 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
         pass
 
     def get_motor_controller(self) -> SparkBase:
+        pass
+
+    def get_motor_id(self) -> int:
         pass
 
     def disable(self) -> None:
