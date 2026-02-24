@@ -13,6 +13,5 @@ class Reload(SequentialCommandGroup):
         self.addCommands(
             RunSeesaw(seesaw, True),
             ExtendHopper(intake, False),
-            RunSeesaw(seesaw, False)            
-
+            RunSeesaw(seesaw, False),
         )
