@@ -81,6 +81,10 @@ FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
 SEESAW_MOTOR_ID = 11
 
+# pinion can id
+RIGHT_PINION_ID = 45
+LEFT_PINION_ID = 46
+
 
 class KrakenRobotContainer:
     """
@@ -159,8 +163,8 @@ class KrakenRobotContainer:
         )
 
         self._seesaw = seesaw.Seesaw(self.seesaw_motor)
-        self.right = Kraken(45)
-        self.left = Kraken(46)
+        self.right_pinion = Kraken(RIGHT_PINION_ID)
+        self.left_pinion = Kraken(LEFT_PINION_ID)
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -265,10 +269,17 @@ class KrakenRobotContainer:
         )
 
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+<<<<<<< HEAD
             IntakeDemo(self.left, self.right, True)
         )
         self._joystick.button(SQUARE_BUTTON).whileTrue(
             IntakeDemo(self.left, self.right, False)
+=======
+            TestIntake(self.left_pinion, self.right_pinion, True)
+        )
+        self._joystick.button(SQUARE_BUTTON).whileTrue(
+            TestIntake(self.left_pinion, self.right_pinion, False)
+>>>>>>> origin/testing-2/21
         )
 
         # Run SysId routines when holding back/start and X/Y.
