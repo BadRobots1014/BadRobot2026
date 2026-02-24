@@ -34,9 +34,7 @@ class ExtendAndIntake(ParallelCommandGroup):
         self.addCommands(
             Shoot(shooter),
             SequentialCommandGroup(
-                ParallelCommandGroup(
-                    RunSeesaw(seesaw, False), self.GotoShoot
-                ),
+                ParallelCommandGroup(RunSeesaw(seesaw, False), self.GotoShoot),
                 Shoot_Kicker(shooter),
-            )
+            ),
         )
