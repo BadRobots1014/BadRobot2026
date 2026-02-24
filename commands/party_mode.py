@@ -1,10 +1,10 @@
 import commands2
 
-from subsystems.lights import Lights
+from subsystems.lights import LightSubsystem
 
 
-class PartyMode(commands2.InstantCommand):
-    def __init__(self, light_system: Lights):
+class PartyModeCommand(commands2.InstantCommand):
+    def __init__(self, light_system: LightSubsystem):
         super().__init__()
         self.light_system = light_system
         self.saturation = 255

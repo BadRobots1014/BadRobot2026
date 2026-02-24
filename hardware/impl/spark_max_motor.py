@@ -2,11 +2,11 @@ import rev
 from rev import SparkBase
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
-class SparkMaxMotor(Motor):
+class SparkMaxMotorController(MotorController):
     def __init__(
         self,
         motor_id: int,

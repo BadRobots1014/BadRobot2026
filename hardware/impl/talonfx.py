@@ -4,10 +4,10 @@ from phoenix6.controls.voltage_out import VoltageOut
 from phoenix6.units import rotations_per_second
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 
 
-class Kraken(Motor):
+class TalonFXMotorController(MotorController):
     def __init__(self, motor_id: int):
         super().__init__()
         self.motor = phoenix6.hardware.talon_fx.TalonFX(motor_id)

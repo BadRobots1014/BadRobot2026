@@ -1,11 +1,11 @@
 import commands2
-from subsystems.intake import Intake
+from subsystems.intake import IntakeSubsystem
 
 INTAKE_VOLTAGE = 4.0
 
 
-class RunIntake(commands2.Command):
-    def __init__(self, intake: Intake, dump: bool):
+class RunIntakeCommand(commands2.Command):
+    def __init__(self, intake: IntakeSubsystem, dump: bool):
         super().__init__()
         self.addRequirements(intake)
         self.intake = intake

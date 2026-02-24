@@ -1,16 +1,18 @@
 from commands2 import ParallelCommandGroup, SequentialCommandGroup
 
-from commands.extend_hopper import ExtendHopper
-from commands.run_intake import RunIntake
-from commands.run_seesaw import RunSeesaw
-from subsystems.intake import Intake
-from subsystems.seesaw import Seesaw
+from commands.extend_hopper import ExtendHopperCommand
+from commands.run_intake import RunIntakeCommand
+from commands.run_seesaw import RunSeesawCommand
+from subsystems.intake import IntakeSubsystem
+from subsystems.seesaw import SeesawSubsystem
 
 
-class ExtendAndIntake(ParallelCommandGroup):
-    def __init__(self, intake: Intake, seesaw: Seesaw, dump: bool):
+class ExtendAndIntakeRoutine(ParallelCommandGroup):
+    def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem, dump: bool):
         super().__init__()
         self.addCommands(
-            SequentialCommandGroup(ExtendHopper(intake, True), RunIntake(intake, dump)),
-            RunSeesaw(seesaw, dump),
+            SequentialCommandGroup(
+                ExtendHopperCommand(intake, True), RunIntakeCommand(intake, dump)
+            ),
+            RunSeesawCommand(seesaw, dump),
         )

@@ -2,7 +2,7 @@ from commands2 import Subsystem
 from hardware.base.ledcontroller import LEDController
 
 
-class Lights(Subsystem):
+class LightSubsystem(Subsystem):
     def __init__(self, controller: LEDController):
         super().__init__()
         self.controller = controller

@@ -5,20 +5,20 @@ from ntcore import NetworkTableInstance
 from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
-class Shooter(Subsystem):
+class ShooterSubsystem(Subsystem):
     def __init__(
         self,
-        main_shoot_motor: Motor,
-        follower_shoot_motor: Motor,
+        main_shoot_motor: MotorController,
+        follower_shoot_motor: MotorController,
         shoot_encoder: Encoder,
-        kick_motor: Motor,
+        kick_motor: MotorController,
         kick_encoder: Encoder,
     ):
         super().__init__()
@@ -73,19 +73,19 @@ class Shooter(Subsystem):
             "KickerMotorVelocity"
         )
 
-        # create nt subscribers
-        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-            0.0
-        )
-        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-            0.0
-        )
-
         # set nt defaults
         shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
         shooter_motor_velocity_pub.set(0.0)
         kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
         kicker_motor_velocity_pub.set(0.0)
+
+        # create nt subscribers
+        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
+            100  # default value so we know something is going wrong with network tables
+        )
+        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
+            100  # default value so we know something is going wrong with network tables
+        )
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)

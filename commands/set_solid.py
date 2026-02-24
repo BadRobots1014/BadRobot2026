@@ -1,10 +1,10 @@
 import commands2
 
-from subsystems.lights import Lights
+from subsystems.lights import LightSubsystem
 
 
-class SetSolid(commands2.InstantCommand):
-    def __init__(self, light_system: Lights, r: int, g: int, b: int):
+class SetSolidCommand(commands2.InstantCommand):
+    def __init__(self, light_system: LightSubsystem, r: int, g: int, b: int):
         super().__init__()
         self.light_system = light_system
         self.r = r
