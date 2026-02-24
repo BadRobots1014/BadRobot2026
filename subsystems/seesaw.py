@@ -1,12 +1,12 @@
 from commands2 import Subsystem
 
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 
 # Dumping velocity should be 1500
 
 
 class SeesawSubsystem(Subsystem):
-    def __init__(self, seesaw: Motor) -> None:
+    def __init__(self, seesaw: MotorController) -> None:
         super().__init__()
         self.seesaw_motor = seesaw
 

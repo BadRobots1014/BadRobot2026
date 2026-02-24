@@ -7,7 +7,7 @@ from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
 
 
-class Motor(Sendable, ABC, metaclass=SendableABCMeta):
+class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
     @abstractmethod
     def set_voltage(self, voltage: float) -> None: ...
 

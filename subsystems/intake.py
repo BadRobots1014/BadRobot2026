@@ -1,5 +1,5 @@
 from commands2 import Subsystem
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
 
 # Dumping velocity should be 1500
@@ -8,9 +8,9 @@ from hardware.base.switch import LimitSwitch
 class IntakeSubsystem(Subsystem):
     def __init__(
         self,
-        intake: Motor,
-        left: Motor,
-        right: Motor,
+        intake: MotorController,
+        left: MotorController,
+        right: MotorController,
         forward: LimitSwitch,
         backward: LimitSwitch,
     ) -> None:

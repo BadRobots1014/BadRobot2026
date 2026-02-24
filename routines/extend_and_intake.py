@@ -7,7 +7,7 @@ from subsystems.intake import IntakeSubsystem
 from subsystems.seesaw import SeesawSubsystem
 
 
-class ExtendAndIntake(ParallelCommandGroup):
+class ExtendAndIntakeRoutine(ParallelCommandGroup):
     def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem, dump: bool):
         super().__init__()
         self.addCommands(
