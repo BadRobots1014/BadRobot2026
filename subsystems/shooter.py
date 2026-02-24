@@ -12,7 +12,7 @@ JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
-class Shooter(Subsystem):
+class ShooterSubsystem(Subsystem):
     def __init__(
         self,
         main_shoot_motor: Motor,

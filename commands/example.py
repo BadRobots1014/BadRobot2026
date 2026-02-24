@@ -1,7 +1,7 @@
 import commands2
 
 
-class Example(commands2.Command):
+class ExampleCommand(commands2.Command):
 
     # pass in parent subsystem
     def __init__(self):

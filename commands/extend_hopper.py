@@ -1,13 +1,13 @@
 import commands2
 
-from subsystems.intake import Intake
+from subsystems.intake import IntakeSubsystem
 
 MOTOR_VOLTAGE = 4
 INTAKE_VOLTAGE = 4
 
 
-class ExtendHopper(commands2.Command):
-    def __init__(self, intake: Intake, extend: bool):
+class ExtendHopperCommand(commands2.Command):
+    def __init__(self, intake: IntakeSubsystem, extend: bool):
         super().__init__()
         self.intake = intake
         self.extend = extend

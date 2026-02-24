@@ -15,10 +15,10 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
 from commands import run_seesaw
-from commands.face_target import FaceTarget
-from commands.intake_demo import IntakeDemo
-from commands.shoot import Shoot
-from commands.shoot_kicker import Shoot_Kicker
+from commands.face_target import FaceTargetCommand
+from commands.intake_demo import IntakeDemoCommand
+from commands.shoot import ShootCommand
+from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
 from hardware.impl.kraken_x60 import Kraken
 from hardware.impl.limelight import Limelight
@@ -134,7 +134,7 @@ class KrakenRobotContainer:
         for module in self.drivetrain.modules:
             music_motors.append(module.drive_motor)
             music_motors.append(module.steer_motor)
-        self.music = music.Music(music_motors, self.drivetrain)
+        self.music = music.MusicSubsystem(music_motors, self.drivetrain)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -154,7 +154,7 @@ class KrakenRobotContainer:
         self.kick_encoder = self.kick_motor.get_encoder()
 
         # shooter
-        self._shooter = shooter.Shooter(
+        self._shooter = shooter.ShooterSubsystem(
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
@@ -162,7 +162,7 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
-        self._seesaw = seesaw.Seesaw(self.seesaw_motor)
+        self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
         self.right_pinion = Kraken(RIGHT_PINION_ID)
         self.left_pinion = Kraken(LEFT_PINION_ID)
 
@@ -222,7 +222,7 @@ class KrakenRobotContainer:
 
         # Face target
         self._joystick.button(CIRCLE_BUTTON).whileTrue(
-            FaceTarget(
+            FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
                 self._drive,
@@ -235,19 +235,19 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
+        self._joystick.button(L1_BUTTON).whileTrue(ShootCommand(self._shooter))
 
         # Run kicker wheel
-        self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+        self._joystick.button(R1_BUTTON).whileTrue(ShootKickerCommand(self._shooter))
 
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
         # run seesaw
-        seesaw_forward = run_seesaw.RunSeesaw(self._seesaw, True)
+        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
         self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
         # forward
-        seesaw_backward = run_seesaw.RunSeesaw(self._seesaw, False)
+        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
@@ -269,10 +269,10 @@ class KrakenRobotContainer:
         )
 
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemo(self.left_pinion, self.right_pinion, True)
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
         )
         self._joystick.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemo(self.left_pinion, self.right_pinion, False)
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

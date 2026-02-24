@@ -5,7 +5,7 @@ from hardware.base.switch import LimitSwitch
 # Dumping velocity should be 1500
 
 
-class Intake(Subsystem):
+class IntakeSubsystem(Subsystem):
     def __init__(
         self,
         intake: Motor,

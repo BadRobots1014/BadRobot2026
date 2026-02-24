@@ -1,12 +1,12 @@
 import commands2
 
 from hardware.base.motor import Motor
-from subsystems.intake import Intake
+from subsystems.intake import IntakeSubsystem
 
 MOTOR_VOLTAGE = 2
 
 
-class IntakeDemo(commands2.Command):
+class IntakeDemoCommand(commands2.Command):
     def __init__(self, left: Motor, right: Motor, forward: bool):
         super().__init__()
         self.left = left
