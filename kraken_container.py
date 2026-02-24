@@ -269,17 +269,10 @@ class KrakenRobotContainer:
         )
 
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-<<<<<<< HEAD
-            IntakeDemo(self.left, self.right, True)
+            IntakeDemo(self.left_pinion, self.right_pinion, True)
         )
         self._joystick.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemo(self.left, self.right, False)
-=======
-            TestIntake(self.left_pinion, self.right_pinion, True)
-        )
-        self._joystick.button(SQUARE_BUTTON).whileTrue(
-            TestIntake(self.left_pinion, self.right_pinion, False)
->>>>>>> origin/testing-2/21
+            IntakeDemo(self.left_pinion, self.right_pinion, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

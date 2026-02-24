@@ -1,5 +1,10 @@
-from hardware.base.motor import Motor
 import phoenix6
+from phoenix6.controls.velocity_voltage import VelocityVoltage
+from phoenix6.controls.voltage_out import VoltageOut
+from phoenix6.units import rotations_per_second
+
+from hardware.base.encoder import Encoder
+from hardware.base.motor import Motor
 
 
 class Kraken(Motor):
@@ -9,14 +14,16 @@ class Kraken(Motor):
         self.motor_id = motor_id
 
     def set_voltage(self, voltage: float):
-        self.motor.setVoltage(voltage)
+        self.motor.set_control(VoltageOut(voltage))
+
+    def set_velocity(self, velocity: float) -> None:
+        self.motor.set_control(VelocityVoltage(rotations_per_second(velocity)))
+        return None
 
     def set_inverted(self, inverted: bool):
-        configuration = (
-            phoenix6.hardware.talon_fx.configs.TalonFXConfiguration().with_motor_output(
-                phoenix6.hardware.talon_fx.configs.MotorOutputConfigs().with_inverted(
-                    phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
-                )
+        configuration = phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.MotorOutputConfigs().with_inverted(
+                phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
             )
         )
         self.motor.configurator.apply(configuration)
@@ -40,8 +47,17 @@ class Kraken(Motor):
     def get_voltage(self) -> float:
         return self.motor.get_motor_voltage().value
 
+    def get_encoder(self) -> Encoder:
+        raise Exception("Not Implemented")
+
     def get_motor_id(self) -> int:
         return self.motor_id
 
+    def get_forward_limit(self) -> bool:
+        raise Exception("Not Implemented")
+
+    def get_backward_limit(self) -> bool:
+        raise Exception("Not Implemented")
+
     def disable(self) -> None:
-        self.motor.disable()
+        self.motor.set_control(VoltageOut(0))

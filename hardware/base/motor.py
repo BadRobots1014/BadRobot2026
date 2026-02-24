@@ -17,8 +17,8 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
     @abstractmethod
     def set_inverted(self, inverted: bool) -> None: ...
 
-    @abstractmethod
-    def set_leader(self, leader: int, oppose: bool) -> None: ...
+    def set_leader(self, leader: int, oppose: bool) -> None:
+        raise Exception("Not Implemented")
 
     @abstractmethod
     def get_encoder(self) -> Encoder: ...

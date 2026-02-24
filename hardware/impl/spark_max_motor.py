@@ -33,6 +33,9 @@ class SparkMaxMotor(Motor):
     def get_motor_controller(self) -> SparkBase:
         return self.motor
 
+    def get_motor_id(self) -> int:
+        return self.motor.getDeviceId()
+
     # Getting active voltage
     def get_voltage(self) -> float:
         return self.motor.getBusVoltage() * self.motor.getAppliedOutput()
