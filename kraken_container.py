@@ -13,17 +13,18 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
+
+from commands import run_seesaw
+from commands.face_target import FaceTarget
+from commands.intake_demo import IntakeDemo
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
-from commands.intake_demo import IntakeDemo
-from hardware.impl.limelight import Limelight
-from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
-from hardware.impl.spark_flex_motor import SparkFlexMotor
 from hardware.impl.kraken_x60 import Kraken
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
-from subsystems import music, shooter
+from hardware.impl.spark_max_motor import SparkMaxMotor
+from subsystems import music, seesaw, shooter
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -78,6 +79,11 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 11
+
+# pinion can id
+RIGHT_PINION_ID = 45
+LEFT_PINION_ID = 46
 
 
 class KrakenRobotContainer:
@@ -143,6 +149,7 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotor(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotor(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotor(KICK_MOTOR_ID)
+        self.seesaw_motor = SparkMaxMotor(SEESAW_MOTOR_ID)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -155,8 +162,9 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
-        self.right = Kraken(45)
-        self.left = Kraken(46)
+        self._seesaw = seesaw.Seesaw(self.seesaw_motor)
+        self.right_pinion = Kraken(RIGHT_PINION_ID)
+        self.left_pinion = Kraken(LEFT_PINION_ID)
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -235,6 +243,13 @@ class KrakenRobotContainer:
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
 
+        # run seesaw
+        seesaw_forward = run_seesaw.RunSeesaw(self._seesaw, True)
+        self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        # forward
+        seesaw_backward = run_seesaw.RunSeesaw(self._seesaw, False)
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
+
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
@@ -254,10 +269,10 @@ class KrakenRobotContainer:
         )
 
         self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemo(self.left, self.right, True)
+            IntakeDemo(self.left_pinion, self.right_pinion, True)
         )
         self._joystick.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemo(self.left, self.right, False)
+            IntakeDemo(self.left_pinion, self.right_pinion, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from wpiutil import Sendable
 
@@ -6,11 +6,11 @@ from hardware.base import SendableABCMeta
 
 
 class Encoder(Sendable, ABC, metaclass=SendableABCMeta):
-    def get_velocity(self) -> float:
-        return 0.0
+    @abstractmethod
+    def get_velocity(self) -> float: ...
 
-    def get_position(self) -> float:
-        return 0.0
+    @abstractmethod
+    def get_position(self) -> float: ...
 
-    def set_position(self, position: float):
-        pass
+    @abstractmethod
+    def set_position(self, position: float): ...
