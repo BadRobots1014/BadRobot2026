@@ -1,6 +1,5 @@
 from abc import ABC
 
-from rev import SparkBase
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
@@ -32,7 +31,7 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
     def get_backward_limit(self) -> bool:
         pass
 
-    def get_motor_controller(self) -> SparkBase:
+    def get_motor_controller(self) -> any:
         pass
 
     def get_motor_id(self) -> int:
