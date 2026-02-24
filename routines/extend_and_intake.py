@@ -11,6 +11,8 @@ class ExtendAndIntake(ParallelCommandGroup):
     def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem, dump: bool):
         super().__init__()
         self.addCommands(
-            SequentialCommandGroup(ExtendHopperCommand(intake, True), RunIntakeCommand(intake, dump)),
+            SequentialCommandGroup(
+                ExtendHopperCommand(intake, True), RunIntakeCommand(intake, dump)
+            ),
             RunSeesawCommand(seesaw, dump),
         )
