@@ -81,10 +81,10 @@ class ShooterSubsystem(Subsystem):
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-            100 # default value so we know something is going wrong with network tables
+            100  # default value so we know something is going wrong with network tables
         )
         self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-            100 # default value so we know something is going wrong with network tables
+            100  # default value so we know something is going wrong with network tables
         )
 
     def set_shoot_voltage(self, volts: float):
