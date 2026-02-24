@@ -1,11 +1,11 @@
+import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
-import rev
-from rev import ResetMode, PersistMode
 
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
@@ -38,12 +38,27 @@ class Shooter(Subsystem):
         self.time_of_stall = -1
         self.start_unjam = -1
 
-        self.follower_config = rev.SparkFlexConfig()
-        self.follower_config.inverted(True)
-        self.follower_config.follow(self.shoot_motor.get_motor_controller())
+        # Config shoot motor
+        shoot_config = rev.SparkFlexConfig()
+        shoot_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        self.shoot_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
 
+        # Config kick motor
+        kick_config = rev.SparkFlexConfig()
+        kick_config.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+        self.kick_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+
+        # Config follower motor
+        follower_config = rev.SparkFlexConfig()
+        follower_config.inverted(True)
+        follower_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        follower_config.follow(self.shoot_motor.get_motor_controller())
         self.f_shoot_motor.get_motor_controller().configure(
-            self.follower_config,
+            follower_config,
             ResetMode.kResetSafeParameters,
             PersistMode.kPersistParameters,
         )

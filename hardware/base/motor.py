@@ -1,45 +1,42 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Any
 
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
-from rev import SparkBase
 
 
 class Motor(Sendable, ABC, metaclass=SendableABCMeta):
-    def set_voltage(self, voltage: float) -> None:
-        pass
+    @abstractmethod
+    def set_voltage(self, voltage: float) -> None: ...
 
-    def set_velocity(self, velocity: float) -> None:
-        pass
+    @abstractmethod
+    def set_velocity(self, velocity: float) -> None: ...
 
-    def set_inverted(self, inverted: bool) -> None:
-        pass
+    @abstractmethod
+    def set_inverted(self, inverted: bool) -> None: ...
 
     def set_leader(self, leader: int, oppose: bool) -> None:
-        pass
+        raise Exception("Not Implemented")
 
-    def get_inverted(self, inverted: bool) -> None:
-        pass
+    @abstractmethod
+    def get_encoder(self) -> Encoder: ...
 
-    def get_encoder(self) -> Encoder:
-        pass
+    @abstractmethod
+    def get_voltage(self) -> float: ...
 
-    def get_voltage(self) -> float:
-        pass
+    @abstractmethod
+    def get_forward_limit(self) -> bool: ...
 
-    def get_forward_limit(self) -> bool:
-        pass
+    @abstractmethod
+    def get_backward_limit(self) -> bool: ...
 
-    def get_backward_limit(self) -> bool:
-        pass
+    @abstractmethod
+    def get_motor_controller(self) -> Any: ...
 
-    def get_motor_controller(self) -> SparkBase:
-        pass
+    @abstractmethod
+    def get_motor_id(self) -> int: ...
 
-    def get_motor_id(self) -> int:
-        pass
-
-    def disable(self) -> None:
-        pass
+    @abstractmethod
+    def disable(self) -> None: ...

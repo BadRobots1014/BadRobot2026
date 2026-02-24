@@ -1,12 +1,12 @@
 import rev
+from rev import SparkBase
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
-from rev import SparkBase
 
 
-class SparkFlexMotor(Motor):
+class SparkMaxMotor(Motor):
     def __init__(
         self,
         motor_id: int,
@@ -22,9 +22,6 @@ class SparkFlexMotor(Motor):
     def set_inverted(self, inverted: bool):
         self.motor.setInverted(inverted)
 
-    def get_inverted(self) -> bool:
-        return self.motor.getInverted()
-
     def set_velocity(self, velocity: float) -> None:
         self.controller.setSetpoint(
             velocity, rev._rev.SparkLowLevel.ControlType.kVelocity
@@ -35,6 +32,9 @@ class SparkFlexMotor(Motor):
 
     def get_motor_controller(self) -> SparkBase:
         return self.motor
+
+    def get_motor_id(self) -> int:
+        return self.motor.getDeviceId()
 
     # Getting active voltage
     def get_voltage(self) -> float:
