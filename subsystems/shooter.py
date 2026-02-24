@@ -1,24 +1,24 @@
+import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
-import rev
-from rev import ResetMode, PersistMode
+from hardware.base.motorcontroller import MotorController
 
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 
-class Shooter(Subsystem):
+class ShooterSubsystem(Subsystem):
     def __init__(
         self,
-        main_shoot_motor: Motor,
-        follower_shoot_motor: Motor,
+        main_shoot_motor: MotorController,
+        follower_shoot_motor: MotorController,
         shoot_encoder: Encoder,
-        kick_motor: Motor,
+        kick_motor: MotorController,
         kick_encoder: Encoder,
     ):
         super().__init__()
@@ -38,12 +38,27 @@ class Shooter(Subsystem):
         self.time_of_stall = -1
         self.start_unjam = -1
 
-        self.follower_config = rev.SparkFlexConfig()
-        self.follower_config.inverted(True)
-        self.follower_config.follow(self.shoot_motor.get_motor_controller())
+        # Config shoot motor
+        shoot_config = rev.SparkFlexConfig()
+        shoot_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        self.shoot_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
 
+        # Config kick motor
+        kick_config = rev.SparkFlexConfig()
+        kick_config.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+        self.kick_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+
+        # Config follower motor
+        follower_config = rev.SparkFlexConfig()
+        follower_config.inverted(True)
+        follower_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        follower_config.follow(self.shoot_motor.get_motor_controller())
         self.f_shoot_motor.get_motor_controller().configure(
-            self.follower_config,
+            follower_config,
             ResetMode.kResetSafeParameters,
             PersistMode.kPersistParameters,
         )
@@ -58,19 +73,19 @@ class Shooter(Subsystem):
             "KickerMotorVelocity"
         )
 
-        # create nt subscribers
-        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-            0.0
-        )
-        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-            0.0
-        )
-
         # set nt defaults
         shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
         shooter_motor_velocity_pub.set(0.0)
         kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
         kicker_motor_velocity_pub.set(0.0)
+
+        # create nt subscribers
+        self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
+            100  # default value so we know something is going wrong with network tables
+        )
+        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
+            100  # default value so we know something is going wrong with network tables
+        )
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)

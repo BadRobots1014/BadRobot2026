@@ -13,15 +13,19 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
-from commands.shoot import Shoot
-from commands.shoot_kicker import Shoot_Kicker
-from hardware.impl.limelight import Limelight
-from commands.face_target import FaceTarget
+
+from commands import run_seesaw
+from commands.bang_bang_shoot import BangBangShootCommand
+from commands.face_target import FaceTargetCommand
+from commands.intake_demo import IntakeDemoCommand
+from commands.shoot import ShootCommand
+from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
-from hardware.impl.spark_flex_motor import SparkFlexMotor
+from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
-from hardware.impl.spark_flex_motor import SparkFlexMotor
-from subsystems import music, shooter
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
+from hardware.impl.spark_max_motor import SparkMaxMotorController
+from subsystems import music, seesaw, shooter
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -56,7 +60,7 @@ TRACKPAD = 14
 
 # drive speeds/limits
 MAX_SPEED = (
-    1.0 * TunerConstants.speed_at_12_volts
+    0.25 * TunerConstants.speed_at_12_volts
 )  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
@@ -76,6 +80,11 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 11
+
+# pinion can id
+RIGHT_PINION_ID = 45
+LEFT_PINION_ID = 46
 
 
 class KrakenRobotContainer:
@@ -126,7 +135,7 @@ class KrakenRobotContainer:
         for module in self.drivetrain.modules:
             music_motors.append(module.drive_motor)
             music_motors.append(module.steer_motor)
-        self.music = music.Music(music_motors, self.drivetrain)
+        self.music = music.MusicSubsystem(music_motors, self.drivetrain)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -138,20 +147,25 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
-        self.main_shoot_motor = SparkFlexMotor(MAIN_SHOOT_MOTOR_ID)
-        self.follower_shoot_motor = SparkFlexMotor(FOLLOWER_SHOOT_MOTOR_ID)
-        self.kick_motor = SparkFlexMotor(KICK_MOTOR_ID)
+        self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
+        self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
+        self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
+        self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
         # shooter
-        self._shooter = shooter.Shooter(
+        self._shooter = shooter.ShooterSubsystem(
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
             self.kick_motor,
             self.kick_encoder,
         )
+
+        self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
+        self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
+        self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -209,7 +223,7 @@ class KrakenRobotContainer:
 
         # Face target
         self._joystick.button(CIRCLE_BUTTON).whileTrue(
-            FaceTarget(
+            FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
                 self._drive,
@@ -222,13 +236,20 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._joystick.button(L1_BUTTON).whileTrue(Shoot(self._shooter))
+        self._joystick.button(L1_BUTTON).whileTrue(BangBangShootCommand(self._shooter))
 
         # Run kicker wheel
-        self._joystick.button(R1_BUTTON).whileTrue(Shoot_Kicker(self._shooter))
+        self._joystick.button(R1_BUTTON).whileTrue(ShootKickerCommand(self._shooter))
 
         # Play music
         self._joystick.button(SHARE_BUTTON).toggleOnTrue(self.music.play_song())
+
+        # run seesaw
+        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
+        self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        # forward
+        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
@@ -246,6 +267,13 @@ class KrakenRobotContainer:
                     -NUDGE_SPEED
                 ).with_velocity_y(0)
             )
+        )
+
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
+        )
+        self._joystick.button(SQUARE_BUTTON).whileTrue(
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.

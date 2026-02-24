@@ -11,13 +11,19 @@ import wpimath
 import wpimath.controller
 import wpimath.filter
 import commands2
+from commands2.button import Trigger
+
+from commands.party_mode import PartyModeCommand
+from hardware.base.ledcontroller import LEDController
+from hardware.impl.pwmled import PWMLED
 from subsystems import drivetrain_neo
+from subsystems.lights import LightSubsystem
 
 
 class NeoBotContainer:
     def __init__(self) -> None:
         self.controller = wpilib.PS4Controller(0)
-        self.drivetrain = drivetrain_neo.Drivetrain()
+        self.drivetrain = drivetrain_neo.NeoDrivetrainSubsystem()
 
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
@@ -29,6 +35,10 @@ class NeoBotContainer:
         """
         Defines the default command for the drivetrain inside this method.
         """
+
+        Trigger(lambda: self.controller.getCircleButton()).onTrue(
+            PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
+        )
 
         def drive_logic():
             x_input = -self.controller.getLeftY()
