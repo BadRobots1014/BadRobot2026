@@ -21,10 +21,14 @@ class Kraken(Motor):
         return None
 
     def set_inverted(self, inverted: bool):
+        invertedValue = (
+            phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
+            if inverted
+            else phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+
         configuration = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs().with_inverted(
-                phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
-            )
+            phoenix6.configs.MotorOutputConfigs().with_inverted(invertedValue)
         )
         self.motor.configurator.apply(configuration)
 
