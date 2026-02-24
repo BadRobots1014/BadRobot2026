@@ -13,18 +13,19 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
+
+from commands import run_seesaw
+from commands.face_target import FaceTarget
+from commands.intake_demo import IntakeDemo
 from commands.shoot import Shoot
 from commands.shoot_kicker import Shoot_Kicker
-from hardware.impl.limelight import Limelight
-from commands.face_target import FaceTarget
 from generated.tuner_constants import TunerConstants
-from hardware.impl.spark_max_motor import SparkMaxMotor
+from hardware.impl.kraken_x60 import Kraken
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotor
-from subsystems import music, shooter
+from hardware.impl.spark_max_motor import SparkMaxMotor
+from subsystems import music, seesaw, shooter
 from telemetry import Telemetry
-from subsystems import seesaw
-from commands import run_seesaw
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -58,7 +59,7 @@ TRACKPAD = 14
 
 # drive speeds/limits
 MAX_SPEED = (
-    1.0 * TunerConstants.speed_at_12_volts
+    0.25 * TunerConstants.speed_at_12_volts
 )  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
@@ -158,6 +159,8 @@ class KrakenRobotContainer:
         )
 
         self._seesaw = seesaw.Seesaw(self.seesaw_motor)
+        self.right = Kraken(45)
+        self.left = Kraken(46)
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -259,6 +262,13 @@ class KrakenRobotContainer:
                     -NUDGE_SPEED
                 ).with_velocity_y(0)
             )
+        )
+
+        self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+            IntakeDemo(self.left, self.right, True)
+        )
+        self._joystick.button(SQUARE_BUTTON).whileTrue(
+            IntakeDemo(self.left, self.right, False)
         )
 
         # Run SysId routines when holding back/start and X/Y.
