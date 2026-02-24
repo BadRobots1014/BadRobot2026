@@ -1,14 +1,19 @@
 import rev
+from rev import SparkBase
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
-class SparkFlexMotor(Motor):
-    def __init__(self, motor_id: int):
+class SparkMaxMotor(Motor):
+    def __init__(
+        self,
+        motor_id: int,
+        motor_type: rev.SparkLowLevel.MotorType = rev.SparkLowLevel.MotorType.kBrushless,
+    ):
         super().__init__()
-        self.motor = rev.SparkFlex(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.motor = rev.SparkMax(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.controller = self.motor.getClosedLoopController()
 
     def set_voltage(self, voltage: float):
@@ -25,7 +30,7 @@ class SparkFlexMotor(Motor):
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
 
-    def get_motor_controller(self) -> rev.SparkBase:
+    def get_motor_controller(self) -> SparkBase:
         return self.motor
 
     def get_motor_id(self) -> int:

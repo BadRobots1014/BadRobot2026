@@ -13,7 +13,8 @@ class PartyMode(commands2.Command):
         self.value = 255
 
     def initialize(self):
-        self.light_system.set_rainbow(255, 255)
+        print("PARTY MODE USED")
+        self.light_system.set_rainbow(255, 255, 5)
         self.music_system.play_song()
 
     def end(self, interrupted):

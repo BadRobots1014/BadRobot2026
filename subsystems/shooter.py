@@ -1,6 +1,8 @@
+import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
@@ -13,12 +15,17 @@ JAM_RPM = 50  # rpm threshold to be considered jammed
 class Shooter(Subsystem):
     def __init__(
         self,
-        shoot_motor: Motor,
+        main_shoot_motor: Motor,
+        follower_shoot_motor: Motor,
+        shoot_encoder: Encoder,
         kick_motor: Motor,
         kick_encoder: Encoder,
-        shoot_encoder: Encoder,
     ):
-        self.shoot_motor = shoot_motor
+        super().__init__()
+
+        self.shoot_motor = main_shoot_motor
+        self.f_shoot_motor = follower_shoot_motor
+
         self.kick_motor = kick_motor
 
         self.shoot_encoder = shoot_encoder
@@ -30,6 +37,31 @@ class Shooter(Subsystem):
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
+
+        # Config shoot motor
+        shoot_config = rev.SparkFlexConfig()
+        shoot_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        self.shoot_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+
+        # Config kick motor
+        kick_config = rev.SparkFlexConfig()
+        kick_config.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+        self.kick_motor.get_motor_controller().configure(
+            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+
+        # Config follower motor
+        follower_config = rev.SparkFlexConfig()
+        follower_config.inverted(True)
+        follower_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        follower_config.follow(self.shoot_motor.get_motor_controller())
+        self.f_shoot_motor.get_motor_controller().configure(
+            follower_config,
+            ResetMode.kResetSafeParameters,
+            PersistMode.kPersistParameters,
+        )
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
@@ -127,3 +159,7 @@ class Shooter(Subsystem):
     @property
     def kick_voltage(self) -> float:
         return self.kick_motor.get_voltage()
+
+    def get_shoot_velocity_from_networktables(self) -> float:
+        velocity = self._shooter_motor_velocity_sub.get()
+        return velocity
