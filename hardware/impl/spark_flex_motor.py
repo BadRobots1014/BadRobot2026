@@ -1,8 +1,7 @@
 import rev
-from rev import SparkBase, SparkFlex
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import IdleMode, Motor
+from hardware.base.motor import Motor
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
@@ -26,7 +25,7 @@ class SparkFlexMotor(Motor):
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
 
-    def get_motor_controller(self) -> SparkBase:
+    def get_motor_controller(self) -> rev.SparkBase:
         return self.motor
 
     # Getting active voltage
@@ -41,9 +40,3 @@ class SparkFlexMotor(Motor):
 
     def disable(self) -> None:
         self.motor.disable()
-
-    def set_idle_mode(self, idle_mode: IdleMode):
-        if idle_mode == IdleMode.kBrake:
-            self.motor.IdleMode = SparkBase.IdleMode.kBrake
-        elif idle_mode == IdleMode.kCoast:
-            self.motor.IdleMode = SparkFlex.IdleMode.kCoast

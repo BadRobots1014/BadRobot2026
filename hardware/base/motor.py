@@ -1,16 +1,10 @@
 from abc import ABC
-from enum import Enum
 
+from rev import SparkBase
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
-from rev import SparkBase
-
-
-class IdleMode(Enum):
-    kBrake = 0
-    kCoast = 1
 
 
 class Motor(Sendable, ABC, metaclass=SendableABCMeta):
@@ -24,9 +18,6 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
         pass
 
     def set_leader(self, leader: int, oppose: bool) -> None:
-        pass
-
-    def get_inverted(self, inverted: bool) -> None:
         pass
 
     def get_encoder(self) -> Encoder:
@@ -48,7 +39,4 @@ class Motor(Sendable, ABC, metaclass=SendableABCMeta):
         pass
 
     def disable(self) -> None:
-        pass
-
-    def set_idle_mode(self, idle_mode: IdleMode) -> None:
         pass
