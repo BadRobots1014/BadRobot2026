@@ -15,7 +15,6 @@ class ExtendAndIntake(ParallelCommandGroup):
         self,
         shooter: Shooter,
         seesaw: Seesaw,
-        dump: bool,
         target_point: Translation2d,
         swerve_subsystem: CommandSwerveDrivetrain,
         max_speed: float,
@@ -33,12 +32,10 @@ class ExtendAndIntake(ParallelCommandGroup):
             max_angular_acceleration_rads,
         )
         self.addCommands(
+            Shoot(shooter),
             SequentialCommandGroup(
                 ParallelCommandGroup(
-                    Shoot(shooter),
-                    SequentialCommandGroup(
-                        ParallelCommandGroup(RunSeesaw(seesaw, dump), self.GotoShoot)
-                    ),
+                    RunSeesaw(seesaw, False), self.GotoShoot
                 ),
                 Shoot_Kicker(shooter),
             )
