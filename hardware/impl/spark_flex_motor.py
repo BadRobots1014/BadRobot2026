@@ -2,6 +2,8 @@ import rev
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
+from hardware.impl.motor_controller_config import MotorControllerConfig
+from hardware.impl.motor_controller_config import MotorControllerIdleMode
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
@@ -40,6 +42,26 @@ class SparkFlexMotor(Motor):
 
     def get_backward_limit(self) -> bool:
         return self.motor.getReverseLimitSwitch().get()
+
+    def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
+        config = rev.SparkFlexConfig()
+        config.inverted(motor_controller_config.inverted)
+
+        idleMode = (
+            rev.SparkFlexConfig.IdleMode.kBrake
+            if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
+            else rev.SparkFlexConfig.IdleMode.kCoast
+        )
+
+        config.IdleMode(idleMode)
+        if motor_controller_config.leader is not None:
+            config.follow(motor_controller_config.leader.get_motor_controller())
+
+        self.motor.configure(
+            config,
+            rev.ResetMode.kResetSafeParameters,
+            rev.PersistMode.kPersistParameters,
+        )
 
     def disable(self) -> None:
         self.motor.disable()

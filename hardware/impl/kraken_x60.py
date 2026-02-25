@@ -5,6 +5,10 @@ from phoenix6.units import rotations_per_second
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 
 
 class Kraken(Motor):
@@ -62,6 +66,51 @@ class Kraken(Motor):
 
     def get_backward_limit(self) -> bool:
         raise Exception("Not Implemented")
+
+    def get_inverted(self) -> bool:
+        config = phoenix6.configs.MotorOutputConfigs()
+        self.get_motor_controller().configurator.refresh(config)
+        return (
+            config.inverted == phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+
+    def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
+        invertedValue = (
+            phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
+            if motor_controller_config.inverted
+            else phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+
+        idleMode = (
+            phoenix6.signals.NeutralModeValue.BRAKE
+            if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
+            else phoenix6.signals.NeutralModeValue.COAST
+        )
+
+        config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.MotorOutputConfigs()
+            .with_inverted(invertedValue)
+            .with_neutral_mode(idleMode)
+        )
+        self.motor.configurator.apply(config)
+
+        motor_controller_config.leader
+
+        if (
+            motor_controller_config.leader is not None
+            and motor_controller_config.leader is self.__class__
+        ):
+
+            self.motor.set_control(
+                phoenix6.controls.follower.Follower(
+                    motor_controller_config.leader.get_motor_id(),
+                    motor_alignment=(
+                        phoenix6.signals.MotorAlignmentValue.OPPOSED
+                        if motor_controller_config.inverted ^ self.get_inverted()
+                        else phoenix6.signals.MotorAlignmentValue.ALIGNED
+                    ),
+                )
+            )
 
     def disable(self) -> None:
         self.motor.set_control(VoltageOut(0))
