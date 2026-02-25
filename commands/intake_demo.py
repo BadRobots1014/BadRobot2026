@@ -1,6 +1,7 @@
 import commands2
 
 from hardware.base.motor import Motor
+from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
 from subsystems.intake import Intake
 
 MOTOR_VOLTAGE = 2
@@ -13,7 +14,8 @@ class IntakeDemo(commands2.Command):
         self.right = right
         self.forward = forward
 
-        self.right.set_inverted(True)
+        right_config = MotorControllerConfig(True, MotorControllerIdleMode.BRAKE)
+        self.right.apply_configs(right_config)
 
     def execute(self):
         if self.forward:
