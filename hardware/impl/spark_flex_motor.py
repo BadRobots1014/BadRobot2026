@@ -1,13 +1,13 @@
 import rev
 
 from hardware.base.encoder import Encoder
-from hardware.base.motor import Motor
+from hardware.base.motorcontroller import MotorController
 from hardware.impl.motor_controller_config import MotorControllerConfig
 from hardware.impl.motor_controller_config import MotorControllerIdleMode
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
-class SparkFlexMotor(Motor):
+class SparkFlexMotorController(MotorController):
     def __init__(self, motor_id: int):
         super().__init__()
         self.motor = rev.SparkFlex(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
