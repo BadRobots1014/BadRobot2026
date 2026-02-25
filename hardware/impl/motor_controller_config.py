@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from enum import Enum
 
 if TYPE_CHECKING:
-     from hardware.base.motor import Motor
+    from hardware.base.motor import Motor
+
 
 class MotorControllerIdleMode(Enum):
     COAST = 0

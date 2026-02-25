@@ -1,7 +1,10 @@
 import commands2
 
 from hardware.base.motor import Motor
-from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 from subsystems.intake import Intake
 
 MOTOR_VOLTAGE = 2

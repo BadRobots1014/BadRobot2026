@@ -6,7 +6,10 @@ from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motor import Motor
-from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
@@ -48,7 +51,9 @@ class Shooter(Subsystem):
         self.kick_motor.apply_configs(kick_config)
 
         # Config follower motor
-        follower_config = MotorControllerConfig(True, MotorControllerIdleMode.COAST, self.shoot_motor)
+        follower_config = MotorControllerConfig(
+            True, MotorControllerIdleMode.COAST, self.shoot_motor
+        )
         self.f_shoot_motor.apply_configs(follower_config)
 
         self._inst = NetworkTableInstance.getDefault()
