@@ -52,7 +52,7 @@ class Limelight:
         return Pose2d(arr[0], arr[1], Rotation2d.fromDegrees(arr[5]))
 
     def vision_measurement_valid(self) -> bool:
-        return self.tv_sub.get() and self.enabled
+        return self.tv_sub.get() == 1 and self.enabled
 
     # algorithm is used to tell the kalman filter how much to trust the pose estimation. lower is more confidant
     def get_deviation(self) -> Tuple[float, float, float]:

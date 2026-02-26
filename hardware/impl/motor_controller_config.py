@@ -1,9 +1,8 @@
-from __future__ import annotations
 from typing import TYPE_CHECKING
 from enum import Enum
 
 if TYPE_CHECKING:
-    from hardware.base.motor import Motor
+    from hardware.base.motorcontroller import MotorController
 
 
 class MotorControllerIdleMode(Enum):
@@ -14,13 +13,13 @@ class MotorControllerIdleMode(Enum):
 class MotorControllerConfig:
     inverted: bool
     idle_mode: MotorControllerIdleMode
-    leader: "Motor | None"
+    leader: "MotorController | None"
 
     def __init__(
         self,
         inverted: bool = False,
         idle_mode: MotorControllerIdleMode = MotorControllerIdleMode.BRAKE,
-        leader: "Motor | None" = None,
+        leader: "MotorController | None" = None,
     ):
         self.inverted = inverted
         self.idle_mode = idle_mode
