@@ -12,6 +12,9 @@ from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class ShootRunRoutine(ParallelCommandGroup):
+    """
+    Drive to shooting position and shoot into hub
+    """
     def __init__(
         self,
         shooter: ShooterSubsystem,
