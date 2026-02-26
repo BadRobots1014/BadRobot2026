@@ -11,6 +11,7 @@ class ReloadRoutine(SequentialCommandGroup):
     """
     Reload the by setting the seesaw to intake, retracting the hopper, and resetting the seesaw to shoot.
     """
+
     def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem):
         super().__init__()
         self.addCommands(

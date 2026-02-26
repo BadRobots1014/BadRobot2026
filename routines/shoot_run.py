@@ -15,6 +15,7 @@ class ShootRunRoutine(ParallelCommandGroup):
     """
     Drive to shooting position and shoot into hub
     """
+
     def __init__(
         self,
         shooter: ShooterSubsystem,
