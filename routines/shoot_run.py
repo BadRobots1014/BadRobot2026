@@ -10,7 +10,7 @@ from subsystems.seesaw import Seesaw
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
-class ExtendAndIntake(ParallelCommandGroup):
+class ShootRunRoutine(ParallelCommandGroup):
     def __init__(
         self,
         shooter: Shooter,

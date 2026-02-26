@@ -7,7 +7,7 @@ from subsystems.intake import Intake
 from subsystems.seesaw import Seesaw
 
 
-class Reload(SequentialCommandGroup):
+class ReloadRoutine(SequentialCommandGroup):
     def __init__(self, intake: Intake, seesaw: Seesaw):
         super().__init__()
         self.addCommands(
