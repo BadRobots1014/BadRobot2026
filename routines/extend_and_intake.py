@@ -9,6 +9,10 @@ from subsystems.seesaw import SeesawSubsystem
 
 
 class ExtendAndIntakeRoutine(ParallelCommandGroup):
+    """
+    Extends the hopper, sets the seesaw and runs the intake. Can be used to intake or dump depending on dump argument(False to intake, True to dump)
+    """
+
     def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem, dump: bool):
         super().__init__()
         self.addCommands(
