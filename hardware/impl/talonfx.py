@@ -1,4 +1,5 @@
 import phoenix6
+
 from phoenix6.controls.velocity_voltage import VelocityVoltage
 from phoenix6.controls.voltage_out import VoltageOut
 from phoenix6.units import rotations_per_second

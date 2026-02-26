@@ -2,9 +2,11 @@ import rev
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
-from hardware.impl.motor_controller_config import MotorControllerConfig
-from hardware.impl.motor_controller_config import MotorControllerIdleMode
 from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 
 
 class SparkFlexMotorController(MotorController):
