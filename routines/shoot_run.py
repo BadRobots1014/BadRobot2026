@@ -1,20 +1,21 @@
 from commands2 import ParallelCommandGroup, SequentialCommandGroup
 from wpimath.geometry import Translation2d
 
-from commands.shoot import Shoot
-from commands.shoot_kicker import Shoot_Kicker
-from commands.run_seesaw import RunSeesaw
+from commands.shoot import ShootCommand
+from commands.shoot_kicker import ShootKickerCommand
+from commands.run_seesaw import RunSeesawCommand
 from commands.goto_commands import goto_shoot_pos
-from subsystems.shooter import Shooter
-from subsystems.seesaw import Seesaw
+
+from subsystems.shooter import ShooterSubsystem
+from subsystems.seesaw import SeesawSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class ShootRunRoutine(ParallelCommandGroup):
     def __init__(
         self,
-        shooter: Shooter,
-        seesaw: Seesaw,
+        shooter: ShooterSubsystem,
+        seesaw: SeesawSubsystem,
         target_point: Translation2d,
         swerve_subsystem: CommandSwerveDrivetrain,
         max_speed: float,
@@ -32,9 +33,9 @@ class ShootRunRoutine(ParallelCommandGroup):
             max_angular_acceleration_rads,
         )
         self.addCommands(
-            Shoot(shooter),
+            ShootCommand(shooter),
             SequentialCommandGroup(
-                ParallelCommandGroup(RunSeesaw(seesaw, False), self.GotoShoot),
-                Shoot_Kicker(shooter),
+                ParallelCommandGroup(RunSeesawCommand(seesaw, False), self.GotoShoot),
+                ShootKickerCommand(shooter),
             ),
         )
