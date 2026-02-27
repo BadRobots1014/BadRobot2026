@@ -2,8 +2,8 @@ import wpilib
 
 
 class GenericCAN:
-    def __init__(self, deviceId: int) -> None:
-        self.device = wpilib.CAN(deviceId)
+    def __init__(self, deviceId: int, manufacturerId: int, deviceTypeId: int) -> None:
+        self.device = wpilib.CAN(deviceId, manufacturerId, deviceTypeId)
 
     def get_latest_data(self, api_id: int) -> tuple[bool, wpilib.CANData]:
         """
