@@ -1,17 +1,21 @@
-from commands2 import ParallelCommandGroup, SequentialCommandGroup
+from commands2 import SequentialCommandGroup
 
-from commands.extend_hopper import ExtendHopper
-from commands.run_intake import RunIntake
-from commands.run_seesaw import RunSeesaw
-from subsystems.intake import Intake
-from subsystems.seesaw import Seesaw
+from commands.extend_hopper import ExtendHopperCommand
+from commands.run_seesaw import RunSeesawCommand
+
+from subsystems.intake import IntakeSubsystem
+from subsystems.seesaw import SeesawSubsystem
 
 
-class Reload(SequentialCommandGroup):
-    def __init__(self, intake: Intake, seesaw: Seesaw):
+class ReloadRoutine(SequentialCommandGroup):
+    """
+    Reload the by setting the seesaw to intake, retracting the hopper, and resetting the seesaw to shoot.
+    """
+
+    def __init__(self, intake: IntakeSubsystem, seesaw: SeesawSubsystem):
         super().__init__()
         self.addCommands(
-            RunSeesaw(seesaw, True),
-            ExtendHopper(intake, False),
-            RunSeesaw(seesaw, False),
+            RunSeesawCommand(seesaw, True),
+            ExtendHopperCommand(intake, False),
+            RunSeesawCommand(seesaw, False),
         )
