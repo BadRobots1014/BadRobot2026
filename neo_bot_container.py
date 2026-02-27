@@ -5,16 +5,17 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import commands2
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
-import commands2
 from commands2.button import Trigger
 
 from commands.party_mode import PartyModeCommand
 from hardware.base.ledcontroller import LEDController
+from hardware.impl.generic_can import GenericCAN
 from hardware.impl.pwmled import PWMLED
 from subsystems import drivetrain_neo
 from subsystems.lights import LightSubsystem
@@ -31,14 +32,16 @@ class NeoBotContainer:
 
         self.configureButtonBindings()
 
+        self.limit = GenericCAN(18)
+
     def configureButtonBindings(self) -> None:
         """
         Defines the default command for the drivetrain inside this method.
         """
 
-        Trigger(lambda: self.controller.getCircleButton()).onTrue(
-            PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
-        )
+        # Trigger(lambda: self.controller.getCircleButton()).onTrue(
+        #     PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
+        # )
 
         def drive_logic():
             x_input = -self.controller.getLeftY()
@@ -53,13 +56,17 @@ class NeoBotContainer:
             rot_input = wpimath.applyDeadband(rot_input, 0.02)
             rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_neo.kMaxSpeed
 
-            self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
+        #     self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
 
-        self.drivetrain.setDefaultCommand(
-            commands2.RunCommand(drive_logic, self.drivetrain)
-        )
+        # self.drivetrain.setDefaultCommand(
+        #     commands2.RunCommand(drive_logic, self.drivetrain)
+        # )
 
     def robotPeriodic(self):
+        for i in range(0, 10):
+            _, data = self.limit.get_latest_data(i)
+            print("CANData, ", i, ":  ", data.data.hex())
+
         pass
 
     def getAutonomousCommand(self) -> commands2.Command:
