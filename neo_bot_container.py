@@ -5,16 +5,17 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import commands2
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
-import commands2
 from commands2.button import Trigger
 
 from commands.party_mode import PartyModeCommand
 from hardware.base.ledcontroller import LEDController
+from hardware.impl.generic_can import GenericCAN
 from hardware.impl.pwmled import PWMLED
 from subsystems import drivetrain_neo
 from subsystems.lights import LightSubsystem
