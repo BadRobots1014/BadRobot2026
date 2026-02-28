@@ -49,22 +49,24 @@ class SparkFlexMotorController(MotorController):
         config = rev.SparkFlexConfig()
         config.inverted(motor_controller_config.inverted)
 
-        idleMode = (
+        idle_mode = (
             rev.SparkFlexConfig.IdleMode.kBrake
             if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
             else rev.SparkFlexConfig.IdleMode.kCoast
         )
 
-        config.IdleMode(idleMode)
+        config.IdleMode(idle_mode)
         if motor_controller_config.leader is not None:
-            config.follow(motor_controller_config.leader.get_motor_controller(), motor_controller_config.inverted)
+            config.follow(
+                motor_controller_config.leader.get_motor_controller(),
+                motor_controller_config.inverted,
+            )
 
         self.motor.configure(
             config,
             rev.ResetMode.kResetSafeParameters,
             rev.PersistMode.kPersistParameters,
         )
-
 
     def disable(self) -> None:
         self.motor.disable()

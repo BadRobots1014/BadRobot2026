@@ -23,7 +23,10 @@ from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
-from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
@@ -63,8 +66,9 @@ HOME_BUTTON = 13
 TRACKPAD = 14
 
 # drive speeds/limits
+SLOW_SPEED_MODIFIER = 0.5
 MAX_SPEED = (
-    .75 * TunerConstants.speed_at_12_volts
+    1 * TunerConstants.speed_at_12_volts
 )  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
@@ -85,6 +89,9 @@ MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
 SEESAW_MOTOR_ID = 53
+
+# intake can id
+INTAKE_MOTOR_CAN_ID = 52
 
 # pinion can id
 RIGHT_PINION_ID = 45
@@ -154,7 +161,9 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushed)
+        self.seesaw_motor = SparkMaxMotorController(
+            SEESAW_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushed
+        )
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -167,13 +176,14 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
-        self.intakeMotor = SparkFlexMotorController(52)
+        self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
         self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
 
-        self._intake = IntakeSubsystem(self.intakeMotor, self.right_pinion, self.left_pinion)
-
+        self._intake = IntakeSubsystem(
+            self.intakeMotor, self.right_pinion, self.left_pinion
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -277,18 +287,33 @@ class KrakenRobotContainer:
             )
         )
 
+        # POV right - drive right
+        self._joystick.povUp().whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0)
+                .with_velocity_y(-NUDGE_SPEED)
+            )
+        )
+
+        # POV up - drive forward
+        self._joystick.povUp().whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0)
+                .with_velocity_y(NUDGE_SPEED)
+            )
+        )
+
         IntakeWheelIn = RunIntakeCommand(self._intake, False)
         IntakeWheelOut = RunIntakeCommand(self._intake, True)
         self._joystick.button(CROSS_BUTTON).toggleOnTrue(IntakeWheelIn)
         self._joystick.button(CIRCLE_BUTTON).toggleOnTrue(IntakeWheelOut)
 
-        #self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+        # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
-        #)
-        #self._joystick.button(SQUARE_BUTTON).whileTrue(
+        # )
+        # self._joystick.button(SQUARE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
-        #)
-
+        # )
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
@@ -305,8 +330,8 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # Reset the field-centric heading on L1 button press (left bumper)
-        self._joystick.button(L1_BUTTON).onTrue(
+        # Reset the field-centric heading on Options button press
+        self._joystick.button(OPTIONS_BUTTON).onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 

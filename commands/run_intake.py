@@ -17,7 +17,6 @@ class RunIntakeCommand(commands2.Command):
         else:
             self.intake.set_intake_voltage(4.5)
 
-
     def isFinished(self) -> bool:
         return False
 
