@@ -18,7 +18,9 @@ class IntakeDemoCommand(commands2.Command):
         self.right = right
         self.forward = forward
 
-        right_config = MotorControllerConfig(True, MotorControllerIdleMode.BRAKE)
+        right_config = MotorControllerConfig(
+            True, MotorControllerIdleMode.BRAKE, (0, 0, 0, 0), left
+        )
         self.right.apply_configs(right_config)
 
     def execute(self):

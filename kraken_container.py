@@ -209,6 +209,7 @@ class KrakenRobotContainer:
         limiter = self.right_x_speed_limiter.calculate(raw)
         if self.slow_mode:
             limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
     def getRightY(self):
         raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS) ** 3
