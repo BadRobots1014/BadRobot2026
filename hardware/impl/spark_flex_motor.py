@@ -57,13 +57,14 @@ class SparkFlexMotorController(MotorController):
 
         config.IdleMode(idleMode)
         if motor_controller_config.leader is not None:
-            config.follow(motor_controller_config.leader.get_motor_controller())
+            config.follow(motor_controller_config.leader.get_motor_controller(), motor_controller_config.inverted)
 
         self.motor.configure(
             config,
             rev.ResetMode.kResetSafeParameters,
             rev.PersistMode.kPersistParameters,
         )
+
 
     def disable(self) -> None:
         self.motor.disable()

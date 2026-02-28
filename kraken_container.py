@@ -23,6 +23,7 @@ from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
+from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
@@ -153,8 +154,6 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        config = MotorControllerConfig
-        #self.follower_shoot_motor.set_leader(MAIN_SHOOT_MOTOR_ID, True)
         self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushed)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
