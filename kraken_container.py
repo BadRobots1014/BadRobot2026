@@ -315,7 +315,7 @@ class KrakenRobotContainer:
             )
         )
 
-        # POV up - drive forward
+        # POV up - drive left
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
