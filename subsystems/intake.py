@@ -19,7 +19,6 @@ class IntakeSubsystem(Subsystem):
 
         self.left = left
         self.right = right
-        self.right.set_leader(self.left.get_motor_id(), True)
         #
         # self.forward = forward
         # self.backward = backward
