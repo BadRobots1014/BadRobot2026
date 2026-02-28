@@ -67,9 +67,7 @@ TRACKPAD = 14
 
 # drive speeds/limits
 SLOW_SPEED_MODIFIER = 0.5
-MAX_SPEED = (
-    1 * TunerConstants.speed_at_12_volts
-)  # speed_at_12_volts desired top speed
+MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
@@ -290,16 +288,18 @@ class KrakenRobotContainer:
         # POV right - drive right
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0)
-                .with_velocity_y(-NUDGE_SPEED)
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    -NUDGE_SPEED
+                )
             )
         )
 
         # POV up - drive forward
         self._joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0)
-                .with_velocity_y(NUDGE_SPEED)
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    NUDGE_SPEED
+                )
             )
         )
 
