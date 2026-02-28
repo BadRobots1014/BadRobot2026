@@ -65,14 +65,12 @@ class SparkMaxMotorController(MotorController):
         if motor_controller_config.leader is not None:
             config.follow(
                 motor_controller_config.leader.get_motor_controller(),
-                motor_controller_config.inverted,
+                motor_controller_config.inverted
             )
 
-        self.motor.configure(
-            config,
-            rev.ResetMode.kResetSafeParameters,
-            rev.PersistMode.kPersistParameters,
-        )
+        pidConfig = rev.ClosedLoopConfig()
+        pidConfig.pidf(motor_controller_config.pidf[0], motor_controller_config.pidf[1], motor_controller_config.pidf[2], motor_controller_config.pidf[3])
+        config.apply(pidConfig)
 
         self.motor.configure(
             config,
