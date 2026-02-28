@@ -3,6 +3,7 @@
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
+from imaplib import Commands
 
 import commands2
 import rev
@@ -66,7 +67,7 @@ HOME_BUTTON = 13
 TRACKPAD = 14
 
 # drive speeds/limits
-SLOW_SPEED_MODIFIER = 0.5
+SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
@@ -105,6 +106,7 @@ class KrakenRobotContainer:
     """
 
     def __init__(self) -> None:
+        self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
@@ -190,19 +192,33 @@ class KrakenRobotContainer:
 
     def getLeftX(self):
         raw = -self._joystick.getRawAxis(LEFT_X_AXIS) ** 3
-        return self.left_x_speed_limiter.calculate(raw)
+        limiter = self.left_x_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
     def getLeftY(self):
         raw = -self._joystick.getRawAxis(LEFT_Y_AXIS) ** 3
-        return self.left_y_speed_limiter.calculate(raw)
+        limiter = self.left_y_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
     def getRightX(self):
         raw = -self._joystick.getRawAxis(RIGHT_X_AXIS) ** 3
-        return self.right_x_speed_limiter.calculate(raw)
+        limiter = self.right_x_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
 
     def getRightY(self):
         raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS) ** 3
-        return self.right_y_speed_limiter.calculate(raw)
+        limiter = self.right_y_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
+
+    def toggleSlowMode(self):
+        self.slow_mode = not self.slow_mode
 
     def configureButtonBindings(self) -> None:
         """
@@ -228,6 +244,11 @@ class KrakenRobotContainer:
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
+        )
+
+        # toggle slow mode
+        self._joystick.button(R2_BUTTON).onTrue(
+            commands2.cmd.runOnce(lambda: self.toggleSlowMode())
         )
 
         # Idle while the robot is disabled. This ensures the configured
