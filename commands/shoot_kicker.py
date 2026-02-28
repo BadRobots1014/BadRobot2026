@@ -11,7 +11,7 @@ class ShootKickerCommand(commands2.Command):
         self.shooter = shooter
 
     def execute(self):
-        self.shooter.set_kick_velocity_from_networktables()
+        self.shooter.set_kick_velocity(600)
 
     def end(self, interrupted: bool):
         self.shooter.kick_motor.disable()

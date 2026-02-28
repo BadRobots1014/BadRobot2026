@@ -75,9 +75,9 @@ class ShooterSubsystem(Subsystem):
 
         # set nt defaults
         shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
-        shooter_motor_velocity_pub.set(0.0)
+        shooter_motor_velocity_pub.set(self.shoot_velocity)
         kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
-        kicker_motor_velocity_pub.set(0.0)
+        kicker_motor_velocity_pub.set(self.kick_velocity)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(

@@ -11,7 +11,7 @@ class ShootCommand(commands2.Command):
         self.shooter = shooter
 
     def execute(self):
-        self.shooter.set_shoot_velocity_from_networktables()
+        self.shooter.set_shoot_velocity(4500)
 
     def end(self, interrupted: bool):
         self.shooter.shoot_motor.disable()

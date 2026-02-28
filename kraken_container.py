@@ -5,6 +5,7 @@
 #
 
 import commands2
+import rev
 import wpilib
 import wpimath.filter
 from commands2.button import CommandGenericHID, Trigger
@@ -18,6 +19,7 @@ from commands import run_seesaw
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
+from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
@@ -26,6 +28,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
 from subsystems import music, seesaw, shooter
+from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -60,11 +63,11 @@ TRACKPAD = 14
 
 # drive speeds/limits
 MAX_SPEED = (
-    0.25 * TunerConstants.speed_at_12_volts
+    .75 * TunerConstants.speed_at_12_volts
 )  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
-    0.75
+    1.5
 )  # 3/4 of a rotation per second max angular velocity
 DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
 ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
@@ -80,7 +83,7 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
-SEESAW_MOTOR_ID = 11
+SEESAW_MOTOR_ID = 53
 
 # pinion can id
 RIGHT_PINION_ID = 45
@@ -150,7 +153,9 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID)
+        config = MotorControllerConfig
+        #self.follower_shoot_motor.set_leader(MAIN_SHOOT_MOTOR_ID, True)
+        self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushed)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -163,9 +168,13 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
+        self.intakeMotor = SparkFlexMotorController(52)
         self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
+
+        self._intake = IntakeSubsystem(self.intakeMotor, self.right_pinion, self.left_pinion)
+
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -173,19 +182,19 @@ class KrakenRobotContainer:
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        raw = -self._joystick.getRawAxis(LEFT_X_AXIS)
+        raw = -self._joystick.getRawAxis(LEFT_X_AXIS) ** 3
         return self.left_x_speed_limiter.calculate(raw)
 
     def getLeftY(self):
-        raw = -self._joystick.getRawAxis(LEFT_Y_AXIS)
+        raw = -self._joystick.getRawAxis(LEFT_Y_AXIS) ** 3
         return self.left_y_speed_limiter.calculate(raw)
 
     def getRightX(self):
-        raw = -self._joystick.getRawAxis(RIGHT_X_AXIS)
+        raw = -self._joystick.getRawAxis(RIGHT_X_AXIS) ** 3
         return self.right_x_speed_limiter.calculate(raw)
 
     def getRightY(self):
-        raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS)
+        raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS) ** 3
         return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
@@ -222,7 +231,7 @@ class KrakenRobotContainer:
         )
 
         # Face target
-        self._joystick.button(CIRCLE_BUTTON).whileTrue(
+        self._joystick.button(L2_BUTTON).whileTrue(
             FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
@@ -236,7 +245,7 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._joystick.button(L1_BUTTON).whileTrue(BangBangShootCommand(self._shooter))
+        self._joystick.button(L1_BUTTON).whileTrue(ShootCommand(self._shooter))
 
         # Run kicker wheel
         self._joystick.button(R1_BUTTON).whileTrue(ShootKickerCommand(self._shooter))
@@ -269,12 +278,18 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
-        )
-        self._joystick.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
-        )
+        IntakeWheelIn = RunIntakeCommand(self._intake, False)
+        IntakeWheelOut = RunIntakeCommand(self._intake, True)
+        self._joystick.button(CROSS_BUTTON).toggleOnTrue(IntakeWheelIn)
+        self._joystick.button(CIRCLE_BUTTON).toggleOnTrue(IntakeWheelOut)
+
+        #self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
+        #)
+        #self._joystick.button(SQUARE_BUTTON).whileTrue(
+        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
+        #)
+
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
