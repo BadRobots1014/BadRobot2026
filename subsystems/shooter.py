@@ -7,6 +7,11 @@ from rev import PersistMode, ResetMode, SparkBaseConfig
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
 
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
+
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
@@ -39,29 +44,18 @@ class ShooterSubsystem(Subsystem):
         self.start_unjam = -1
 
         # Config shoot motor
-        shoot_config = rev.SparkFlexConfig()
-        shoot_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
-        self.shoot_motor.get_motor_controller().configure(
-            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
-        )
+        shoot_config = MotorControllerConfig(False, MotorControllerIdleMode.COAST)
+        self.shoot_motor.apply_configs(shoot_config)
 
         # Config kick motor
-        kick_config = rev.SparkFlexConfig()
-        kick_config.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
-        self.kick_motor.get_motor_controller().configure(
-            shoot_config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
-        )
+        kick_config = MotorControllerConfig(False, MotorControllerIdleMode.BRAKE)
+        self.kick_motor.apply_configs(kick_config)
 
         # Config follower motor
-        follower_config = rev.SparkFlexConfig()
-        follower_config.inverted(True)
-        follower_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
-        follower_config.follow(self.shoot_motor.get_motor_controller())
-        self.f_shoot_motor.get_motor_controller().configure(
-            follower_config,
-            ResetMode.kResetSafeParameters,
-            PersistMode.kPersistParameters,
+        follower_config = MotorControllerConfig(
+            True, MotorControllerIdleMode.COAST, self.shoot_motor
         )
+        self.f_shoot_motor.apply_configs(follower_config)
 
         self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
