@@ -44,7 +44,7 @@ class ShooterSubsystem(Subsystem):
         self.start_unjam = -1
 
         # Config shoot motor
-        shoot_config = MotorControllerConfig(False, MotorControllerIdleMode.COAST)
+        shoot_config = MotorControllerConfig(False, MotorControllerIdleMode.COAST, (1, 0, 0, self.shoot_velocity))
         self.shoot_motor.apply_configs(shoot_config)
 
         # Config kick motor
@@ -53,7 +53,7 @@ class ShooterSubsystem(Subsystem):
 
         # Config follower motor
         follower_config = MotorControllerConfig(
-            True, MotorControllerIdleMode.COAST, self.shoot_motor
+            True, MotorControllerIdleMode.COAST, (1, 0, 0, self.shoot_velocity), self.shoot_motor
         )
         self.f_shoot_motor.apply_configs(follower_config)
 

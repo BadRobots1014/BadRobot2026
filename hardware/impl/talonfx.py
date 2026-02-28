@@ -25,30 +25,6 @@ class TalonFXMotorController(MotorController):
         self.motor.set_control(VelocityVoltage(rotations_per_second(velocity)))
         return None
 
-    def set_inverted(self, inverted: bool):
-        invertedValue = (
-            phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
-            if inverted
-            else phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
-        )
-
-        configuration = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs().with_inverted(invertedValue)
-        )
-        self.motor.configurator.apply(configuration)
-
-    def set_leader(self, leader: int, oppose: bool) -> None:
-        self.motor.set_control(
-            phoenix6.controls.follower.Follower(
-                leader,
-                motor_alignment=(
-                    phoenix6.signals.MotorAlignmentValue.OPPOSED
-                    if oppose
-                    else phoenix6.signals.MotorAlignmentValue.ALIGNED
-                ),
-            )
-        )
-
     def get_motor_controller(self) -> phoenix6.hardware.talon_fx.TalonFX:
         return self.motor
 
@@ -93,6 +69,12 @@ class TalonFXMotorController(MotorController):
             .with_inverted(invertedValue)
             .with_neutral_mode(idleMode)
         )
+
+        config.slot0.k_p = motor_controller_config.pidf[0]
+        config.slot0.k_i = motor_controller_config.pidf[1]
+        config.slot0.k_d = motor_controller_config.pidf[2]
+        config.slot0.k_v = motor_controller_config.pidf[3]
+
         self.motor.configurator.apply(config)
 
         motor_controller_config.leader
