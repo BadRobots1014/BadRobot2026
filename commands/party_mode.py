@@ -12,6 +12,12 @@ class PartyMode(commands2.Command):
         self.saturation = 255
         self.value = 255
 
+        self.addRequirements(
+            self.light_system, 
+            self.music_system, 
+            self.music_system.drivetrain
+        )
+
     def initialize(self):
         print("PARTY MODE USED")
         self.light_system.set_rainbow(255, 255, 5)
