@@ -5,7 +5,7 @@ import os
 import logging
 
 
-class Music(Subsystem):
+class MusicSubsystem(Subsystem):
     def __init__(self, drivetrain):
         super().__init__()
         self.drivetrain = drivetrain

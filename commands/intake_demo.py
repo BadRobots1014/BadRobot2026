@@ -1,19 +1,25 @@
 import commands2
 
-from hardware.base.motor import Motor
-from subsystems.intake import Intake
+from hardware.base.motorcontroller import MotorController
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
+from hardware.base.motorcontroller import MotorController
+from subsystems.intake import IntakeSubsystem
 
 MOTOR_VOLTAGE = 2
 
 
-class IntakeDemo(commands2.Command):
-    def __init__(self, left: Motor, right: Motor, forward: bool):
+class IntakeDemoCommand(commands2.Command):
+    def __init__(self, left: MotorController, right: MotorController, forward: bool):
         super().__init__()
         self.left = left
         self.right = right
         self.forward = forward
 
-        self.right.set_inverted(True)
+        right_config = MotorControllerConfig(True, MotorControllerIdleMode.BRAKE)
+        self.right.apply_configs(right_config)
 
     def execute(self):
         if self.forward:

@@ -17,7 +17,7 @@ kMaxSpeed = 8.0  # 3 meters per second
 kMaxAngularSpeed = math.pi  # 1/2 rotation per second
 
 
-class Drivetrain(commands2.Subsystem):
+class NeoDrivetrainSubsystem(commands2.Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
