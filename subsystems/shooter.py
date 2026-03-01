@@ -1,12 +1,9 @@
-import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
-from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
-
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -68,10 +65,10 @@ class ShooterSubsystem(Subsystem):
         )
 
         # set nt defaults
-        shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
-        shooter_motor_velocity_pub.set(0.0)
-        kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
-        kicker_motor_velocity_pub.set(0.0)
+        self._shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
+        self._shooter_motor_velocity_pub.set(0.0)
+        self._kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
+        self._kicker_motor_velocity_pub.set(0.0)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(

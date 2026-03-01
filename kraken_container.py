@@ -22,10 +22,10 @@ from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.party_mode import PartyModeCommand
 from generated.tuner_constants import TunerConstants
-from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
+from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.pwmled import PWMLED
 from subsystems import music, seesaw, shooter, lights
 from telemetry import Telemetry
@@ -72,7 +72,8 @@ DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
 ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
 
 # joysticks
-PRIMARY_JOYSTICK = 0
+DRIVER_PORT = 0
+AUXILIARY_PORT = 1
 JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
@@ -116,7 +117,8 @@ class KrakenRobotContainer:
         self._logger = Telemetry(MAX_SPEED)
 
         # Use CommandGenericHID for controller compatibility
-        self._joystick = CommandGenericHID(PRIMARY_JOYSTICK)
+        self._primary_controller = CommandGenericHID(DRIVER_PORT)
+        self._auxiliary_controller = CommandGenericHID(DRIVER_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -174,19 +176,19 @@ class KrakenRobotContainer:
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
-        raw = -self._joystick.getRawAxis(LEFT_X_AXIS)
+        raw = -self._primary_controller.getRawAxis(LEFT_X_AXIS)
         return self.left_x_speed_limiter.calculate(raw)
 
     def getLeftY(self):
-        raw = -self._joystick.getRawAxis(LEFT_Y_AXIS)
+        raw = -self._primary_controller.getRawAxis(LEFT_Y_AXIS)
         return self.left_y_speed_limiter.calculate(raw)
 
     def getRightX(self):
-        raw = -self._joystick.getRawAxis(RIGHT_X_AXIS)
+        raw = -self._primary_controller.getRawAxis(RIGHT_X_AXIS)
         return self.right_x_speed_limiter.calculate(raw)
 
     def getRightY(self):
-        raw = -self._joystick.getRawAxis(RIGHT_Y_AXIS)
+        raw = -self._primary_controller.getRawAxis(RIGHT_Y_AXIS)
         return self.right_y_speed_limiter.calculate(raw)
 
     def configureButtonBindings(self) -> None:
@@ -223,12 +225,12 @@ class KrakenRobotContainer:
         )
 
         # Face target
-        self._joystick.button(CIRCLE_BUTTON).whileTrue(
+        self._primary_controller.button(CIRCLE_BUTTON).whileTrue(
             FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
                 self._drive,
-                self._joystick,
+                self._primary_controller,
                 MAX_SPEED,
                 MAX_ANGULAR_SPEED,
                 LEFT_Y_AXIS,
@@ -237,25 +239,29 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._joystick.button(L1_BUTTON).whileTrue(BangBangShootCommand(self._shooter))
+        self._auxiliary_controller.button(L1_BUTTON).whileTrue(
+            BangBangShootCommand(self._shooter)
+        )
 
         # Run kicker wheel
-        self._joystick.button(R1_BUTTON).whileTrue(ShootKickerCommand(self._shooter))
+        self._auxiliary_controller.button(R1_BUTTON).whileTrue(
+            ShootKickerCommand(self._shooter)
+        )
 
         # Party Mode
-        self._joystick.button(SHARE_BUTTON).toggleOnTrue(
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
             PartyModeCommand(self.lights, self.music)
         )
 
         # run seesaw
         seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._joystick.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
         # forward
         seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._joystick.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
+        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
-        self._joystick.povUp().whileTrue(
+        self._primary_controller.povUp().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     NUDGE_SPEED
@@ -264,7 +270,7 @@ class KrakenRobotContainer:
         )
 
         # POV down - drive backward
-        self._joystick.povDown().whileTrue(
+        self._primary_controller.povDown().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     -NUDGE_SPEED
@@ -272,10 +278,10 @@ class KrakenRobotContainer:
             )
         )
 
-        self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
             IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
         )
-        self._joystick.button(SQUARE_BUTTON).whileTrue(
+        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
             IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
         )
 
@@ -295,7 +301,7 @@ class KrakenRobotContainer:
         # )
 
         # Reset the field-centric heading on L1 button press (left bumper)
-        self._joystick.button(L1_BUTTON).onTrue(
+        self._primary_controller.button(L1_BUTTON).onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
