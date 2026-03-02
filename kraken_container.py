@@ -250,7 +250,7 @@ class KrakenRobotContainer:
         )
 
         # toggle slow mode
-        self._joystick.button(R2_BUTTON).onTrue(
+        self._primary_controller.button(R2_BUTTON).onTrue(
             commands2.cmd.runOnce(lambda: self.toggleSlowMode())
         )
 

@@ -24,7 +24,7 @@ class TalonFXMotorController(MotorController):
     def set_velocity(self, velocity: float) -> None:
         self.motor.set_control(VelocityVoltage(rotations_per_second(velocity)))
         return None
-    
+
     def set_inverted(self, inverted: bool):
         invertedValue = (
             phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
