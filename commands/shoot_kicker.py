@@ -4,6 +4,7 @@ from subsystems.shooter import ShooterSubsystem
 
 KICKER_VOLTAGE = 3
 
+
 class ShootKickerCommand(commands2.Command):
     shooter: ShooterSubsystem
 
