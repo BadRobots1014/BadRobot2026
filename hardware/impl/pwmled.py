@@ -14,8 +14,10 @@ class PWMLED(LEDController):
         self.controller.setLength(length)
 
         self.spacing = 0.015
+        self.apply_pattern(self.get_solid(255, 255, 0))
+        self.controller.start()
 
-        logging.info("Lights initalized")
+        logging.info("Lights initialized")
 
     def get_solid(self, r: int, g: int, b: int):
         return LEDPattern.solid(Color(r, g, b))
