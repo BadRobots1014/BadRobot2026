@@ -1,9 +1,12 @@
+import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
+
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -41,7 +44,9 @@ class ShooterSubsystem(Subsystem):
         self.start_unjam = -1
 
         # Config shoot motor
-        shoot_config = MotorControllerConfig(False, MotorControllerIdleMode.COAST)
+        shoot_config = MotorControllerConfig(
+            False, MotorControllerIdleMode.COAST, (1, 0, 0, self.shoot_velocity)
+        )
         self.shoot_motor.apply_configs(shoot_config)
 
         # Config kick motor
@@ -50,7 +55,10 @@ class ShooterSubsystem(Subsystem):
 
         # Config follower motor
         follower_config = MotorControllerConfig(
-            True, MotorControllerIdleMode.COAST, self.shoot_motor
+            True,
+            MotorControllerIdleMode.COAST,
+            (1, 0, 0, self.shoot_velocity),
+            self.shoot_motor,
         )
         self.f_shoot_motor.apply_configs(follower_config)
 
@@ -66,9 +74,9 @@ class ShooterSubsystem(Subsystem):
 
         # set nt defaults
         self._shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
-        self._shooter_motor_velocity_pub.set(0.0)
+        self._shooter_motor_velocity_pub.set(self.shoot_velocity)
         self._kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
-        self._kicker_motor_velocity_pub.set(0.0)
+        self._kicker_motor_velocity_pub.set(self.kick_velocity)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
