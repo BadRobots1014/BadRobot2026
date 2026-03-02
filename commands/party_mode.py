@@ -1,16 +1,20 @@
 import commands2
 
-from subsystems.lights import Lights
-from subsystems.music import Music
+from subsystems.lights import LightSubsystem
+from subsystems.music import MusicSubsystem
 
 
-class PartyMode(commands2.Command):
-    def __init__(self, light_system: Lights, music_system: Music):
+class PartyModeCommand(commands2.Command):
+    def __init__(self, light_system: LightSubsystem, music_system: MusicSubsystem):
         super().__init__()
         self.light_system = light_system
         self.music_system = music_system
         self.saturation = 255
         self.value = 255
+
+        self.addRequirements(
+            self.light_system, self.music_system, self.music_system.drivetrain
+        )
 
     def initialize(self):
         print("PARTY MODE USED")

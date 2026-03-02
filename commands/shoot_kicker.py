@@ -1,12 +1,12 @@
 import commands2
 
-from subsystems.shooter import Shooter
+from subsystems.shooter import ShooterSubsystem
 
 
-class Shoot_Kicker(commands2.Command):
-    shooter: Shooter
+class ShootKickerCommand(commands2.Command):
+    shooter: ShooterSubsystem
 
-    def __init__(self, shooter: Shooter):
+    def __init__(self, shooter: ShooterSubsystem):
         super().__init__()
         self.shooter = shooter
 

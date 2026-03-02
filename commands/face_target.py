@@ -12,7 +12,7 @@ I = 0
 D = 0
 
 
-def FaceTarget(
+def FaceTargetCommand(
     swerve_subsystem: CommandSwerveDrivetrain,
     target_point: Translation2d,
     field: FieldCentric,

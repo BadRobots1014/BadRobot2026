@@ -1,12 +1,12 @@
 import commands2
 
-from subsystems.seesaw import Seesaw
+from subsystems.seesaw import SeesawSubsystem
 
 MOTOR_VOLTAGE = 4
 
 
-class RunSeesaw(commands2.Command):
-    def __init__(self, seesaw: Seesaw, dump: bool = True):
+class RunSeesawCommand(commands2.Command):
+    def __init__(self, seesaw: SeesawSubsystem, dump: bool = True):
         super().__init__()
         self.seesaw = seesaw
         self.dump = dump

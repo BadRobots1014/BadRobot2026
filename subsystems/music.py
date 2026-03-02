@@ -5,7 +5,7 @@ import os
 import logging
 
 
-class Music(Subsystem):
+class MusicSubsystem(Subsystem):
     def __init__(self, drivetrain):
         super().__init__()
         self.drivetrain = drivetrain
@@ -24,10 +24,10 @@ class Music(Subsystem):
         if not status.is_ok():
             logging.error(f"Music failed to load: {status.name}")
 
-    def play_song(self) -> Command:
+    def play_song(self):
         self.orchestra.play()
 
-    def stop_song(self) -> Command:
+    def stop_song(self):
         self.orchestra.stop()
 
     def song_finished(self):

@@ -23,9 +23,6 @@ class PWMLED(LEDController):
         return LEDPattern.solid(Color(r, g, b))
 
     def get_rainbow(self, saturation: int, value: int, speed: float):
-        logging.info(
-            "Setting Lights to Rainbow EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-        )
         return LEDPattern.rainbow(saturation, value).scrollAtAbsoluteSpeed(
             speed, self.spacing
         )
