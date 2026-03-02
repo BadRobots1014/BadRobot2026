@@ -89,8 +89,6 @@ class TalonFXMotorController(MotorController):
 
         self.motor.configurator.apply(config)
 
-        motor_controller_config.leader
-
         if (
             motor_controller_config.leader is not None
             and motor_controller_config.leader is self.__class__

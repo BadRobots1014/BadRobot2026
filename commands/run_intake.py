@@ -1,7 +1,8 @@
 import commands2
 from subsystems.intake import IntakeSubsystem
 
-INTAKE_VOLTAGE = 3000
+INTAKE_VOLTAGE = 4.5
+DUMP_VOLTAGE = -12
 
 
 class RunIntakeCommand(commands2.Command):
@@ -13,9 +14,9 @@ class RunIntakeCommand(commands2.Command):
 
     def execute(self):
         if self.dump:
-            self.intake.set_intake_voltage(-12)
+            self.intake.set_intake_voltage(DUMP_VOLTAGE)
         else:
-            self.intake.set_intake_voltage(4.5)
+            self.intake.set_intake_voltage(INTAKE_VOLTAGE)
 
     def isFinished(self) -> bool:
         return False

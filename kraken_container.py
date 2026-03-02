@@ -3,7 +3,6 @@
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
-from imaplib import Commands
 
 import commands2
 import rev
@@ -17,21 +16,16 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
 from commands import run_seesaw
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
-from hardware.impl.motor_controller_config import (
-    MotorControllerConfig,
-    MotorControllerIdleMode,
-)
-from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
+from hardware.impl.talonfx import TalonFXMotorController
 from subsystems import music, seesaw, shooter
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -340,6 +334,7 @@ class KrakenRobotContainer:
             IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
         )
 
+        # LIMIT SWITCHES CURRENTLY COMMENTED OUT
         IntakeWheelIn = RunIntakeCommand(self._intake, False)
         IntakeWheelOut = RunIntakeCommand(self._intake, True)
         self._primary_controller.button(CROSS_BUTTON).toggleOnTrue(IntakeWheelIn)
