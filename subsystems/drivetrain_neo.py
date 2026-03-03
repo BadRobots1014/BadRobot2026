@@ -114,3 +114,6 @@ class NeoDrivetrainSubsystem(commands2.Subsystem):
                 self.backRight.getPosition(),
             ),
         )
+
+    def resetgyro(self) -> None:
+        self.gyro.zeroYaw()
