@@ -276,21 +276,25 @@ class KrakenRobotContainer:
         )
 
         # Run kicker wheel
-        self._auxiliary_controller.create_button(R1_BUTTON, "Run kicker wheel").whileTrue(
-            ShootKickerCommand(self._shooter)
-        )
+        self._auxiliary_controller.create_button(
+            R1_BUTTON, "Run kicker wheel"
+        ).whileTrue(ShootKickerCommand(self._shooter))
 
         # Play music
-        self._auxiliary_controller.create_button(SHARE_BUTTON, "Play Music").toggleOnTrue(
-            self.music.play_song()
-        )
+        self._auxiliary_controller.create_button(
+            SHARE_BUTTON, "Play Music"
+        ).toggleOnTrue(self.music.play_song())
 
         # run seesaw
         seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._auxiliary_controller.create_button(SQUARE_BUTTON, "Seesaw Forward").whileTrue(seesaw_forward)
+        self._auxiliary_controller.create_button(
+            SQUARE_BUTTON, "Seesaw Forward"
+        ).whileTrue(seesaw_forward)
         # forward
         seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._auxiliary_controller.create_button(TRIANGLE_BUTTON, "Seesaw Backward").whileTrue(seesaw_backward)
+        self._auxiliary_controller.create_button(
+            TRIANGLE_BUTTON, "Seesaw Backward"
+        ).whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
