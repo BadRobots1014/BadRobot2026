@@ -1,3 +1,6 @@
+import threading
+
+import ntcore
 import rev
 import wpilib
 from commands2 import Subsystem
@@ -80,11 +83,29 @@ class ShooterSubsystem(Subsystem):
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-            100  # default value so we know something is going wrong with network tables
+            0  # default value so we know something is going wrong with network tables
         )
         self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-            100  # default value so we know something is going wrong with network tables
+            0  # default value so we know something is going wrong with network tables
         )
+
+        self.lock = threading.Lock()
+
+        def _on_shooter_rpm_changed(event: ntcore.Event):
+            with self.lock:
+                self.shoot_velocity = event.data.value.getDouble()
+                print(self.shoot_velocity)
+                self.valueListenerHandle = self._inst.addListener(
+                    self._shooter_motor_velocity_sub, ntcore.EventFlags.kValueAll, _on_shooter_rpm_changed
+                )
+
+        def _on_kicker_rpm_changed(event: ntcore.Event):
+            with self.lock:
+                self.kick_velocity = event.data.value.getDouble()
+                print(self.kick_velocity)
+                self.valueListenerHandle = self._inst.addListener(
+                    self._shooter_motor_velocity_sub, ntcore.EventFlags.kValueAll, _on_kicker_rpm_changed
+                )
 
     def set_shoot_voltage(self, volts: float):
         self.shoot_motor.set_voltage(volts)
