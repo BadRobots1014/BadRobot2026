@@ -25,13 +25,13 @@ class CustomController(CommandGenericHID):
         super().__init__(port)
         self._inst = NetworkTableInstance.getDefault()
         self._controller_table = self._inst.getTable("CustomController" + str(port))
-        self._bounded_buttons_publisher = self._controller_table.getStringTopic(
+        self._bounded_buttons_publisher = self._controller_table.getStringArrayTopic(
             "BoundedButtons"
         ).publish()
 
     def create_button(self, button: int, command_name: str) -> Trigger:
 
         self.bounded_buttons.append(button_to_string[button] + " -> " + command_name)
-        self._bounded_buttons_publisher.set("\n ".join(self.bounded_buttons))
+        self._bounded_buttons_publisher.set(self.bounded_buttons)
 
         return self.button(button)
