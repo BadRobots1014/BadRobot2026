@@ -27,6 +27,7 @@ from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from subsystems import music, seesaw, shooter
+from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
 
@@ -120,8 +121,8 @@ class KrakenRobotContainer:
         self._logger = Telemetry(MAX_SPEED)
 
         # Use CommandGenericHID for controller compatibility
-        self._primary_controller = CommandGenericHID(DRIVER_PORT)
-        self._auxiliary_controller = CommandGenericHID(DRIVER_PORT)
+        self._primary_controller = CustomController(DRIVER_PORT)
+        self._auxiliary_controller = CustomController(DRIVER_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -244,7 +245,7 @@ class KrakenRobotContainer:
         )
 
         # toggle slow mode
-        self._primary_controller.button(R2_BUTTON).onTrue(
+        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
             commands2.cmd.runOnce(lambda: self.toggleSlowMode())
         )
 
@@ -256,7 +257,7 @@ class KrakenRobotContainer:
         )
 
         # Face target
-        self._primary_controller.button(L2_BUTTON).whileTrue(
+        self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
             FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
@@ -270,26 +271,26 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._auxiliary_controller.button(L1_BUTTON).whileTrue(
+        self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
             ShootCommand(self._shooter)
         )
 
         # Run kicker wheel
-        self._auxiliary_controller.button(R1_BUTTON).whileTrue(
+        self._auxiliary_controller.create_button(R1_BUTTON, "Run kicker wheel").whileTrue(
             ShootKickerCommand(self._shooter)
         )
 
         # Play music
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+        self._auxiliary_controller.create_button(SHARE_BUTTON, "Play Music").toggleOnTrue(
             self.music.play_song()
         )
 
         # run seesaw
         seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        self._auxiliary_controller.create_button(SQUARE_BUTTON, "Seesaw Forward").whileTrue(seesaw_forward)
         # forward
         seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
+        self._auxiliary_controller.create_button(TRIANGLE_BUTTON, "Seesaw Backward").whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
