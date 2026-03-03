@@ -11,7 +11,7 @@ from subsystems.intake import IntakeSubsystem
 MOTOR_VOLTAGE = 2
 
 
-class IntakeDemoCommand(commands2.Command):
+class PinionDemoCommand(commands2.Command):
     def __init__(self, left: MotorController, right: MotorController, forward: bool):
         super().__init__()
         self.left = left

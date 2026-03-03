@@ -17,7 +17,7 @@ from wpimath.units import rotationsToRadians
 
 from commands import run_seesaw
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import IntakeDemoCommand
+from commands.intake_demo import PinionDemoCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
@@ -285,11 +285,11 @@ class KrakenRobotContainer:
         )
 
         # run seesaw
-        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
+        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True).withTimeout(0.02)
+        self._auxiliary_controller.button(SQUARE_BUTTON).onTrue(seesaw_forward)
         # forward
-        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
+        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False).withTimeout(0.02)
+        self._auxiliary_controller.button(TRIANGLE_BUTTON).onTrue(seesaw_backward)
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
@@ -327,11 +327,11 @@ class KrakenRobotContainer:
             )
         )
 
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
+        self._auxiliary_controller.button(TRIANGLE_BUTTON).onTrue(
+            PinionDemoCommand(self.left_pinion, self.right_pinion, True).withTimeout(0.05)
         )
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
+        self._auxiliary_controller.button(SQUARE_BUTTON).onTrue(
+            PinionDemoCommand(self.left_pinion, self.right_pinion, False).withTimeout(0.05)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
