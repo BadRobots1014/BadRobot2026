@@ -6,6 +6,7 @@ AndymarkMagneticApiId = 32
 
 class AndymarkMagnetic(LimitSwitch):
     def __init__(self, deviceId: int) -> None:
+        super().__init__()
         manufacturerId = 15
         deviceTypeId = 10
         self.device = GenericCAN(deviceId, manufacturerId, deviceTypeId)
