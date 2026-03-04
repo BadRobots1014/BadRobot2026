@@ -26,6 +26,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
 from hardware.impl.talonfx import TalonFXMotorController
+from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from subsystems import music, seesaw, shooter
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -91,6 +92,10 @@ INTAKE_MOTOR_CAN_ID = 52
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
 
+# limit switch id
+FORWARD_LIMIT_ID = 18
+BACKWARD_LIMIT_ID = 19
+
 
 class KrakenRobotContainer:
     """
@@ -149,6 +154,10 @@ class KrakenRobotContainer:
         # Initialize limelight
         self.camera = Limelight()
 
+        # limit switches
+        self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
+        self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
+
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
@@ -178,7 +187,12 @@ class KrakenRobotContainer:
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
 
         self._intake = IntakeSubsystem(
-            self.intakeMotor, self.right_pinion, self.left_pinion
+            self.intakeMotor,
+            self.right_pinion,
+            self.left_pinion,
+            self.forward_limit_switch,
+            self.backward_limit_switch,
+            "Limelight",
         )
 
         # Configure the button bindings
