@@ -30,6 +30,9 @@ class NeoBotContainer:
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
+        self.led_controller = PWMLED(0, 30)
+        #self.lights = LightSubsystem(self.led_controller)
+
         self.configureButtonBindings()
 
     def configureButtonBindings(self) -> None:
@@ -37,9 +40,9 @@ class NeoBotContainer:
         Defines the default command for the drivetrain inside this method.
         """
 
-        Trigger(lambda: self.controller.getCircleButton()).onTrue(
-            PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
-        )
+        #Trigger(lambda: self.controller.getCircleButton()).onTrue(
+        #    PartyModeCommand(self.lights)
+        #)
 
         def drive_logic():
             x_input = -self.controller.getLeftY()

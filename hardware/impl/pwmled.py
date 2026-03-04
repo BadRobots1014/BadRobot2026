@@ -10,7 +10,7 @@ class PWMLED(LEDController):
     def __init__(self, port: int, length: int):
         super().__init__()
         self.controller = AddressableLED(port)
-        self.buffer = [AddressableLED.LEDData()] * length
+        self.buffer = [AddressableLED.LEDData() for _ in range(length)]
         self.controller.setLength(length)
 
         self.spacing = 0.015
