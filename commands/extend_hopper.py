@@ -1,4 +1,5 @@
 import commands2
+import wpimath.units
 
 from subsystems.intake import IntakeSubsystem
 
@@ -25,3 +26,12 @@ class ExtendHopperCommand(commands2.Command):
             return True
 
         return False
+
+    def end(self):
+        pose = self.intake.pos_subscriber.get()
+        pose[0] += (
+            wpimath.units.inchesToMeters(12)
+            if self.extend
+            else -wpimath.units.inchesToMeters(12)
+        )
+        self.intake.pose_publisher.set(pose)

@@ -1,9 +1,10 @@
 from hardware.impl.generic_can import GenericCAN
+from hardware.base import li
 
 AndymarkMagneticApiId = 32
 
 
-class AndymarkMagnetic:
+class AndymarkMagnetic():
     def __init__(self, deviceId: int) -> None:
         manufacturerId = 15
         deviceTypeId = 10
