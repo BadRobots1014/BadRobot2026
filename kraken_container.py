@@ -15,7 +15,6 @@ from phoenix6 import swerve
 from wpilib import DriverStation, SmartDashboard
 from wpimath.units import rotationsToRadians
 
-from commands import run_seesaw
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
 from commands.run_intake import RunIntakeCommand
@@ -26,7 +25,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import music, seesaw, shooter
+from subsystems import music, shooter
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
 
@@ -82,7 +81,6 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
-SEESAW_MOTOR_ID = 53
 
 # intake can id
 INTAKE_MOTOR_CAN_ID = 52
@@ -157,9 +155,6 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        self.seesaw_motor = SparkMaxMotorController(
-            SEESAW_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushed
-        )
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -173,7 +168,6 @@ class KrakenRobotContainer:
         )
 
         self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
-        self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
 
@@ -283,13 +277,6 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
             self.music.play_song()
         )
-
-        # run seesaw
-        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
-        # forward
-        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
