@@ -92,7 +92,7 @@ INTAKE_MOTOR_CAN_ID = 52
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
 
-#limit switch id
+# limit switch id
 FORWARD_LIMIT_ID = 18
 BACKWARD_LIMIT_ID = 19
 
@@ -154,7 +154,7 @@ class KrakenRobotContainer:
         # Initialize limelight
         self.camera = Limelight()
 
-        #limit switches
+        # limit switches
         self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
         self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
 
@@ -187,7 +187,12 @@ class KrakenRobotContainer:
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
 
         self._intake = IntakeSubsystem(
-            self.intakeMotor, self.right_pinion, self.left_pinion, self.forward_limit_switch, self.backward_limit_switch, "Limelight"
+            self.intakeMotor,
+            self.right_pinion,
+            self.left_pinion,
+            self.forward_limit_switch,
+            self.backward_limit_switch,
+            "Limelight",
         )
 
         # Configure the button bindings
