@@ -6,6 +6,8 @@ from subsystems.intake import IntakeSubsystem
 MOTOR_VOLTAGE = 4
 INTAKE_VOLTAGE = 4
 
+EXTEND_LENGTH_INCHES = 12
+
 
 class ExtendHopperCommand(commands2.Command):
     def __init__(self, intake: IntakeSubsystem, extend: bool):
@@ -30,8 +32,8 @@ class ExtendHopperCommand(commands2.Command):
     def end(self):
         pose = self.intake.pos_subscriber.get()
         pose[0] += (
-            wpimath.units.inchesToMeters(12)
+            wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
             if self.extend
-            else -wpimath.units.inchesToMeters(12)
+            else -wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
         )
         self.intake.pose_publisher.set(pose)
