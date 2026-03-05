@@ -41,6 +41,10 @@ class NeoBotContainer:
             PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
         )
 
+        Trigger(lambda: self.controller.getOptionsButton()).onTrue(
+            commands2.cmd.runOnce(lambda: self.drivetrain.resetgyro())
+        )
+
         def drive_logic():
             x_input = -self.controller.getLeftY()
             x_input = wpimath.applyDeadband(x_input, 0.02)
