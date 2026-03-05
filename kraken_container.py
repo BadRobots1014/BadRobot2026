@@ -282,7 +282,7 @@ class KrakenRobotContainer:
 
         # Run main wheel
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter)
+            ShootCommand(self._shooter)
         )
 
         # Run kicker wheel
