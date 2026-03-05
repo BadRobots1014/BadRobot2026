@@ -19,6 +19,7 @@ from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
+from commands.bang_bang_shoot import BangBangShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
 from hardware.impl.limelight import Limelight
