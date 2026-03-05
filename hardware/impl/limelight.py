@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import ntcore
 from ntcore import NetworkTableInstance
 from wpilib import Timer
@@ -45,17 +43,17 @@ class Limelight:
             "robot_orientation_set"
         ).publish()
 
-    def _enabled_changed(self, event: ntcore.Event):
+    def _enabled_changed(self, event: ntcore.Event) -> None:
         self.enabled = event.data.value.getBoolean()
 
-    def array_to_pose2d(self, arr: list[float]):
+    def array_to_pose2d(self, arr: list[float]) -> Pose2d:
         return Pose2d(arr[0], arr[1], Rotation2d.fromDegrees(arr[5]))
 
     def vision_measurement_valid(self) -> bool:
         return self.tv_sub.get() == 1 and self.enabled
 
     # algorithm is used to tell the kalman filter how much to trust the pose estimation. lower is more confidant
-    def get_deviation(self) -> Tuple[float, float, float]:
+    def get_deviation(self) -> tuple[float, float, float]:
         arr = self.stddevs_sub.get()
         # Only use MT2x, MT2y
         # yaw standard deviation needs to be really high so the kalman filter ignores the yaw from limelight
@@ -78,5 +76,5 @@ class Limelight:
     def robot_orientation_set(
         self,
         yaw: float,
-    ):
+    ) -> None:
         self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])

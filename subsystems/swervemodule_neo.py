@@ -6,32 +6,32 @@
 
 import math
 
+from phoenix6.hardware import CANcoder
 import rev
 import wpilib
 import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.trajectory
-from phoenix6.hardware import CANcoder
 
 # kWheelRadius = 0.0508
 # kEncoderResolution = 4096
-kModuleMaxAngularVelocity = math.pi * 2
-kModuleMaxAngularAcceleration = math.tau
+MODULE_MAX_ANGULAR_VELOCITY = math.pi * 2
+MODULE_MAX_ANGULAR_ACCELERATION = math.tau
 
 # Values from 2025 Code
-kWheelDiameterMeters = 0.095
-kDriveMotorGearRatio = 1 / 8.14
-kDriveEncoderRot2Meter = kDriveMotorGearRatio * math.pi * kWheelDiameterMeters
-kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60
+WHEEL_DIAMETER_METERS = 0.095
+DRIVE_MOTOR_GEAR_RATIO = 1 / 8.14
+DRIVE_ENCODER_ROT_2_METER = DRIVE_MOTOR_GEAR_RATIO * math.pi * WHEEL_DIAMETER_METERS
+DRIVE_ENCODER_RPM_2_METER_PER_SEC = DRIVE_ENCODER_ROT_2_METER / 60
 
 
 class SwerveModule:
     def __init__(
         self,
-        driveMotorChannel: int,
-        turningMotorChannel: int,
-        turningEncoderChannel: int,
+        drive_motor_channel: int,
+        turning_motor_channel: int,
+        turning_encoder_channel: int,
     ) -> None:
         """Constructs a SwerveModule with a drive motor, turning motor, drive encoder and turning encoder.
 
@@ -41,14 +41,16 @@ class SwerveModule:
         """
         self.driveConfig = rev.SparkMaxConfig()
 
-        self.driveConfig.encoder.positionConversionFactor(kDriveEncoderRot2Meter)
-        self.driveConfig.encoder.velocityConversionFactor(kDriveEncoderRPM2MeterPerSec)
+        self.driveConfig.encoder.positionConversionFactor(DRIVE_ENCODER_ROT_2_METER)
+        self.driveConfig.encoder.velocityConversionFactor(
+            DRIVE_ENCODER_RPM_2_METER_PER_SEC
+        )
 
         self.driveMotor = rev.SparkMax(
-            driveMotorChannel, rev.SparkMax.MotorType.kBrushless
+            drive_motor_channel, rev.SparkMax.MotorType.kBrushless
         )
         self.turningMotor = rev.SparkMax(
-            turningMotorChannel, rev.SparkMax.MotorType.kBrushless
+            turning_motor_channel, rev.SparkMax.MotorType.kBrushless
         )
 
         self.driveMotor.configure(
@@ -58,7 +60,7 @@ class SwerveModule:
         )
 
         self.driveEncoder = self.driveMotor.getEncoder()
-        self.turningEncoder = CANcoder(turningEncoderChannel)
+        self.turningEncoder = CANcoder(turning_encoder_channel)
         self.turningMotor.setInverted(True)
         self.driveMotor.setInverted(True)
 
@@ -71,13 +73,13 @@ class SwerveModule:
             0,
             0,
             wpimath.trajectory.TrapezoidProfile.Constraints(
-                kModuleMaxAngularVelocity,
-                kModuleMaxAngularAcceleration,
+                MODULE_MAX_ANGULAR_VELOCITY,
+                MODULE_MAX_ANGULAR_ACCELERATION,
             ),
         )
 
         wpilib.SmartDashboard.putData(
-            f"pid{turningEncoderChannel}", self.turningPIDController
+            f"pid{turning_encoder_channel}", self.turningPIDController
         )
 
         # Gains are for example purposes only - must be determined for your own robot!
@@ -125,24 +127,24 @@ class SwerveModule:
         )
 
     def setDesiredState(
-        self, desiredState: wpimath.kinematics.SwerveModuleState
+        self, desired_state: wpimath.kinematics.SwerveModuleState
     ) -> None:
         """Sets the desired state for the module.
 
         :param desiredState: Desired state with speed and angle.
         """
 
-        encoderRotation = wpimath.geometry.Rotation2d.fromRotations(
+        encoder_rotation = wpimath.geometry.Rotation2d.fromRotations(
             self.turningEncoder.get_position().value
         )
 
         # Optimize the reference state to avoid spinning further than 90 degrees
-        desiredState.optimize(encoderRotation)
+        desired_state.optimize(encoder_rotation)
 
         # Scale speed by cosine of angle error. This scales down movement perpendicular to the desired
         # direction of travel that can occur when modules change directions. This results in smoother
         # driving.
-        desiredState.cosineScale(encoderRotation)
+        desired_state.cosineScale(encoder_rotation)
 
         # driveFeedforward = self.driveFeedforward.calculate(desiredState.speed)
         # turnFeedforward = self.turnFeedforward.calculate(
@@ -150,21 +152,21 @@ class SwerveModule:
         # )
 
         # Calculate the drive output from the drive PID controller.
-        driveOutput = self.drivePIDController.calculate(
-            self.driveEncoder.getVelocity(), desiredState.speed
+        drive_output = self.drivePIDController.calculate(
+            self.driveEncoder.getVelocity(), desired_state.speed
         )
         # driveOutput += driveFeedforward
 
         # Calculate the turning motor output from the turning PID controller.
-        turnOutput = self.turningPIDController.calculate(
+        turn_output = self.turningPIDController.calculate(
             self.turningEncoder.get_position().value,
-            desiredState.angle.radians() / (math.pi * 2),  # rotations
+            desired_state.angle.radians() / (math.pi * 2),  # rotations
         )
         # turnOutput += turnFeedforward
 
         # manually clamp pid outputs to acceptable voltage
-        driveOutput = max(min(driveOutput, 12), -12)
-        turnOutput = max(min(turnOutput, 12), -12)
+        drive_output = max(min(drive_output, 12), -12)
+        turn_output = max(min(turn_output, 12), -12)
 
-        self.driveMotor.setVoltage(driveOutput)
-        self.turningMotor.setVoltage(turnOutput)
+        self.driveMotor.setVoltage(drive_output)
+        self.turningMotor.setVoltage(turn_output)

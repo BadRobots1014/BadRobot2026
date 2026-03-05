@@ -1,5 +1,3 @@
-from enum import Enum
-
 from commands2.button import CommandGenericHID, Trigger
 from ntcore import NetworkTableInstance
 
@@ -18,11 +16,11 @@ button_to_string = {
 
 
 class CustomController(CommandGenericHID):
-
-    bounded_buttons = []
+    bounded_buttons: list[str]
 
     def __init__(self, port: int):
         super().__init__(port)
+        self.bounded_buttons = []
         self._inst = NetworkTableInstance.getDefault()
         self._controller_table = self._inst.getTable("CustomController" + str(port))
         self._bounded_buttons_publisher = self._controller_table.getStringArrayTopic(

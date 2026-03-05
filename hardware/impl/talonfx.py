@@ -1,7 +1,7 @@
 import phoenix6
-
 from phoenix6.controls.velocity_voltage import VelocityVoltage
 from phoenix6.controls.voltage_out import VoltageOut
+from phoenix6.hardware import TalonFX
 from phoenix6.units import rotations_per_second
 
 from hardware.base.encoder import Encoder
@@ -15,29 +15,28 @@ from hardware.impl.motor_controller_config import (
 class TalonFXMotorController(MotorController):
     def __init__(self, motor_id: int):
         super().__init__()
-        self.motor = phoenix6.hardware.talon_fx.TalonFX(motor_id)
+        self.motor = phoenix6.hardware.TalonFX(motor_id)
         self.motor_id = motor_id
 
-    def set_voltage(self, voltage: float):
+    def set_voltage(self, voltage: float) -> None:
         self.motor.set_control(VoltageOut(voltage))
 
     def set_velocity(self, velocity: float) -> None:
         self.motor.set_control(VelocityVoltage(rotations_per_second(velocity)))
-        return None
 
-    def set_inverted(self, inverted: bool):
-        invertedValue = (
+    def set_inverted(self, inverted: bool) -> None:
+        inverted_value = (
             phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
             if inverted
             else phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
 
         configuration = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs().with_inverted(invertedValue)
+            phoenix6.configs.MotorOutputConfigs().with_inverted(inverted_value)
         )
         self.motor.configurator.apply(configuration)
 
-    def get_motor_controller(self) -> phoenix6.hardware.talon_fx.TalonFX:
+    def get_motor_controller(self) -> "TalonFX":
         return self.motor
 
     # Getting active voltage
@@ -64,13 +63,13 @@ class TalonFXMotorController(MotorController):
         )
 
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
-        invertedValue = (
+        inverted_value = (
             phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
             if motor_controller_config.inverted
             else phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
 
-        idleMode = (
+        idle_mode = (
             phoenix6.signals.NeutralModeValue.BRAKE
             if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
             else phoenix6.signals.NeutralModeValue.COAST
@@ -78,8 +77,8 @@ class TalonFXMotorController(MotorController):
 
         config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
             phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(invertedValue)
-            .with_neutral_mode(idleMode)
+            .with_inverted(inverted_value)
+            .with_neutral_mode(idle_mode)
         )
 
         config.slot0.k_p = motor_controller_config.pidf[0]
@@ -93,7 +92,6 @@ class TalonFXMotorController(MotorController):
             motor_controller_config.leader is not None
             and motor_controller_config.leader is self.__class__
         ):
-
             self.motor.set_control(
                 phoenix6.controls.follower.Follower(
                     motor_controller_config.leader.get_motor_id(),

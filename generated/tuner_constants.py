@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, overload
+
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
 from wpimath.units import inchesToMeters
 
@@ -66,7 +67,8 @@ class TunerConstants:
         configs.CurrentLimitsConfigs()
         # Swerve azimuth does not require much torque output, so we can set a relatively low
         # stator current limit to help avoid brownouts without impacting performance.
-        .with_stator_current_limit(60.0).with_stator_current_limit_enable(True)
+        .with_stator_current_limit(60.0)
+        .with_stator_current_limit_enable(True)
     )
     _encoder_initial_configs = configs.CANcoderConfiguration()
     # Configs for the Pigeon 2; leave this None to skip applying Pigeon 2 configs
@@ -230,7 +232,9 @@ class TunerConstants:
         Creates a CommandSwerveDrivetrain instance.
         This should only be called once in your robot program.
         """
-        from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+        from subsystems.swerve_drivetrain import (
+            CommandSwerveDrivetrain,
+        )
 
         return CommandSwerveDrivetrain(
             cls.drivetrain_constants,
