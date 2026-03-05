@@ -2,8 +2,10 @@ import wpilib
 
 
 class GenericCAN:
-    def __init__(self, deviceId: int, manufacturerId: int, deviceTypeId: int) -> None:
-        self.device = wpilib.CAN(deviceId, manufacturerId, deviceTypeId)
+    def __init__(
+        self, device_id: int, manufacturer_id: int, device_type_id: int
+    ) -> None:
+        self.device = wpilib.CAN(device_id, manufacturer_id, device_type_id)
 
     def get_latest_data(self, api_id: int) -> tuple[bool, wpilib.CANData]:
         """
@@ -13,9 +15,9 @@ class GenericCAN:
         :returns: isValid and latest CANData
         """
         data = wpilib.CANData()
-        isValid = self.device.readPacketLatest(api_id, data)
+        is_valid = self.device.readPacketLatest(api_id, data)
 
-        return isValid, data
+        return is_valid, data
 
     def get_newest_data(self, api_id: int) -> tuple[bool, wpilib.CANData]:
         """
@@ -26,6 +28,6 @@ class GenericCAN:
         :returns: isValid and latest CANData
         """
         data = wpilib.CANData()
-        isValid = self.device.readPacketNew(api_id, data)
+        is_valid = self.device.readPacketNew(api_id, data)
 
-        return isValid, data
+        return is_valid, data

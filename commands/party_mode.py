@@ -10,6 +10,6 @@ class PartyModeCommand(commands2.InstantCommand):
         self.saturation = 255
         self.value = 255
 
-    def initialize(self):
+    def initialize(self) -> None:
         print("PARTY MODE USED")
         self.light_system.set_rainbow(255, 255, 5)

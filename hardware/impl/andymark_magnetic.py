@@ -1,16 +1,16 @@
-from hardware.impl.generic_can import GenericCAN
 from hardware.base.switch import LimitSwitch
+from hardware.impl.generic_can import GenericCAN
 
-AndymarkMagneticApiId = 32
+ANDYMARK_MAGNETIC_API_ID = 32
+MANUFACTURER_ID = 15
+DEVICE_TYPE_ID = 10
 
 
 class AndymarkMagnetic(LimitSwitch):
-    def __init__(self, deviceId: int) -> None:
+    def __init__(self, device_id: int) -> None:
         super().__init__()
-        manufacturerId = 15
-        deviceTypeId = 10
-        self.device = GenericCAN(deviceId, manufacturerId, deviceTypeId)
+        self.device = GenericCAN(device_id, MANUFACTURER_ID, DEVICE_TYPE_ID)
 
     def get_state(self) -> bool:
-        data = self.device.get_latest_data(AndymarkMagneticApiId)
-        return True if data[0] == 1 else False
+        data = self.device.get_latest_data(ANDYMARK_MAGNETIC_API_ID)
+        return data[0] == 1

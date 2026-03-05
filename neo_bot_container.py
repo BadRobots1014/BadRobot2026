@@ -6,16 +6,14 @@
 #
 
 import commands2
+from commands2.button import Trigger
 import wpilib
 import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
-from commands2.button import Trigger
 
 from commands.party_mode import PartyModeCommand
-from hardware.base.ledcontroller import LEDController
-from hardware.impl.generic_can import GenericCAN
 from hardware.impl.pwmled import PWMLED
 from subsystems import drivetrain_neo
 from subsystems.lights import LightSubsystem
@@ -37,34 +35,36 @@ class NeoBotContainer:
         Defines the default command for the drivetrain inside this method.
         """
 
-        Trigger(lambda: self.controller.getCircleButton()).onTrue(
+        Trigger(self.controller.getCircleButton).onTrue(
             PartyModeCommand(LightSubsystem(PWMLED(0, 30)))
         )
 
-        Trigger(lambda: self.controller.getOptionsButton()).onTrue(
-            commands2.cmd.runOnce(lambda: self.drivetrain.resetgyro())
+        Trigger(self.controller.getOptionsButton).onTrue(
+            commands2.cmd.runOnce(self.drivetrain.resetgyro)
         )
 
-        def drive_logic():
+        def drive_logic() -> None:
             x_input = -self.controller.getLeftY()
             x_input = wpimath.applyDeadband(x_input, 0.02)
-            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain_neo.kMaxSpeed
+            x_speed = self.xspeedLimiter.calculate(x_input) * drivetrain_neo.MAX_SPEED
 
             y_input = -self.controller.getLeftX()
             y_input = wpimath.applyDeadband(y_input, 0.02)
-            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain_neo.kMaxSpeed
+            y_speed = self.yspeedLimiter.calculate(y_input) * drivetrain_neo.MAX_SPEED
 
             rot_input = -self.controller.getRightX()
             rot_input = wpimath.applyDeadband(rot_input, 0.02)
-            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_neo.kMaxSpeed
+            rot_speed = self.rotLimiter.calculate(rot_input) * drivetrain_neo.MAX_SPEED
 
-            self.drivetrain.drive(x_speed, y_speed, rot_speed, True, 0.02)
+            self.drivetrain.drive(
+                x_speed, y_speed, rot_speed, period_seconds=0.02, field_relative=True
+            )
 
         self.drivetrain.setDefaultCommand(
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
 
-    def robotPeriodic(self):
+    def robotPeriodic(self) -> None:
         pass
 
     def getAutonomousCommand(self) -> commands2.Command:
