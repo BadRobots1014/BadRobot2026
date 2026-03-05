@@ -6,7 +6,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerIdleMode,
 )
 
-MOTOR_VOLTAGE = 2
+MOTOR_VOLTAGE = 3
 
 
 class IntakeDemoCommand(commands2.Command):

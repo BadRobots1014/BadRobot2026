@@ -4,6 +4,9 @@ from ntcore import NetworkTableInstance
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
 
+from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
+
+
 # Dumping velocity should be 1500
 
 
@@ -19,6 +22,9 @@ class IntakeSubsystem(Subsystem):
     ) -> None:
         super().__init__()
         self.intake_motor = intake
+
+        intake_config = MotorControllerConfig(False, MotorControllerIdleMode.BRAKE)
+        self.intake_motor.apply_configs(intake_config)
 
         self.left = left
         self.right = right

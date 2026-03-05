@@ -125,7 +125,7 @@ class KrakenRobotContainer:
 
         # Use CommandGenericHID for controller compatibility
         self._primary_controller = CustomController(DRIVER_PORT)
-        self._auxiliary_controller = CustomController(DRIVER_PORT)
+        self._auxiliary_controller = CustomController(AUXILIARY_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE

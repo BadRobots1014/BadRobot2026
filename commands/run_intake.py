@@ -3,7 +3,7 @@ import commands2
 from subsystems.intake import IntakeSubsystem
 
 INTAKE_VOLTAGE = 4.5
-DUMP_VOLTAGE = -12
+DUMP_VOLTAGE = -5
 
 
 class RunIntakeCommand(commands2.Command):

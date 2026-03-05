@@ -51,13 +51,13 @@ class SparkMaxMotorController(MotorController):
         return self.motor.getReverseLimitSwitch().get()
 
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
-        config = rev.SparkFlexConfig()
+        config = rev.SparkMaxConfig()
         config.inverted(motor_controller_config.inverted)
 
         idle_mode = (
-            rev.SparkFlexConfig.IdleMode.kBrake
+            rev.SparkMaxConfig.IdleMode.kBrake
             if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
-            else rev.SparkFlexConfig.IdleMode.kCoast
+            else rev.SparkMaxConfig.IdleMode.kCoast
         )
 
         config.IdleMode(idle_mode)
