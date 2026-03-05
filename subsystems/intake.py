@@ -1,7 +1,8 @@
 from commands2 import Subsystem
+from ntcore import NetworkTableInstance
+
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
-from ntcore import NetworkTableInstance
 
 # Dumping velocity should be 1500
 
@@ -35,21 +36,21 @@ class IntakeSubsystem(Subsystem):
             "camerapose_robotspace"
         ).subscribe([0, 0, 0, 0, 0, 0])
 
-    def set_intake_voltage(self, voltage: float):
+    def set_intake_voltage(self, voltage: float) -> None:
         self.intake_motor.set_voltage(voltage)
 
-    def set_intake_velocity(self, rpm: float):
+    def set_intake_velocity(self, rpm: float) -> None:
         self.intake_motor.set_velocity(rpm)
 
-    def set_extension_voltage(self, voltage: float):
+    def set_extension_voltage(self, voltage: float) -> None:
         self.left.set_voltage(voltage)
 
     @property
-    def intake_voltage(self):
+    def intake_voltage(self) -> float:
         return self.intake_motor.get_voltage()
 
     @property
-    def extension_voltage(self):
+    def extension_voltage(self) -> float:
         return self.left.get_voltage()
 
     def forward_extended(self) -> bool:

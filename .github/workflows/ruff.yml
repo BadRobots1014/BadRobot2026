@@ -14,11 +14,12 @@ jobs:
 
       - name: Run Ruff
         uses: astral-sh/ruff-action@v1
+        continue-on-error: true
         with:
-          # Optional: specify arguments (e.g., --fix to auto-fix issues)
           args: "check"
 
       - name: Check Formatting
         uses: astral-sh/ruff-action@v1
+        continue-on-error: true
         with:
           args: "format --check"

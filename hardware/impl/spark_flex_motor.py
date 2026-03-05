@@ -2,11 +2,11 @@ import rev
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
-from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
 class SparkFlexMotorController(MotorController):
@@ -15,10 +15,10 @@ class SparkFlexMotorController(MotorController):
         self.motor = rev.SparkFlex(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.controller = self.motor.getClosedLoopController()
 
-    def set_voltage(self, voltage: float):
+    def set_voltage(self, voltage: float) -> None:
         self.motor.setVoltage(voltage)
 
-    def set_inverted(self, inverted: bool):
+    def set_inverted(self, inverted: bool) -> None:
         self.motor.setInverted(inverted)
 
     def set_velocity(self, velocity: float) -> None:
@@ -57,19 +57,22 @@ class SparkFlexMotorController(MotorController):
 
         config.IdleMode(idle_mode)
         if motor_controller_config.leader is not None:
-            config.follow(
-                motor_controller_config.leader.get_motor_controller(),
-                motor_controller_config.inverted,
-            )
+            leader = motor_controller_config.leader.get_motor_controller()
+            if isinstance(leader, rev.SparkBase):
+                config.follow(leader, motor_controller_config.inverted)
+            else:
+                raise TypeError(
+                    f"SparkFlex cannot follow a non-Spark leader: {type(leader)}"
+                )
 
-        pidConfig = rev.ClosedLoopConfig()
-        pidConfig.pidf(
+        pid_config = rev.ClosedLoopConfig()
+        pid_config.pidf(
             motor_controller_config.pidf[0],
             motor_controller_config.pidf[1],
             motor_controller_config.pidf[2],
             motor_controller_config.pidf[3],
         )
-        config.apply(pidConfig)
+        config.apply(pid_config)
 
         self.motor.configure(
             config,

@@ -9,6 +9,7 @@ exclude = [
   "__pycache__",
   "build",
   "dist",
+  "generated/tuner_constants.py",
 ]
 
 [lint]
@@ -43,10 +44,18 @@ ignore = [
   "ANN204",  # missing return type for __init__ (always None)
   "COM812",  # trailing comma (conflicts with formatter)
   "ISC001",  # single line implicit string concat (conflicts with formatter)
+  "ERA001",  # commented-out code
+  "N802",    # mixedCase function names
+  "FBT001",  # positional boolean
+  "FBT002",  # positional boolean
+  "TRY002",  # require custom exception
 ]
 
 [lint.per-file-ignores]
 "tests/*" = ["S", "ANN", "PLR2004", "ARG"]
+"commands/*" = ["ARG002"] # unused args; needed to meet commands2 abstractions
+"routines/*" = ["ARG002"] # unused args; needed to meet commands2 abstractions
+"physics.py" = ["ARG002"] # unused args; needed to meet sim abstractions
 
 [lint.isort]
 force-sort-within-sections = true

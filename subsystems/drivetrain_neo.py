@@ -4,17 +4,17 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-import math
 import commands2
-
 import navx
-from subsystems import swervemodule_neo
 import wpilib
 import wpimath.geometry
 import wpimath.kinematics
 
-kMaxSpeed = 8.0  # 3 meters per second
-kMaxAngularSpeed = math.pi  # 1/2 rotation per second
+from subsystems import swervemodule_neo
+
+MAX_SPEED = 8.0  # 3 meters per second
+# Unused
+# MAX_ANGULAR_SPEED = math.pi  # 1/2 rotation per second
 
 
 class NeoDrivetrainSubsystem(commands2.Subsystem):
@@ -64,11 +64,11 @@ class NeoDrivetrainSubsystem(commands2.Subsystem):
 
     def drive(
         self,
-        xSpeed: float,
-        ySpeed: float,
+        x_speed: float,
+        y_speed: float,
         rot: float,
-        fieldRelative: bool,
-        periodSeconds: float,
+        period_seconds: float,
+        field_relative: bool,
     ) -> None:
         """
         Method to drive the robot using joystick info.
@@ -79,29 +79,29 @@ class NeoDrivetrainSubsystem(commands2.Subsystem):
         :param periodSeconds: Time
         """
 
-        wpilib.SmartDashboard.putString("xspeed", str(xSpeed))
-        wpilib.SmartDashboard.putString("yspeed", str(ySpeed))
+        wpilib.SmartDashboard.putString("xspeed", str(x_speed))
+        wpilib.SmartDashboard.putString("yspeed", str(y_speed))
         wpilib.SmartDashboard.putString("rotation", str(rot))
 
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(
+        swerve_module_states = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(
                 (
                     wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                        xSpeed, ySpeed, rot, self.gyro.getRotation2d()
+                        x_speed, y_speed, rot, self.gyro.getRotation2d()
                     )
-                    if fieldRelative
-                    else wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
+                    if field_relative
+                    else wpimath.kinematics.ChassisSpeeds(x_speed, y_speed, rot)
                 ),
-                periodSeconds,
+                period_seconds,
             )
         )
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
-            swerveModuleStates, kMaxSpeed
+            swerve_module_states, MAX_SPEED
         )
-        self.frontLeft.setDesiredState(swerveModuleStates[0])
-        self.frontRight.setDesiredState(swerveModuleStates[1])
-        self.backLeft.setDesiredState(swerveModuleStates[2])
-        self.backRight.setDesiredState(swerveModuleStates[3])
+        self.frontLeft.setDesiredState(swerve_module_states[0])
+        self.frontRight.setDesiredState(swerve_module_states[1])
+        self.backLeft.setDesiredState(swerve_module_states[2])
+        self.backRight.setDesiredState(swerve_module_states[3])
 
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
