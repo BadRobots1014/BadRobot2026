@@ -1,0 +1,56 @@
+# ruff.toml — Python 3.14, flat layout
+target-version = "py314"
+line-length = 88
+
+exclude = [
+  ".git",
+  ".venv",
+  "venv",
+  "__pycache__",
+  "build",
+  "dist",
+]
+
+[lint]
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # Pyflakes
+  "I",    # isort
+  "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
+  "UP",   # pyupgrade
+  "N",    # pep8-naming
+  "SIM",  # flake8-simplify
+  "RUF",  # Ruff-native rules
+  "S",    # flake8-bandit
+  "PTH",  # flake8-use-pathlib
+  "ERA",  # comment-out-code
+  "PL",   # Pylint
+  "TRY",  # try-except-patterns
+  "PERF", # performance
+  "ANN",  # annotations
+  "ARG",  # unused arguments
+  "LOG",  # logging best practices
+  "FBT",  # boolean trap (prevents confusing True/False args)
+]
+
+ignore = [
+  "E501",    # line length (handled by format)
+  "S101",    # allow assert
+  "TRY003",  # long messages in raise
+  "PLR0913", # too many arguments
+  "ANN204",  # missing return type for __init__ (always None)
+  "COM812",  # trailing comma (conflicts with formatter)
+  "ISC001",  # single line implicit string concat (conflicts with formatter)
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S", "ANN", "PLR2004", "ARG"]
+
+[lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+
+[format]
+docstring-code-format = true # Also formats Python code inside docstrings!
