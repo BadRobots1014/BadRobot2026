@@ -184,6 +184,13 @@ class KrakenRobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
+        # Configures limelight IMU
+        robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
+        self.camera.robot_orientation_set(robot_yaw)
+        self.camera.set_imu_mode(1)
+
+        
+
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
@@ -364,7 +371,11 @@ class KrakenRobotContainer:
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.button(OPTIONS_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+            self.drivetrain.runOnce(
+                self.drivetrain.seed_field_centric
+            ).andThen(
+                commands2.InstantCommand(self.camera.set_imu_mode(1))
+            )
         )
 
         # self.drivetrain.register_telemetry(

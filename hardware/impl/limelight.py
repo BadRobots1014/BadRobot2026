@@ -35,8 +35,6 @@ class Limelight:
         )
         # tv = target valid
         self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
-        # tc = count
-        # self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
 
         # Setters
 
@@ -80,3 +78,6 @@ class Limelight:
         yaw: float,
     ):
         self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])
+
+    def set_imu_mode(self, imumode: int):
+        self.nt_table.putNumber("imumode_set", imumode)
