@@ -283,7 +283,10 @@ class KrakenRobotContainer:
         self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
         self._shoot_command.addOption("PID", "PID")
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-        self._joystick.button(L1_BUTTON).whileTrue(
+        
+        self._auxiliary_controller.create_button(
+            L1_BUTTON, "Run main wheel"
+        ).whileTrue(
             commands2.ConditionalCommand(
                 BangBangShootCommand(self._shooter),
                 ShootCommand(self._shooter),
