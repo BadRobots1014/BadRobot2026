@@ -8,8 +8,7 @@ from hardware.impl.motor_controller_config import (
 
 MOTOR_VOLTAGE = 3
 
-
-class IntakeDemoCommand(commands2.Command):
+class ExtensionCommand(commands2.Command):
     def __init__(self, left: MotorController, right: MotorController, forward: bool):
         super().__init__()
         self.left = left

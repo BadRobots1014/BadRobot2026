@@ -16,7 +16,7 @@ import wpimath.filter
 from wpimath.units import rotationsToRadians
 
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import IntakeDemoCommand
+from commands.intake_demo import ExtensionCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
@@ -332,10 +332,10 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=True)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=False)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
