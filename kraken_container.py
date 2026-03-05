@@ -189,8 +189,6 @@ class KrakenRobotContainer:
         self.camera.robot_orientation_set(robot_yaw)
         self.camera.set_imu_mode(1)
 
-        
-
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self):
@@ -292,10 +290,14 @@ class KrakenRobotContainer:
         )
 
         # run seesaw
-        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True).withTimeout(0.02)
+        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True).withTimeout(
+            0.02
+        )
         self._auxiliary_controller.button(SQUARE_BUTTON).onTrue(seesaw_forward)
         # forward
-        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False).withTimeout(0.02)
+        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False).withTimeout(
+            0.02
+        )
         self._auxiliary_controller.button(TRIANGLE_BUTTON).onTrue(seesaw_backward)
 
         # POV up - drive forward
@@ -335,10 +337,14 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).onTrue(
-            PinionDemoCommand(self.left_pinion, self.right_pinion, True).withTimeout(0.05)
+            PinionDemoCommand(self.left_pinion, self.right_pinion, True).withTimeout(
+                0.05
+            )
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).onTrue(
-            PinionDemoCommand(self.left_pinion, self.right_pinion, False).withTimeout(0.05)
+            PinionDemoCommand(self.left_pinion, self.right_pinion, False).withTimeout(
+                0.05
+            )
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
@@ -371,9 +377,7 @@ class KrakenRobotContainer:
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.button(OPTIONS_BUTTON).onTrue(
-            self.drivetrain.runOnce(
-                self.drivetrain.seed_field_centric
-            ).andThen(
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
                 commands2.InstantCommand(self.camera.set_imu_mode(1))
             )
         )

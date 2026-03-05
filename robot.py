@@ -90,7 +90,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # this line or comment it out.
         if self.autonomousCommand:
             commands2.CommandScheduler.getInstance().cancel(self.autonomousCommand)
-        
+
         if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)
 
