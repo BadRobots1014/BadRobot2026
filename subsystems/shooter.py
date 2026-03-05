@@ -1,12 +1,9 @@
-import rev
 import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
-from rev import PersistMode, ResetMode, SparkBaseConfig
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
-
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,

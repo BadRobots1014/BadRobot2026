@@ -21,10 +21,10 @@ from commands.intake_demo import IntakeDemoCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
-from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.limelight import Limelight
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.spark_max_motor import SparkMaxMotorController
+from hardware.impl.talonfx import TalonFXMotorController
 from subsystems import music, seesaw, shooter
 from telemetry import Telemetry
 
@@ -236,7 +236,17 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._joystick.button(L1_BUTTON).whileTrue(BangBangShootCommand(self._shooter))
+        self._shoot_command = wpilib.SendableChooser()
+        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
+        self._shoot_command.addOption("PID", "PID")
+        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
+        self._joystick.button(L1_BUTTON).whileTrue(
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
+        )
 
         # Run kicker wheel
         self._joystick.button(R1_BUTTON).whileTrue(ShootKickerCommand(self._shooter))
