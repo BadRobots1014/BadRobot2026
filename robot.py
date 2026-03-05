@@ -37,7 +37,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # autonomous chooser on the dashboard.
         self.serial = wpilib.RobotController.getSerialNumber()
         if not wpilib.RobotBase.isReal():
-            serial = KRAKEN_SERIAL
+            self.serial = KRAKEN_SERIAL
 
         if self.serial == KRAKEN_SERIAL:
             self.container = KrakenRobotContainer()
