@@ -7,17 +7,23 @@ from ntcore import NetworkTableInstance
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
 
-from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 
 
-from hardware.impl.motor_controller_config import MotorControllerConfig, MotorControllerIdleMode
-
+from hardware.impl.motor_controller_config import (
+    MotorControllerConfig,
+    MotorControllerIdleMode,
+)
 
 # Dumping velocity should be 1500
 INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
 
 EXTENSION_VOLTAGE = 3
+
 
 class IntakeSubsystem(Subsystem):
     def __init__(
@@ -65,10 +71,14 @@ class IntakeSubsystem(Subsystem):
         self.dump_voltage_pub.set(DUMP_VOLTAGE)
         self.dump_voltage_sub = self.dump_voltage_topic.subscribe(DUMP_VOLTAGE)
 
-        self.extension_voltage_topic = self.nt_table.getDoubleTopic("extension_motor_voltage")
+        self.extension_voltage_topic = self.nt_table.getDoubleTopic(
+            "extension_motor_voltage"
+        )
         self.extension_voltage_pub = self.extension_voltage_topic.publish()
         self.extension_voltage_pub.set(EXTENSION_VOLTAGE)
-        self.extension_voltage_sub = self.extension_voltage_topic.subscribe(EXTENSION_VOLTAGE)
+        self.extension_voltage_sub = self.extension_voltage_topic.subscribe(
+            EXTENSION_VOLTAGE
+        )
 
         self.lock = threading.Lock()
 
@@ -78,7 +88,9 @@ class IntakeSubsystem(Subsystem):
                 print(self.intake_voltage)
 
         self.intake_changed_handle = self.nt_inst.addListener(
-            self.intake_voltage_sub, ntcore.EventFlags.kValueAll, _on_intake_voltage_changed
+            self.intake_voltage_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_intake_voltage_changed,
         )
 
         def _on_dump_voltage_changed(event: ntcore.Event) -> None:
@@ -96,7 +108,9 @@ class IntakeSubsystem(Subsystem):
                 print(self.extension_voltage)
 
         self.extension_changed_handle = self.nt_inst.addListener(
-            self.extension_voltage_sub, ntcore.EventFlags.kValueAll, _on_extension_voltage_changed
+            self.extension_voltage_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_extension_voltage_changed,
         )
 
     def set_intake_voltage_from_networktable(self) -> None:

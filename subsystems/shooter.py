@@ -19,10 +19,11 @@ JAM_RPM = 50  # rpm threshold to be considered jammed
 SHOOTER_VELOCITY = 4500
 KICKER_VOLTAGE = 600
 
-SHOOTER_P = .001
+SHOOTER_P = 0.001
 SHOOTER_I = 0
 SHOOTER_D = 0
-SHOOTER_F = .00181111111 # trusting dre
+SHOOTER_F = 0.00181111111  # trusting dre
+
 
 class ShooterSubsystem(Subsystem):
     def __init__(
@@ -54,13 +55,21 @@ class ShooterSubsystem(Subsystem):
         self.shoot_config = MotorControllerConfig(
             inverted=False,
             idle_mode=MotorControllerIdleMode.COAST,
-            pidf=[SHOOTER_P, SHOOTER_I, SHOOTER_D, SHOOTER_F],
+            p=SHOOTER_P,
+            i=SHOOTER_I,
+            d=SHOOTER_D,
+            f=SHOOTER_F,
         )
         self.shoot_motor.apply_configs(self.shoot_config)
 
         # Config kick motor
         kick_config = MotorControllerConfig(
-            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
+            inverted=False,
+            idle_mode=MotorControllerIdleMode.BRAKE,
+            p=SHOOTER_P,
+            i=SHOOTER_I,
+            d=SHOOTER_D,
+            f=SHOOTER_F,
         )
         self.kick_motor.apply_configs(kick_config)
 
@@ -68,7 +77,6 @@ class ShooterSubsystem(Subsystem):
         follower_config = MotorControllerConfig(
             inverted=True,
             idle_mode=MotorControllerIdleMode.COAST,
-            pidf=[SHOOTER_P, SHOOTER_I, SHOOTER_D, SHOOTER_F],
             leader=self.shoot_motor,
         )
         self.f_shoot_motor.apply_configs(follower_config)
@@ -126,9 +134,10 @@ class ShooterSubsystem(Subsystem):
                 print(self.shoot_velocity)
 
         self.shooterListenerHandle = self._inst.addListener(
-            self._shooter_motor_velocity_sub, ntcore.EventFlags.kValueAll, _on_shooter_rpm_changed
+            self._shooter_motor_velocity_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_shooter_rpm_changed,
         )
-
 
         def _on_kicker_voltage_changed(event: ntcore.Event) -> None:
             with self.lock:
@@ -136,12 +145,14 @@ class ShooterSubsystem(Subsystem):
                 print(self.kick_voltage)
 
         self.kickerListenerHandle = self._inst.addListener(
-            self._kicker_motor_voltage_sub, ntcore.EventFlags.kValueAll, _on_kicker_voltage_changed
+            self._kicker_motor_voltage_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_kicker_voltage_changed,
         )
 
         def _on_shooter_p_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.shoot_config.pidf[0] = event.data.value.getDouble()
+                self.shoot_config.p = event.data.value.getDouble()
                 self.shoot_motor.apply_configs(self.shoot_config)
                 self.f_shoot_motor.apply_configs(self.shoot_config)
 
@@ -151,7 +162,7 @@ class ShooterSubsystem(Subsystem):
 
         def _on_shooter_i_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.shoot_config.pidf[1] = event.data.value.getDouble()
+                self.shoot_config.i = event.data.value.getDouble()
                 self.shoot_motor.apply_configs(self.shoot_config)
                 self.f_shoot_motor.apply_configs(self.shoot_config)
 
@@ -161,7 +172,7 @@ class ShooterSubsystem(Subsystem):
 
         def _on_shooter_d_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.shoot_config.pidf[2] = event.data.value.getDouble()
+                self.shoot_config.d = event.data.value.getDouble()
                 self.shoot_motor.apply_configs(self.shoot_config)
                 self.f_shoot_motor.apply_configs(self.shoot_config)
 
@@ -171,7 +182,7 @@ class ShooterSubsystem(Subsystem):
 
         def _on_shooter_f_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.shoot_config.pidf[3] = event.data.value.getDouble()
+                self.shoot_config.f = event.data.value.getDouble()
                 self.shoot_motor.apply_configs(self.shoot_config)
                 self.f_shoot_motor.apply_configs(self.shoot_config)
 
