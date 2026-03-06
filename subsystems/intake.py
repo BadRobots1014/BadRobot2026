@@ -1,4 +1,6 @@
 from commands2 import Subsystem
+from ntcore import NetworkTableInstance
+
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
 
@@ -13,29 +15,42 @@ class IntakeSubsystem(Subsystem):
         right: MotorController,
         forward: LimitSwitch,
         backward: LimitSwitch,
+        camera_name: str = "limelight",
     ) -> None:
         super().__init__()
         self.intake_motor = intake
 
         self.left = left
         self.right = right
-        self.right.set_leader(self.left.get_motor_id(), True)
 
         self.forward = forward
         self.backward = backward
 
-    def set_intake_voltage(self, voltage: float):
+        # setup network tables
+        self.nt_inst = NetworkTableInstance.getDefault()
+        self.nt_table = self.nt_inst.getTable(camera_name)
+        self.pose_publisher = self.nt_table.getDoubleArrayTopic(
+            "camerapose_robotspace"
+        ).publish()
+        self.pos_subscriber = self.nt_table.getDoubleArrayTopic(
+            "camerapose_robotspace"
+        ).subscribe([0, 0, 0, 0, 0, 0])
+
+    def set_intake_voltage(self, voltage: float) -> None:
         self.intake_motor.set_voltage(voltage)
 
-    def set_extension_voltage(self, voltage: float):
+    def set_intake_velocity(self, rpm: float) -> None:
+        self.intake_motor.set_velocity(rpm)
+
+    def set_extension_voltage(self, voltage: float) -> None:
         self.left.set_voltage(voltage)
 
     @property
-    def intake_voltage(self):
+    def intake_voltage(self) -> float:
         return self.intake_motor.get_voltage()
 
     @property
-    def extension_voltage(self):
+    def extension_voltage(self) -> float:
         return self.left.get_voltage()
 
     def forward_extended(self) -> bool:

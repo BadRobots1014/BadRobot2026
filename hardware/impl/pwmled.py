@@ -1,12 +1,11 @@
-from wpilib import AddressableLED, LEDPattern, Color
+import logging
+
+from wpilib import AddressableLED, Color, LEDPattern
 
 from hardware.base.ledcontroller import LEDController
 
-import logging
-
 
 class PWMLED(LEDController):
-
     def __init__(self, port: int, length: int):
         super().__init__()
         self.controller = AddressableLED(port)
@@ -17,17 +16,17 @@ class PWMLED(LEDController):
         self.apply_pattern(self.get_solid(255, 255, 0))
         self.controller.start()
 
-        logging.info("Lights initialized")
+        logging.info("Lights initialized")  # noqa: LOG015
 
-    def get_solid(self, r: int, g: int, b: int):
+    def get_solid(self, r: int, g: int, b: int) -> LEDPattern:
         return LEDPattern.solid(Color(r, g, b))
 
-    def get_rainbow(self, saturation: int, value: int, speed: float):
+    def get_rainbow(self, saturation: int, value: int, speed: float) -> LEDPattern:
         return LEDPattern.rainbow(saturation, value).scrollAtAbsoluteSpeed(
             speed, self.spacing
         )
 
-    def get_gradient(self, continuous: bool, colors: list[tuple]):
+    def get_gradient(self, continuous: bool, colors: list[tuple]) -> LEDPattern:
         return LEDPattern.gradient(
             (
                 LEDPattern.GradientType.kContinuous
@@ -37,6 +36,6 @@ class PWMLED(LEDController):
             [Color(color[0], color[1], color[2]) for color in colors],
         )
 
-    def apply_pattern(self, pattern: LEDPattern):
+    def apply_pattern(self, pattern: LEDPattern) -> None:
         pattern.applyTo(self.buffer)
         self.controller.setData(self.buffer)

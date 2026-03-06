@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any
+import typing
+from typing import Union
 
 from wpiutil import Sendable
 
 from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
-
 from hardware.impl.motor_controller_config import MotorControllerConfig
+
+if typing.TYPE_CHECKING:
+    import phoenix6
+    from rev import SparkBase
 
 
 class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
@@ -18,9 +22,6 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
 
     @abstractmethod
     def set_inverted(self, inverted: bool) -> None: ...
-
-    def set_leader(self, leader: int, oppose: bool) -> None:
-        raise Exception("Not Implemented")
 
     @abstractmethod
     def get_encoder(self) -> Encoder: ...
@@ -35,7 +36,9 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
     def get_backward_limit(self) -> bool: ...
 
     @abstractmethod
-    def get_motor_controller(self) -> Any: ...
+    def get_motor_controller(
+        self,
+    ) -> Union["SparkBase", "phoenix6.hardware.TalonFX"]: ...
 
     @abstractmethod
     def get_motor_id(self) -> int: ...

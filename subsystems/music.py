@@ -1,12 +1,15 @@
-from commands2 import Command, Subsystem, StartEndCommand
+import logging
+from pathlib import Path
+
+from commands2 import Subsystem
 from phoenix6.orchestra import Orchestra
 import wpilib
-import os
-import logging
+
+from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class MusicSubsystem(Subsystem):
-    def __init__(self, drivetrain):
+    def __init__(self, drivetrain: CommandSwerveDrivetrain):
         super().__init__()
         self.drivetrain = drivetrain
         self.orchestra = Orchestra()
@@ -15,20 +18,22 @@ class MusicSubsystem(Subsystem):
             self.orchestra.add_instrument(module.drive_motor)
             self.orchestra.add_instrument(module.steer_motor)
 
-        deploy_path = wpilib.getDeployDirectory()
+        deploy_path = Path(wpilib.getDeployDirectory())
         file_name = "still_alive.chrp"
-        full_path = os.path.join(deploy_path, file_name)
+        full_path = deploy_path / file_name
 
-        status = self.orchestra.load_music(full_path)
+        status = self.orchestra.load_music(str(full_path))
 
         if not status.is_ok():
-            logging.error(f"Music failed to load: {status.name}")
+            logging.error(f"Music failed to load: {status.name}")  # noqa: LOG015
+        else:
+            logging.info("Music loaded successfully!")  # noqa: LOG015
 
-    def play_song(self):
+    def play_song(self) -> None:
         self.orchestra.play()
 
-    def stop_song(self):
+    def stop_song(self) -> None:
         self.orchestra.stop()
 
-    def song_finished(self):
+    def song_finished(self) -> bool:
         return not self.orchestra.is_playing()

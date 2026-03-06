@@ -5,29 +5,30 @@
 #
 
 import commands2
-import wpilib
-import wpimath.filter
-from commands2.button import CommandGenericHID, Trigger
+from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
+import wpilib
 from wpilib import DriverStation, SmartDashboard
+import wpimath.filter
 from wpimath.units import rotationsToRadians
 
-from commands import run_seesaw
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
+from commands.party_mode import PartyModeCommand
+from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
-from commands.party_mode import PartyModeCommand
 from generated.tuner_constants import TunerConstants
+from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
-from hardware.impl.spark_flex_motor import SparkFlexMotorController
-from hardware.impl.spark_max_motor import SparkMaxMotorController
-from hardware.impl.talonfx import TalonFXMotorController
 from hardware.impl.pwmled import PWMLED
-from subsystems import music, seesaw, shooter, lights
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
+from hardware.impl.talonfx import TalonFXMotorController
+from subsystems import lights, music, shooter
+from subsystems.custom_controller import CustomController
+from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -61,12 +62,11 @@ HOME_BUTTON = 13
 TRACKPAD = 14
 
 # drive speeds/limits
-MAX_SPEED = (
-    0.25 * TunerConstants.speed_at_12_volts
-)  # speed_at_12_volts desired top speed
+SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
+MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
-    0.75
+    1.5
 )  # 3/4 of a rotation per second max angular velocity
 DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
 ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
@@ -83,11 +83,17 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
-SEESAW_MOTOR_ID = 11
+
+# intake can id
+INTAKE_MOTOR_CAN_ID = 52
 
 # pinion can id
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
+
+# limit switch id
+FORWARD_LIMIT_ID = 18
+BACKWARD_LIMIT_ID = 19
 
 
 class KrakenRobotContainer:
@@ -99,6 +105,7 @@ class KrakenRobotContainer:
     """
 
     def __init__(self) -> None:
+        self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
@@ -117,8 +124,8 @@ class KrakenRobotContainer:
         self._logger = Telemetry(MAX_SPEED)
 
         # Use CommandGenericHID for controller compatibility
-        self._primary_controller = CommandGenericHID(DRIVER_PORT)
-        self._auxiliary_controller = CommandGenericHID(DRIVER_PORT)
+        self._primary_controller = CustomController(DRIVER_PORT)
+        self._auxiliary_controller = CustomController(AUXILIARY_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -145,6 +152,10 @@ class KrakenRobotContainer:
         # Initialize limelight
         self.camera = Limelight()
 
+        # limit switches
+        self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
+        self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
+
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
@@ -153,7 +164,6 @@ class KrakenRobotContainer:
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        self.seesaw_motor = SparkMaxMotorController(SEESAW_MOTOR_ID)
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
@@ -166,30 +176,54 @@ class KrakenRobotContainer:
             self.kick_encoder,
         )
 
-        self._seesaw = seesaw.SeesawSubsystem(self.seesaw_motor)
+        self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
+
+        self._intake = IntakeSubsystem(
+            self.intakeMotor,
+            self.right_pinion,
+            self.left_pinion,
+            self.forward_limit_switch,
+            self.backward_limit_switch,
+            "Limelight",
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
 
     # Joysticks need to be inverted or drive won't work properly
 
-    def getLeftX(self):
-        raw = -self._primary_controller.getRawAxis(LEFT_X_AXIS)
-        return self.left_x_speed_limiter.calculate(raw)
+    def getLeftX(self) -> float:
+        raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
+        limiter = self.left_x_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
-    def getLeftY(self):
-        raw = -self._primary_controller.getRawAxis(LEFT_Y_AXIS)
-        return self.left_y_speed_limiter.calculate(raw)
+    def getLeftY(self) -> float:
+        raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
+        limiter = self.left_y_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
-    def getRightX(self):
-        raw = -self._primary_controller.getRawAxis(RIGHT_X_AXIS)
-        return self.right_x_speed_limiter.calculate(raw)
+    def getRightX(self) -> float:
+        raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
+        limiter = self.right_x_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
 
-    def getRightY(self):
-        raw = -self._primary_controller.getRawAxis(RIGHT_Y_AXIS)
-        return self.right_y_speed_limiter.calculate(raw)
+    def getRightY(self) -> float:
+        raw = -(self._primary_controller.getRawAxis(RIGHT_Y_AXIS) ** 3)
+        limiter = self.right_y_speed_limiter.calculate(raw)
+        if self.slow_mode:
+            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return limiter
+
+    def toggleSlowMode(self) -> None:
+        self.slow_mode = not self.slow_mode
 
     def configureButtonBindings(self) -> None:
         """
@@ -217,15 +251,22 @@ class KrakenRobotContainer:
             )
         )
 
+        # toggle slow mode
+        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
+            commands2.cmd.runOnce(self.toggleSlowMode)
+        )
+
         # Idle while the robot is disabled. This ensures the configured
         # neutral mode is applied to the drive motors while disabled.
         idle = swerve.requests.Idle()
         Trigger(DriverStation.isDisabled).whileTrue(
-            self.drivetrain.apply_request(lambda: idle).ignoringDisable(True)
+            self.drivetrain.apply_request(lambda: idle).ignoringDisable(
+                doesRunWhenDisabled=True
+            )
         )
 
         # Face target
-        self._primary_controller.button(CIRCLE_BUTTON).whileTrue(
+        self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
             FaceTargetCommand(
                 self.drivetrain,
                 BLUE_HUB_TRANSLATION,
@@ -239,26 +280,19 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
-        self._auxiliary_controller.button(L1_BUTTON).whileTrue(
-            BangBangShootCommand(self._shooter)
+        self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
+            ShootCommand(self._shooter)
         )
 
         # Run kicker wheel
-        self._auxiliary_controller.button(R1_BUTTON).whileTrue(
-            ShootKickerCommand(self._shooter)
-        )
+        self._auxiliary_controller.create_button(
+            R1_BUTTON, "Run kicker wheel"
+        ).whileTrue(ShootKickerCommand(self._shooter))
 
         # Party Mode
         self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
             PartyModeCommand(self.lights, self.music)
         )
-
-        # run seesaw
-        seesaw_forward = run_seesaw.RunSeesawCommand(self._seesaw, True)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(seesaw_forward)
-        # forward
-        seesaw_backward = run_seesaw.RunSeesawCommand(self._seesaw, False)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(seesaw_backward)
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
@@ -278,12 +312,43 @@ class KrakenRobotContainer:
             )
         )
 
+        # POV right - drive right
+        self._primary_controller.povUp().whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    -NUDGE_SPEED
+                )
+            )
+        )
+
+        # POV left - drive left
+        self._primary_controller.povUp().whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    NUDGE_SPEED
+                )
+            )
+        )
+
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
+            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=False)
         )
+
+        # LIMIT SWITCHES CURRENTLY COMMENTED OUT
+        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
+        self._primary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
+        self._primary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
+
+        # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
+        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
+        # )
+        # self._joystick.button(SQUARE_BUTTON).whileTrue(
+        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
+        # )
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
@@ -300,8 +365,8 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
-        # Reset the field-centric heading on L1 button press (left bumper)
-        self._primary_controller.button(L1_BUTTON).onTrue(
+        # Reset the field-centric heading on Options button press
+        self._primary_controller.button(OPTIONS_BUTTON).onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
@@ -309,7 +374,7 @@ class KrakenRobotContainer:
         #    lambda state: self._logger.telemeterize(state)
         # )
 
-    def robotPeriodic(self):
+    def robotPeriodic(self) -> None:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera.robot_orientation_set(robot_yaw)

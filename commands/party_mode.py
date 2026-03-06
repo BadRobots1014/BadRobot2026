@@ -16,13 +16,13 @@ class PartyModeCommand(commands2.Command):
             self.light_system, self.music_system, self.music_system.drivetrain
         )
 
-    def initialize(self):
+    def initialize(self) -> None:
         print("PARTY MODE USED")
         self.light_system.set_rainbow(255, 255, 5)
         self.music_system.play_song()
 
-    def end(self, interrupted):
+    def end(self, interrupted: bool) -> None:
         self.music_system.stop_song()
 
-    def isFinished(self):
+    def isFinished(self) -> bool:
         return self.music_system.song_finished()
