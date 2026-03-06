@@ -239,3 +239,6 @@ class ShooterSubsystem(Subsystem):
     @property
     def kick_distance(self) -> float:
         return self.kick_encoder.get_position()
+
+    def get_shoot_velocity(self) -> float:
+        return self.shoot_encoder.get_velocity()
