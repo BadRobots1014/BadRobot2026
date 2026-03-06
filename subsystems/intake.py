@@ -53,13 +53,15 @@ class IntakeSubsystem(Subsystem):
 
         # setup network tables
         self.nt_inst = NetworkTableInstance.getDefault()
-        self.nt_table = self.nt_inst.getTable(camera_name)
-        self.pose_publisher = self.nt_table.getDoubleArrayTopic(
+        self.nt_ll_table = self.nt_inst.getTable(camera_name)
+        self.pose_publisher = self.nt_ll_table.getDoubleArrayTopic(
             "camerapose_robotspace"
         ).publish()
-        self.pos_subscriber = self.nt_table.getDoubleArrayTopic(
+        self.pos_subscriber = self.nt_ll_table.getDoubleArrayTopic(
             "camerapose_robotspace"
         ).subscribe([0, 0, 0, 0, 0, 0])
+
+        self.nt_table = self.nt_inst.getTable("intake")
 
         self.intake_voltage_topic = self.nt_table.getDoubleTopic("intake_motor_voltage")
         self.intake_voltage_pub = self.intake_voltage_topic.publish()

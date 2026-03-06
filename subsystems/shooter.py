@@ -17,7 +17,7 @@ JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 SHOOTER_VELOCITY = 4500
-KICKER_VOLTAGE = 600
+KICKER_VOLTAGE = 4
 
 SHOOTER_P = 0.001
 SHOOTER_I = 0
@@ -205,8 +205,8 @@ class ShooterSubsystem(Subsystem):
     def set_kick_velocity(self, velocity: float) -> None:
         self.kick_motor.set_velocity(velocity)
 
-    def set_kick_velocity_from_networktables(self) -> None:
-        self.set_kick_velocity(self.kick_voltage)
+    def set_kick_voltage_from_networktables(self) -> None:
+        self.set_kick_voltage(self.kick_voltage)
 
     def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
