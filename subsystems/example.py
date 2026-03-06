@@ -8,5 +8,5 @@ class ExampleSubsystem(commands2.Subsystem):
     # extra methods here
 
     # runs every scheduled tick
-    def periodic(self):
+    def periodic(self) -> None:
         pass

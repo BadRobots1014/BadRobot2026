@@ -1,10 +1,9 @@
 from commands2 import ParallelCommandGroup, SequentialCommandGroup
 from wpimath.geometry import Translation2d
 
+from commands.goto_commands import goto_shoot_pos
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
-from commands.goto_commands import goto_shoot_pos
-
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 

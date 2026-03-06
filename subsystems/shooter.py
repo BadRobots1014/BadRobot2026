@@ -1,6 +1,6 @@
-import wpilib
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+import wpilib
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
@@ -42,20 +42,24 @@ class ShooterSubsystem(Subsystem):
 
         # Config shoot motor
         shoot_config = MotorControllerConfig(
-            False, MotorControllerIdleMode.COAST, (1, 0, 0, self.shoot_velocity)
+            inverted=False,
+            idle_mode=MotorControllerIdleMode.COAST,
+            pidf=(1, 0, 0, self.shoot_velocity),
         )
         self.shoot_motor.apply_configs(shoot_config)
 
         # Config kick motor
-        kick_config = MotorControllerConfig(False, MotorControllerIdleMode.BRAKE)
+        kick_config = MotorControllerConfig(
+            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
+        )
         self.kick_motor.apply_configs(kick_config)
 
         # Config follower motor
         follower_config = MotorControllerConfig(
-            True,
-            MotorControllerIdleMode.COAST,
-            (1, 0, 0, self.shoot_velocity),
-            self.shoot_motor,
+            inverted=True,
+            idle_mode=MotorControllerIdleMode.COAST,
+            pidf=(1, 0, 0, self.shoot_velocity),
+            leader=self.shoot_motor,
         )
         self.f_shoot_motor.apply_configs(follower_config)
 
@@ -83,35 +87,35 @@ class ShooterSubsystem(Subsystem):
             100  # default value so we know something is going wrong with network tables
         )
 
-    def set_shoot_voltage(self, volts: float):
+    def set_shoot_voltage(self, volts: float) -> None:
         self.shoot_motor.set_voltage(volts)
 
-    def set_shoot_velocity(self, velocity: float):
+    def set_shoot_velocity(self, velocity: float) -> None:
         self.shoot_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
 
-    def set_shoot_velocity_from_networktables(self):
+    def set_shoot_velocity_from_networktables(self) -> None:
         velocity = self._shooter_motor_velocity_sub.get()
         self.set_shoot_velocity(velocity)
 
-    def set_kick_voltage(self, volts: float):
+    def set_kick_voltage(self, volts: float) -> None:
         self.kick_motor.set_voltage(volts)
 
-    def set_kick_velocity(self, velocity: float):
+    def set_kick_velocity(self, velocity: float) -> None:
         self.kick_velocity = velocity
         self.kick_motor.set_velocity(velocity)
 
-    def set_kick_velocity_from_networktables(self):
+    def set_kick_velocity_from_networktables(self) -> None:
         velocity = self._kicker_motor_velocity_sub.get()
         self.set_kick_velocity(velocity)
 
-    def reset_shoot(self):
+    def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
 
-    def reset_kick(self):
+    def reset_kick(self) -> None:
         self.kick_encoder.set_position(0)
 
-    def kick_unjam(self):
+    def kick_unjam(self) -> None:
         # first if checks for first instance of jamming
         if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < JAM_RPM:
             self.time_of_stall = wpilib.RobotController.getFPGATime()
