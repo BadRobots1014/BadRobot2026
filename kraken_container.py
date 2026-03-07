@@ -15,6 +15,7 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import IntakeDemoCommand
 from commands.run_intake import RunIntakeCommand
@@ -280,8 +281,17 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
+        self._shoot_command = wpilib.SendableChooser()
+        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
+        self._shoot_command.addOption("PID", "PID")
+        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
+
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            ShootCommand(self._shooter)
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
         )
 
         # Run kicker wheel
