@@ -1,8 +1,7 @@
 import logging
 from pathlib import Path
 
-from commands2 import Command, StartEndCommand, Subsystem
-from phoenix6.hardware import TalonFX
+from commands2 import Subsystem
 from phoenix6.orchestra import Orchestra
 import wpilib
 
@@ -10,13 +9,14 @@ from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class MusicSubsystem(Subsystem):
-    def __init__(self, motors: list[TalonFX], drivetrain: CommandSwerveDrivetrain):
+    def __init__(self, drivetrain: CommandSwerveDrivetrain):
         super().__init__()
         self.drivetrain = drivetrain
         self.orchestra = Orchestra()
 
-        for motor in motors:
-            self.orchestra.add_instrument(motor)
+        for module in self.drivetrain.modules:
+            self.orchestra.add_instrument(module.drive_motor)
+            self.orchestra.add_instrument(module.steer_motor)
 
         deploy_path = Path(wpilib.getDeployDirectory())
         file_name = "still_alive.chrp"
@@ -29,10 +29,11 @@ class MusicSubsystem(Subsystem):
         else:
             logging.info("Music loaded successfully!")  # noqa: LOG015
 
-    def play_song(self) -> Command:
-        return StartEndCommand(
-            self.orchestra.play, self.orchestra.stop, self, self.drivetrain
-        ).until(self.song_finished)
+    def play_song(self) -> None:
+        self.orchestra.play()
+
+    def stop_song(self) -> None:
+        self.orchestra.stop()
 
     def song_finished(self) -> bool:
         return not self.orchestra.is_playing()
