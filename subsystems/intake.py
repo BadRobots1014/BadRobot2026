@@ -1,18 +1,11 @@
 import threading
 
-import ntcore
 from commands2 import Subsystem
+import ntcore
 from ntcore import NetworkTableInstance
 
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
-
-from hardware.impl.motor_controller_config import (
-    MotorControllerConfig,
-    MotorControllerIdleMode,
-)
-
-
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -38,7 +31,9 @@ class IntakeSubsystem(Subsystem):
         super().__init__()
         self.intake_motor = intake
 
-        intake_config = MotorControllerConfig(False, MotorControllerIdleMode.BRAKE)
+        intake_config = MotorControllerConfig(
+            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
+        )
         self.intake_motor.apply_configs(intake_config)
 
         self.left = left
