@@ -1,9 +1,9 @@
 import threading
 
-import ntcore
-import wpilib
 from commands2 import Subsystem
+import ntcore
 from ntcore import NetworkTableInstance
+import wpilib
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController

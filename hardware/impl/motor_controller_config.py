@@ -1,6 +1,5 @@
-import typing
-from typing import TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from hardware.base.motorcontroller import MotorController
