@@ -8,7 +8,7 @@ class LightSubsystem(Subsystem):
         super().__init__()
         self.controller = controller
 
-        self.current_pattern = None
+        self.current_pattern = self.set_solid(255, 255, 0)
 
     def set_solid(self, r: int, g: int, b: int) -> None:
         self.current_pattern = self.controller.get_solid(r, g, b)

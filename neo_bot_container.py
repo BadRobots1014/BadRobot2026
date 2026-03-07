@@ -12,9 +12,12 @@ import wpilib.drive
 import wpimath
 import wpimath.controller
 import wpimath.filter
+from commands2.button import Trigger
+
+from wpilib import Color
 
 from hardware.impl.pwmled import PWMLED
-from subsystems import drivetrain_neo
+from subsystems import drivetrain_neo, lights
 
 
 class NeoBotContainer:
@@ -26,8 +29,8 @@ class NeoBotContainer:
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
-        self.led_controller = PWMLED(0, 30)
-        # self.lights = LightSubsystem(self.led_controller)
+        self.led_controller = PWMLED(8, 108)
+        self.lights = lights.LightSubsystem(self.led_controller)
 
         self.configureButtonBindings()
 
@@ -36,9 +39,9 @@ class NeoBotContainer:
         Defines the default command for the drivetrain inside this method.
         """
 
-        # Trigger(lambda: self.controller.getCircleButton()).onTrue(
-        #    PartyModeCommand(self.lights)
-        # )
+        Trigger(lambda: self.controller.getShareButton()).onTrue(
+            commands2.cmd.runOnce(self.lights.set_rainbow(255, 150, 2))
+        )
 
         Trigger(self.controller.getOptionsButton).onTrue(
             commands2.cmd.runOnce(self.drivetrain.resetgyro)
@@ -65,7 +68,7 @@ class NeoBotContainer:
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
 
-    def robotPeriodic(self) -> None:
+    def robotPeriodic(self):
         pass
 
     def getAutonomousCommand(self) -> commands2.Command:
