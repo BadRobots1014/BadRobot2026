@@ -1,4 +1,3 @@
-import logging
 import typing
 
 from wpilib import AddressableLED, Color, LEDPattern
@@ -17,7 +16,7 @@ class PWMLED(LEDController):
         self.apply_pattern(self.get_solid(0, 0, 0))
         self.controller.start()
 
-        logging.info("Lights initialized")
+        print("Lights initialized")
 
     def get_solid(self, r: int, g: int, b: int) -> LEDPattern:
         return LEDPattern.solid(Color(r, g, b))
