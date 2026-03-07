@@ -14,8 +14,9 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import IntakeDemoCommand
+from commands.intake_demo import ExtensionCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -83,6 +84,7 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 53
 
 # intake can id
 INTAKE_MOTOR_CAN_ID = 52
@@ -280,8 +282,17 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
+        self._shoot_command = wpilib.SendableChooser()
+        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
+        self._shoot_command.addOption("PID", "PID")
+        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
+
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            ShootCommand(self._shooter)
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
         )
 
         # Run kicker wheel
@@ -331,10 +342,10 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=True)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=False)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT

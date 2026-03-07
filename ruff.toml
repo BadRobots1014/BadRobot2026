@@ -41,6 +41,7 @@ ignore = [
   "S101",    # allow assert
   "TRY003",  # long messages in raise
   "PLR0913", # too many arguments
+  "PLR0915", # too many arguments
   "ANN204",  # missing return type for __init__ (always None)
   "COM812",  # trailing comma (conflicts with formatter)
   "ISC001",  # single line implicit string concat (conflicts with formatter)

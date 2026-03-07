@@ -67,10 +67,10 @@ class SparkFlexMotorController(MotorController):
 
         pid_config = rev.ClosedLoopConfig()
         pid_config.pidf(
-            motor_controller_config.pidf[0],
-            motor_controller_config.pidf[1],
-            motor_controller_config.pidf[2],
-            motor_controller_config.pidf[3],
+            motor_controller_config.p,
+            motor_controller_config.i,
+            motor_controller_config.d,
+            motor_controller_config.f,
         )
         config.apply(pid_config)
 
