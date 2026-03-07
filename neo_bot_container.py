@@ -40,11 +40,10 @@ class NeoBotContainer:
         """
 
         Trigger(lambda: self.controller.getShareButton()).onTrue(
-            commands2.cmd.runOnce(lambda: self.lights.set_rainbow(255, 150, 2), self.lights)
-        ).onFalse(
-            commands2.cmd.runOnce(self.lights.set_default, self.lights)
-        )
-        
+            commands2.cmd.runOnce(
+                lambda: self.lights.set_rainbow(255, 150, 2), self.lights
+            )
+        ).onFalse(commands2.cmd.runOnce(self.lights.set_default, self.lights))
 
         Trigger(self.controller.getOptionsButton).onTrue(
             commands2.cmd.runOnce(self.drivetrain.resetgyro)
