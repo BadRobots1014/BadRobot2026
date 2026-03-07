@@ -40,9 +40,9 @@ class NeoBotContainer:
         """
 
         Trigger(lambda: self.controller.getShareButton()).onTrue(
-            commands2.cmd.runOnce(self.lights.set_rainbow(255, 150, 2))
+            commands2.cmd.runOnce(lambda: self.lights.set_rainbow(255, 150, 2), self.lights)
         ).onFalse(
-            commands2.cmd.runOnce(self.lights.set_default())
+            commands2.cmd.runOnce(self.lights.set_default, self.lights)
         )
         
 
@@ -71,7 +71,7 @@ class NeoBotContainer:
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
 
-    def robotPeriodic(self):
+    def robotPeriodic(self) -> None:
         pass
 
     def getAutonomousCommand(self) -> commands2.Command:
