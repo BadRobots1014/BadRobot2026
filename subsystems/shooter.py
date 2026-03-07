@@ -1,4 +1,7 @@
+import threading
+
 from commands2 import Subsystem
+import ntcore
 from ntcore import NetworkTableInstance
 import wpilib
 
@@ -12,6 +15,14 @@ from hardware.impl.motor_controller_config import (
 UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
 JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
+
+SHOOTER_VELOCITY = 4500
+KICKER_VOLTAGE = 4
+
+SHOOTER_P = 0.001
+SHOOTER_I = 0
+SHOOTER_D = 0
+SHOOTER_F = 0.00181111111  # trusting dre
 
 
 class ShooterSubsystem(Subsystem):
@@ -33,24 +44,32 @@ class ShooterSubsystem(Subsystem):
         self.shoot_encoder = shoot_encoder
         self.kick_encoder = kick_encoder
 
-        self.shoot_velocity = 4500
-        self.kick_velocity = 600
+        self.shoot_velocity = SHOOTER_VELOCITY
+        self.kick_voltage = KICKER_VOLTAGE
 
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
 
         # Config shoot motor
-        shoot_config = MotorControllerConfig(
+        self.shoot_config = MotorControllerConfig(
             inverted=False,
             idle_mode=MotorControllerIdleMode.COAST,
-            pidf=(1, 0, 0, self.shoot_velocity),
+            p=SHOOTER_P,
+            i=SHOOTER_I,
+            d=SHOOTER_D,
+            f=SHOOTER_F,
         )
-        self.shoot_motor.apply_configs(shoot_config)
+        self.shoot_motor.apply_configs(self.shoot_config)
 
         # Config kick motor
         kick_config = MotorControllerConfig(
-            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
+            inverted=False,
+            idle_mode=MotorControllerIdleMode.BRAKE,
+            p=SHOOTER_P,
+            i=SHOOTER_I,
+            d=SHOOTER_D,
+            f=SHOOTER_F,
         )
         self.kick_motor.apply_configs(kick_config)
 
@@ -58,7 +77,6 @@ class ShooterSubsystem(Subsystem):
         follower_config = MotorControllerConfig(
             inverted=True,
             idle_mode=MotorControllerIdleMode.COAST,
-            pidf=(1, 0, 0, self.shoot_velocity),
             leader=self.shoot_motor,
         )
         self.f_shoot_motor.apply_configs(follower_config)
@@ -69,45 +87,126 @@ class ShooterSubsystem(Subsystem):
         self._shooter_motor_velocity_topic = self._shooter_table.getDoubleTopic(
             "ShooterMotorVelocity"
         )
-        self._kicker_motor_velocity_topic = self._shooter_table.getDoubleTopic(
-            "KickerMotorVelocity"
+        self._kicker_motor_voltage_topic = self._shooter_table.getDoubleTopic(
+            "KickerMotorVoltage"
         )
 
         # set nt defaults
         self._shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
         self._shooter_motor_velocity_pub.set(self.shoot_velocity)
-        self._kicker_motor_velocity_pub = self._kicker_motor_velocity_topic.publish()
-        self._kicker_motor_velocity_pub.set(self.kick_velocity)
+        self._kicker_motor_voltage_pub = self._kicker_motor_voltage_topic.publish()
+        self._kicker_motor_voltage_pub.set(self.kick_voltage)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
-            100  # default value so we know something is going wrong with network tables
+            0  # default value so we know something is going wrong with network tables
         )
-        self._kicker_motor_velocity_sub = self._kicker_motor_velocity_topic.subscribe(
-            100  # default value so we know something is going wrong with network tables
+        self._kicker_motor_voltage_sub = self._kicker_motor_voltage_topic.subscribe(
+            0  # default value so we know something is going wrong with network tables
+        )
+
+        self._shooter_p_topic = self._shooter_table.getDoubleTopic("Shooter P")
+        self._shooter_i_topic = self._shooter_table.getDoubleTopic("Shooter I")
+        self._shooter_d_topic = self._shooter_table.getDoubleTopic("Shooter D")
+        self._shooter_f_topic = self._shooter_table.getDoubleTopic("Shooter F")
+
+        self._shooter_p_pub = self._shooter_p_topic.publish()
+        self._shooter_p_pub.set(SHOOTER_P)
+        self._shooter_i_pub = self._shooter_i_topic.publish()
+        self._shooter_i_pub.set(SHOOTER_I)
+        self._shooter_d_pub = self._shooter_d_topic.publish()
+        self._shooter_d_pub.set(SHOOTER_D)
+        self._shooter_f_pub = self._shooter_f_topic.publish()
+        self._shooter_f_pub.set(SHOOTER_F)
+
+        self._shooter_p_sub = self._shooter_p_topic.subscribe(SHOOTER_P)
+        self._shooter_i_sub = self._shooter_i_topic.subscribe(SHOOTER_I)
+        self._shooter_d_sub = self._shooter_d_topic.subscribe(SHOOTER_D)
+        self._shooter_f_sub = self._shooter_f_topic.subscribe(SHOOTER_F)
+
+        # set up listeners
+
+        self.lock = threading.Lock()
+
+        def _on_shooter_rpm_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.shoot_velocity = event.data.value.getDouble()
+                print(self.shoot_velocity)
+
+        self.shooterListenerHandle = self._inst.addListener(
+            self._shooter_motor_velocity_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_shooter_rpm_changed,
+        )
+
+        def _on_kicker_voltage_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.kick_voltage = event.data.value.getDouble()
+                print(self.kick_voltage)
+
+        self.kickerListenerHandle = self._inst.addListener(
+            self._kicker_motor_voltage_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_kicker_voltage_changed,
+        )
+
+        def _on_shooter_p_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.shoot_config.p = event.data.value.getDouble()
+                self.shoot_motor.apply_configs(self.shoot_config)
+                self.f_shoot_motor.apply_configs(self.shoot_config)
+
+        self.shooter_p_changed_handle = self._inst.addListener(
+            self._shooter_p_sub, ntcore.EventFlags.kValueAll, _on_shooter_p_changed
+        )
+
+        def _on_shooter_i_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.shoot_config.i = event.data.value.getDouble()
+                self.shoot_motor.apply_configs(self.shoot_config)
+                self.f_shoot_motor.apply_configs(self.shoot_config)
+
+        self.shooter_i_changed_handle = self._inst.addListener(
+            self._shooter_i_sub, ntcore.EventFlags.kValueAll, _on_shooter_i_changed
+        )
+
+        def _on_shooter_d_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.shoot_config.d = event.data.value.getDouble()
+                self.shoot_motor.apply_configs(self.shoot_config)
+                self.f_shoot_motor.apply_configs(self.shoot_config)
+
+        self.shooter_d_changed_handle = self._inst.addListener(
+            self._shooter_d_sub, ntcore.EventFlags.kValueAll, _on_shooter_d_changed
+        )
+
+        def _on_shooter_f_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.shoot_config.f = event.data.value.getDouble()
+                self.shoot_motor.apply_configs(self.shoot_config)
+                self.f_shoot_motor.apply_configs(self.shoot_config)
+
+        self.shooter_f_changed_handle = self._inst.addListener(
+            self._shooter_f_sub, ntcore.EventFlags.kValueAll, _on_shooter_f_changed
         )
 
     def set_shoot_voltage(self, volts: float) -> None:
         self.shoot_motor.set_voltage(volts)
 
     def set_shoot_velocity(self, velocity: float) -> None:
-        self.shoot_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
 
     def set_shoot_velocity_from_networktables(self) -> None:
-        velocity = self._shooter_motor_velocity_sub.get()
-        self.set_shoot_velocity(velocity)
+        self.set_shoot_velocity(self.shoot_velocity)
 
     def set_kick_voltage(self, volts: float) -> None:
         self.kick_motor.set_voltage(volts)
 
     def set_kick_velocity(self, velocity: float) -> None:
-        self.kick_velocity = velocity
         self.kick_motor.set_velocity(velocity)
 
-    def set_kick_velocity_from_networktables(self) -> None:
-        velocity = self._kicker_motor_velocity_sub.get()
-        self.set_kick_velocity(velocity)
+    def set_kick_voltage_from_networktables(self) -> None:
+        self.set_kick_voltage(self.kick_voltage)
 
     def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
@@ -130,12 +229,12 @@ class ShooterSubsystem(Subsystem):
         ):
             # start unjam process and track time
             self.start_unjam = wpilib.RobotController.getFPGATime()
-            self.kick_motor.set_velocity(-self.kick_velocity)
+            self.kick_motor.set_velocity(-self.kick_voltage)
             return
         time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
         # go normal if unjamming for more than one second
         if time_unjamming > UNJAM_SPIN_TIME:
-            self.kick_motor.set_velocity(self.kick_velocity)
+            self.kick_motor.set_velocity(self.kick_voltage)
             return
         return
 
@@ -152,14 +251,5 @@ class ShooterSubsystem(Subsystem):
     def kick_distance(self) -> float:
         return self.kick_encoder.get_position()
 
-    @property
-    def shoot_voltage(self) -> float:
-        return self.shoot_motor.get_voltage()
-
-    @property
-    def kick_voltage(self) -> float:
-        return self.kick_motor.get_voltage()
-
-    def get_shoot_velocity_from_networktables(self) -> float:
-        velocity = self._shooter_motor_velocity_sub.get()
-        return velocity
+    def get_shoot_velocity(self) -> float:
+        return self.shoot_encoder.get_velocity()

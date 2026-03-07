@@ -6,10 +6,10 @@ from hardware.impl.motor_controller_config import (
     MotorControllerIdleMode,
 )
 
-MOTOR_VOLTAGE = 2
+MOTOR_VOLTAGE = 3
 
 
-class IntakeDemoCommand(commands2.Command):
+class ExtensionCommand(commands2.Command):
     def __init__(self, left: MotorController, right: MotorController, forward: bool):
         super().__init__()
         self.left = left
@@ -17,10 +17,7 @@ class IntakeDemoCommand(commands2.Command):
         self.forward = forward
 
         right_config = MotorControllerConfig(
-            inverted=True,
-            idle_mode=MotorControllerIdleMode.BRAKE,
-            pidf=(0, 0, 0, 0),
-            leader=left,
+            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=left
         )
         self.right.apply_configs(right_config)
 
