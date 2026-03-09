@@ -13,7 +13,7 @@ class ShootKickerCommand(commands2.Command):
         self.shooter = shooter
 
     def execute(self) -> None:
-        self.shooter.set_kick_voltage(KICKER_VOLTAGE)
+        self.shooter.set_kick_voltage_from_networktables()
 
     def end(self, interrupted: bool) -> None:
         self.shooter.kick_motor.disable()

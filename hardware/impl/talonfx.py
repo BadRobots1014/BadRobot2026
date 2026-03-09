@@ -81,10 +81,10 @@ class TalonFXMotorController(MotorController):
             .with_neutral_mode(idle_mode)
         )
 
-        config.slot0.k_p = motor_controller_config.pidf[0]
-        config.slot0.k_i = motor_controller_config.pidf[1]
-        config.slot0.k_d = motor_controller_config.pidf[2]
-        config.slot0.k_v = motor_controller_config.pidf[3]
+        config.slot0.k_p = motor_controller_config.p
+        config.slot0.k_i = motor_controller_config.i
+        config.slot0.k_d = motor_controller_config.d
+        config.slot0.k_v = motor_controller_config.f
 
         self.motor.configurator.apply(config)
 

@@ -9,24 +9,25 @@ from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
-from phoenix6.hardware import TalonFX
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import IntakeDemoCommand
+from commands.intake_demo import ExtensionCommand
+from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
+from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import music, shooter
+from subsystems import lights, music, shooter
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -83,6 +84,7 @@ BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
 MAIN_SHOOT_MOTOR_ID = 59
 FOLLOWER_SHOOT_MOTOR_ID = 55
 KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 53
 
 # intake can id
 INTAKE_MOTOR_CAN_ID = 52
@@ -142,11 +144,10 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        music_motors: list[TalonFX] = []
-        for module in self.drivetrain.modules:
-            music_motors.append(module.drive_motor)
-            music_motors.append(module.steer_motor)
-        self.music = music.MusicSubsystem(music_motors, self.drivetrain)
+        self.music = music.MusicSubsystem(self.drivetrain)
+
+        self.led_controller = PWMLED(0, 60)
+        self.lights = lights.LightSubsystem(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -281,8 +282,17 @@ class KrakenRobotContainer:
         )
 
         # Run main wheel
+        self._shoot_command = wpilib.SendableChooser()
+        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
+        self._shoot_command.addOption("PID", "PID")
+        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
+
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            ShootCommand(self._shooter)
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
         )
 
         # Run kicker wheel
@@ -290,10 +300,10 @@ class KrakenRobotContainer:
             R1_BUTTON, "Run kicker wheel"
         ).whileTrue(ShootKickerCommand(self._shooter))
 
-        # Play music
-        self._auxiliary_controller.create_button(
-            SHARE_BUTTON, "Play Music"
-        ).toggleOnTrue(self.music.play_song())
+        # Party Mode
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+            PartyModeCommand(self.lights, self.music)
+        )
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
@@ -332,10 +342,10 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=True)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            IntakeDemoCommand(self.left_pinion, self.right_pinion, forward=False)
+            ExtensionCommand(self.left_pinion, self.right_pinion, forward=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
