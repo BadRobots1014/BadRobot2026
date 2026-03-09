@@ -36,8 +36,8 @@ class Strafe(commands2.Command):
         bot_pos = self.swerve_subsystem.get_state().pose
 
         theta = math.atan2(
-            (self.target_point.y - bot_pos.pose.y),
-            (self.target_point.x - bot_pos.pose.x),
+            (self.target_point.y - bot_pos.y),
+            (self.target_point.x - bot_pos.x),
         )
 
         strafe_speed = kraken_container.MAX_SPEED / 5
