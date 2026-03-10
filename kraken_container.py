@@ -9,7 +9,6 @@ from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
-from phoenix6.hardware import TalonFX
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
@@ -17,15 +16,17 @@ from wpimath.units import rotationsToRadians
 
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import ExtensionCommand
+from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
+from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import music, shooter
+from subsystems import lights, music, shooter
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -142,11 +143,10 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        music_motors: list[TalonFX] = []
-        for module in self.drivetrain.modules:
-            music_motors.append(module.drive_motor)
-            music_motors.append(module.steer_motor)
-        self.music = music.MusicSubsystem(music_motors, self.drivetrain)
+        self.music = music.MusicSubsystem(self.drivetrain)
+
+        self.led_controller = PWMLED(0, 60)
+        self.lights = lights.LightSubsystem(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -305,10 +305,10 @@ class KrakenRobotContainer:
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
 
-        # Play music
-        self._auxiliary_controller.create_button(
-            SHARE_BUTTON, "Play Music"
-        ).toggleOnTrue(self.music.play_song())
+        # Party Mode
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+            PartyModeCommand(self.lights, self.music)
+        )
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
