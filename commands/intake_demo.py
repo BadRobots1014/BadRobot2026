@@ -5,13 +5,11 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
-from hardware.base.motorcontroller import MotorController
-from subsystems.intake import IntakeSubsystem
 
-MOTOR_VOLTAGE = 2
+MOTOR_VOLTAGE = 3
 
 
-class PinionDemoCommand(commands2.Command):
+class ExtensionCommand(commands2.Command):
     def __init__(self, left: MotorController, right: MotorController, forward: bool):
         super().__init__()
         self.left = left
@@ -19,11 +17,11 @@ class PinionDemoCommand(commands2.Command):
         self.forward = forward
 
         right_config = MotorControllerConfig(
-            True, MotorControllerIdleMode.BRAKE, (0, 0, 0, 0), left
+            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=left
         )
         self.right.apply_configs(right_config)
 
-    def execute(self):
+    def execute(self) -> None:
         if self.forward:
             self.right.set_voltage(MOTOR_VOLTAGE)
             self.left.set_voltage(MOTOR_VOLTAGE)
@@ -31,6 +29,6 @@ class PinionDemoCommand(commands2.Command):
             self.right.set_voltage(-MOTOR_VOLTAGE)
             self.left.set_voltage(-MOTOR_VOLTAGE)
 
-    def end(self, interrupted: bool):
+    def end(self, interrupted: bool) -> None:
         self.right.set_voltage(0)
         self.left.set_voltage(0)

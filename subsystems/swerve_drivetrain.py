@@ -1,5 +1,6 @@
+from collections.abc import Callable
 import math
-from typing import Callable, overload
+from typing import overload
 
 from commands2 import Command, Subsystem
 from commands2.sysid import SysIdRoutine
@@ -169,7 +170,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 lambda output: self.set_control(
                     self._translation_characterization.with_volts(output)
                 ),
-                lambda log: None,
+                lambda log: None,  # noqa: ARG005
                 self,
             ),
         )
@@ -192,7 +193,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 lambda output: self.set_control(
                     self._steer_characterization.with_volts(output)
                 ),
-                lambda log: None,
+                lambda log: None,  # noqa: ARG005
                 self,
             ),
         )
@@ -214,18 +215,8 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 ),
             ),
             SysIdRoutine.Mechanism(
-                lambda output: (
-                    (
-                        # output is actually radians per second, but SysId only supports "volts"
-                        self.set_control(
-                            self._rotation_characterization.with_rotational_rate(output)
-                        ),
-                        # also log the requested output for SysId
-                        SignalLogger.write_double("Rotational_Rate", output),
-                    )
-                    and None
-                ),
-                lambda log: None,
+                lambda output: None,  # noqa: ARG005
+                lambda log: None,  # noqa: ARG005
                 self,
             ),
         )
@@ -242,7 +233,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
             self._start_sim_thread()
         self._configure_auto_builder()
 
-    def _configure_auto_builder(self):
+    def _configure_auto_builder(self) -> None:
         config = RobotConfig.fromGUISettings()
         AutoBuilder.configure(
             lambda: self.get_state().pose,  # Supplier of current robot pose
@@ -312,7 +303,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
         """
         return self._sys_id_routine_to_apply.dynamic(direction)
 
-    def periodic(self):
+    def periodic(self) -> None:
         # Periodically try to apply the operator perspective.
         # If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
         # This allows us to correct the perspective in case the robot code restarts mid-match.
@@ -328,8 +319,8 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
                 )
                 self._has_applied_operator_perspective = True
 
-    def _start_sim_thread(self):
-        def _sim_periodic():
+    def _start_sim_thread(self) -> None:
+        def _sim_periodic() -> None:
             current_time = utils.get_current_time_seconds()
             delta_time = current_time - self._last_sim_time
             self._last_sim_time = current_time
@@ -347,7 +338,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
         vision_robot_pose: Pose2d,
         timestamp: units.second,
         vision_measurement_std_devs: tuple[float, float, float] | None = None,
-    ):
+    ) -> None:
         """
         Adds a vision measurement to the Kalman Filter. This will correct the
         odometry pose estimate while still accounting for measurement noise.

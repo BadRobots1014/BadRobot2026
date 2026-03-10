@@ -10,12 +10,12 @@ class BangBangShootCommand(commands2.Command):
         super().__init__()
         self.shooter = shooter
 
-    def execute(self):
-        desired_velocity = self.shooter.get_shoot_velocity_from_networktables()
-        if desired_velocity > self.shooter.shoot_velocity:
+    def execute(self) -> None:
+        desired_velocity = self.shooter.shoot_velocity
+        if desired_velocity > self.shooter.get_shoot_velocity():
             self.shooter.set_shoot_voltage(12)
         else:
             self.shooter.set_shoot_voltage(0)
 
-    def end(self, interrupted: bool):
+    def end(self, interrupted: bool) -> None:
         self.shooter.shoot_motor.disable()

@@ -5,7 +5,6 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-import typing
 
 import commands2
 import wpilib
@@ -25,7 +24,7 @@ class MyRobot(commands2.TimedCommandRobot):
     has an implementation of robotPeriodic which runs the scheduler for you
     """
 
-    autonomousCommand: typing.Optional[commands2.Command] = None
+    autonomous_command: commands2.Command | None = None
 
     def robotInit(self) -> None:
         """
@@ -71,10 +70,10 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def autonomousInit(self) -> None:
         """This autonomous runs the autonomous command selected by your RobotContainer class."""
-        self.autonomousCommand = self.container.getAutonomousCommand()
+        self.autonomous_command = self.container.getAutonomousCommand()
 
-        if self.autonomousCommand:
-            commands2.CommandScheduler.getInstance().schedule(self.autonomousCommand)
+        if self.autonomous_command:
+            commands2.CommandScheduler.getInstance().schedule(self.autonomous_command)
 
         if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)
@@ -88,8 +87,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # teleop starts running. If you want the autonomous to
         # continue until interrupted by another command, remove
         # this line or comment it out.
-        if self.autonomousCommand:
-            commands2.CommandScheduler.getInstance().cancel(self.autonomousCommand)
+        if self.autonomous_command:
+            commands2.CommandScheduler.getInstance().cancel(self.autonomous_command)
 
         if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)

@@ -1,8 +1,8 @@
-from pathplannerlib.auto import AutoBuilder
 import math
 
-from pathplannerlib.auto import PathConstraints
-from wpimath.geometry import Translation2d, Pose2d, Rotation2d
+from commands2 import Command
+from pathplannerlib.auto import AutoBuilder, PathConstraints
+from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -17,7 +17,7 @@ def goto_shoot_pos(
     max_angular_speed_rads: float,
     max_acceleration: float,
     max_angular_acceleration_rads: float,
-):
+) -> Command:
     path_constraints = PathConstraints(
         max_speed,
         max_acceleration,
@@ -25,22 +25,20 @@ def goto_shoot_pos(
         max_angular_acceleration_rads,
     )
     # gets current bot pos
-    bot_pos = swerve_subsystem.get_state().pose.position
-    # gets tower pos
-    target_point = target_point
+    bot_pos = swerve_subsystem.get_state().pose
     # gets distance from current pos to tower pos
     distance = math.hypot(bot_pos.x - target_point.x, bot_pos.y - target_point.y)
     # get scalar for radius ratio
     ratio = distance / DESIRED_RADIUS_METER
-    # distance vector
-    vector = (bot_pos.x - target_point.x, bot_pos.y - target_point.y)
-    # scale vector by ratio
-    vector[0] *= ratio
-    vector[1] *= ratio
+    # distance vector & scale vector by ratio
+    vector = (
+        (bot_pos.x - target_point.x) * ratio,
+        (bot_pos.y - target_point.y) * ratio,
+    )
     # calculate goal rotation
     goal_rotation = math.atan2(
-        (target_point.y - swerve_subsystem.get_state().pose.y),
-        (target_point.x - swerve_subsystem.get_state().pose.x),
+        (target_point.y - bot_pos.y),
+        (target_point.x - bot_pos.x),
     )
     goal_pos = Pose2d(
         vector[0],

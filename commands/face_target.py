@@ -7,9 +7,9 @@ from phoenix6.swerve.requests import FieldCentric
 
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
-P = 1
-I = 0
-D = 0
+PID_P = 1
+PID_I = 0
+PID_D = 0
 
 
 def FaceTargetCommand(
@@ -22,7 +22,7 @@ def FaceTargetCommand(
     left_y_axis: int,
     left_x_axis: int,
 ) -> Command:
-    rotate_pid = PIDController(P, I, D)
+    rotate_pid = PIDController(PID_P, PID_I, PID_D)
     rotate_pid.enableContinuousInput(0, 2 * math.pi)
     return swerve_subsystem.apply_request(
         lambda: (
@@ -40,4 +40,4 @@ def FaceTargetCommand(
                 * max_angular_rate
             )
         )
-    ).until(lambda: rotate_pid.atSetpoint())
+    ).until(rotate_pid.atSetpoint)

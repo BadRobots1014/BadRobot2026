@@ -1,14 +1,13 @@
 import rev
-
 from rev import SparkBase
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
-from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+from hardware.impl.spark_relative_encoder import SparkRelativeEncoder
 
 
 class SparkMaxMotorController(MotorController):
@@ -18,13 +17,13 @@ class SparkMaxMotorController(MotorController):
         motor_type: rev.SparkLowLevel.MotorType = rev.SparkLowLevel.MotorType.kBrushless,
     ):
         super().__init__()
-        self.motor = rev.SparkMax(motor_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.motor = rev.SparkMax(motor_id, motor_type)
         self.controller = self.motor.getClosedLoopController()
 
-    def set_voltage(self, voltage: float):
+    def set_voltage(self, voltage: float) -> None:
         self.motor.setVoltage(voltage)
 
-    def set_inverted(self, inverted: bool):
+    def set_inverted(self, inverted: bool) -> None:
         self.motor.setInverted(inverted)
 
     def set_velocity(self, velocity: float) -> None:
@@ -52,30 +51,33 @@ class SparkMaxMotorController(MotorController):
         return self.motor.getReverseLimitSwitch().get()
 
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
-        config = rev.SparkFlexConfig()
+        config = rev.SparkMaxConfig()
         config.inverted(motor_controller_config.inverted)
 
-        idleMode = (
-            rev.SparkFlexConfig.IdleMode.kBrake
+        idle_mode = (
+            rev.SparkMaxConfig.IdleMode.kBrake
             if motor_controller_config.idle_mode == MotorControllerIdleMode.BRAKE
-            else rev.SparkFlexConfig.IdleMode.kCoast
+            else rev.SparkMaxConfig.IdleMode.kCoast
         )
 
-        config.IdleMode(idleMode)
+        config.IdleMode(idle_mode)
         if motor_controller_config.leader is not None:
-            config.follow(
-                motor_controller_config.leader.get_motor_controller(),
-                motor_controller_config.inverted,
-            )
+            leader = motor_controller_config.leader.get_motor_controller()
+            if isinstance(leader, rev.SparkBase):
+                config.follow(leader, motor_controller_config.inverted)
+            else:
+                raise TypeError(
+                    f"SparkMax cannot follow a non-Spark leader: {type(leader)}"
+                )
 
-        pidConfig = rev.ClosedLoopConfig()
-        pidConfig.pidf(
-            motor_controller_config.pidf[0],
-            motor_controller_config.pidf[1],
-            motor_controller_config.pidf[2],
-            motor_controller_config.pidf[3],
+        pid_config = rev.ClosedLoopConfig()
+        pid_config.pidf(
+            motor_controller_config.p,
+            motor_controller_config.i,
+            motor_controller_config.d,
+            motor_controller_config.f,
         )
-        config.apply(pidConfig)
+        config.apply(pid_config)
 
         self.motor.configure(
             config,

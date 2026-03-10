@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from hardware.base.motorcontroller import MotorController
@@ -14,16 +14,25 @@ class MotorControllerConfig:
     inverted: bool
     idle_mode: MotorControllerIdleMode
     leader: "MotorController | None"
-    pidf: tuple[float, float, float, float]
+    p: float
+    i: float
+    d: float
+    f: float
 
     def __init__(
         self,
         inverted: bool = False,
         idle_mode: MotorControllerIdleMode = MotorControllerIdleMode.BRAKE,
-        pidf: tuple[float, float, float, float] = (0, 0, 0, 0),
         leader: "MotorController | None" = None,
+        p: float = 0,
+        i: float = 0,
+        d: float = 0,
+        f: float = 0,
     ):
+        self.p = p
+        self.i = i
+        self.d = d
+        self.f = f
         self.inverted = inverted
         self.idle_mode = idle_mode
         self.leader = leader
-        self.pidf = pidf

@@ -10,8 +10,8 @@ class ShootCommand(commands2.Command):
         super().__init__()
         self.shooter = shooter
 
-    def execute(self):
+    def execute(self) -> None:
         self.shooter.set_shoot_velocity_from_networktables()
 
-    def end(self, interrupted: bool):
+    def end(self, interrupted: bool) -> None:
         self.shooter.shoot_motor.disable()
