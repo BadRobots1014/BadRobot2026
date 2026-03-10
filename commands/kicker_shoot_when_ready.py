@@ -1,0 +1,25 @@
+import commands2
+
+from subsystems.shooter import ShooterSubsystem
+
+
+class KickerShootWhenReadyCommand(commands2.Command):
+    # pass in parent subsystem
+    def __init__(self, shooter: ShooterSubsystem):
+        super().__init__()
+        self.shooter = shooter
+        self.addRequirements(self.shooter)
+        # make sure to add requirements to parent subsystem here
+
+    # runs every scheduled tick (think of it as a while true)
+    def execute(self) -> None:
+        # if self.shooter.shoot_encoder.get_velocity() > self.shooter.shoot_velocity:
+        pass
+
+    # boolean condition to check if the command is finished (needed for running commands in series)
+    def isFinished(self) -> bool:
+        return False
+
+    # code that runs after the command is finished
+    def end(self, interrupted: bool) -> None:
+        pass
