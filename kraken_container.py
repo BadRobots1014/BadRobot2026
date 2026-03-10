@@ -152,7 +152,7 @@ class KrakenRobotContainer:
         # TODO: conditional to disable limelight in sim!!
         #
         # Initialize limelight
-        self.camera_ll4 = Limelight(True, "limelight-four")
+        self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
 
         # limit switches
@@ -406,7 +406,10 @@ class KrakenRobotContainer:
         cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
         reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
 
-        if self.drivetrain.pigeon2.get_angular_velocity_z_device().value > LIMELIGHT_MAX_ANGULAR_VELOCITY:
+        if (
+            self.drivetrain.pigeon2.get_angular_velocity_z_device().value
+            > LIMELIGHT_MAX_ANGULAR_VELOCITY
+        ):
             reject_pose_ll4 = False
             reject_pose_ll2 = False
 
@@ -414,7 +417,7 @@ class KrakenRobotContainer:
             self.drivetrain.add_vision_measurement(
                 cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
             )
-        
+
         if not reject_pose_ll2:
             self.drivetrain.add_vision_measurement(
                 cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]

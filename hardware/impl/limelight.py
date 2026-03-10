@@ -5,7 +5,11 @@ from wpimath.geometry import Pose2d, Rotation2d
 
 
 class Limelight:
-    def __init__(self, enabled: bool = True, name: str = "limelight") -> None:
+    def __init__(
+        self,
+        name: str = "limelight",
+        enabled: bool = True,
+    ) -> None:
         self.enabled = True
         self.name = name
 
@@ -77,5 +81,5 @@ class Limelight:
     ) -> None:
         self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])
 
-    def set_imu_mode(self, imumode: int):
+    def set_imu_mode(self, imumode: int) -> None:
         self.nt_table.putNumber("imumode_set", imumode)
