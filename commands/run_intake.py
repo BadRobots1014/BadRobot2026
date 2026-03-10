@@ -14,7 +14,7 @@ class RunIntakeCommand(commands2.Command):
         self.dump = dump
 
     def execute(self) -> None:
-        if self.dump:
+        if not self.dump:
             self.intake.set_intake_voltage_from_networktable()
         else:
             self.intake.set_dump_voltage_from_networktable()
