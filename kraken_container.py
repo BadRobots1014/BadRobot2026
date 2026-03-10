@@ -9,24 +9,24 @@ from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
-from phoenix6.hardware import TalonFX
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extension_command import ExtensionCommand
 from commands.face_target import FaceTargetCommand
+from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
+from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import music, shooter
+from subsystems import lights, music, shooter
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -143,11 +143,10 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        music_motors: list[TalonFX] = []
-        for module in self.drivetrain.modules:
-            music_motors.append(module.drive_motor)
-            music_motors.append(module.steer_motor)
-        self.music = music.MusicSubsystem(music_motors, self.drivetrain)
+        self.music = music.MusicSubsystem(self.drivetrain)
+
+        self.led_controller = PWMLED(0, 60)
+        self.lights = lights.LightSubsystem(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -286,24 +285,30 @@ class KrakenRobotContainer:
         self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
         self._shoot_command.addOption("PID", "PID")
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-
+        #
+        # self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
+        #     commands2.ConditionalCommand(
+        #         BangBangShootCommand(self._shooter),
+        #         ShootCommand(self._shooter),
+        #         lambda: self._shoot_command.getSelected() == "Bang Bang",
+        #     )
+        # )
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            commands2.ConditionalCommand(
-                BangBangShootCommand(self._shooter),
-                ShootCommand(self._shooter),
-                lambda: self._shoot_command.getSelected() == "Bang Bang",
-            )
+            ShootCommand(self._shooter)
         )
 
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(ShootKickerCommand(self._shooter))
-
-        # Play music
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
         self._auxiliary_controller.create_button(
-            SHARE_BUTTON, "Play Music"
-        ).toggleOnTrue(self.music.play_song())
+            R2_BUTTON, "Run kicker wheel inverted"
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
+
+        # Party Mode
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+            PartyModeCommand(self.lights, self.music)
+        )
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
@@ -351,8 +356,8 @@ class KrakenRobotContainer:
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
         intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
         intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
-        self._primary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
-        self._primary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
+        self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
+        self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
