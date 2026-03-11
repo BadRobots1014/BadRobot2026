@@ -14,7 +14,6 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.face_target import FaceTargetCommand
 from commands.intake_demo import ExtensionCommand
 from commands.party_mode import PartyModeCommand
@@ -286,19 +285,25 @@ class KrakenRobotContainer:
         self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
         self._shoot_command.addOption("PID", "PID")
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-
+        #
+        # self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
+        #     commands2.ConditionalCommand(
+        #         BangBangShootCommand(self._shooter),
+        #         ShootCommand(self._shooter),
+        #         lambda: self._shoot_command.getSelected() == "Bang Bang",
+        #     )
+        # )
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            commands2.ConditionalCommand(
-                BangBangShootCommand(self._shooter),
-                ShootCommand(self._shooter),
-                lambda: self._shoot_command.getSelected() == "Bang Bang",
-            )
+            ShootCommand(self._shooter)
         )
 
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(ShootKickerCommand(self._shooter))
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        self._auxiliary_controller.create_button(
+            R2_BUTTON, "Run kicker wheel inverted"
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
 
         # Party Mode
         self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
@@ -351,8 +356,8 @@ class KrakenRobotContainer:
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
         intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
         intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
-        self._primary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
-        self._primary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
+        self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
+        self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
