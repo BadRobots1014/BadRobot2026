@@ -27,6 +27,9 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
     def get_encoder(self) -> Encoder: ...
 
     @abstractmethod
+    def get_encoder_position(self) -> float: ...
+
+    @abstractmethod
     def get_voltage(self) -> float: ...
 
     @abstractmethod
@@ -42,6 +45,9 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
 
     @abstractmethod
     def get_motor_id(self) -> int: ...
+
+    @abstractmethod
+    def zero_relative_encoder(self) -> None: ...
 
     @abstractmethod
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None: ...

@@ -5,7 +5,7 @@ from wpimath.geometry import Pose2d, Rotation2d
 
 
 class Limelight:
-    def __init__(self, enabled: bool = True, name: str = "limelight") -> None:
+    def __init__(self, name: str = "limelight", enabled: bool = True) -> None:
         self.enabled = True
         self.name = name
 
@@ -33,8 +33,6 @@ class Limelight:
         )
         # tv = target valid
         self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
-        # tc = count
-        # self.tc_sub = self.nt_table.getIntegerTopic("tc").subscribe(0)
 
         # Setters
 
