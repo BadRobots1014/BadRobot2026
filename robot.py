@@ -75,7 +75,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().schedule(self.autonomous_command)
 
-        if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
+        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)
 
     def autonomousPeriodic(self) -> None:
@@ -90,7 +90,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().cancel(self.autonomous_command)
 
-        if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
+        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)
 
     def teleopPeriodic(self) -> None:
@@ -101,5 +101,5 @@ class MyRobot(commands2.TimedCommandRobot):
         # Cancels all running commands at the start of test mode
         commands2.CommandScheduler.getInstance().cancelAll()
 
-        if serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
+        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
             self.container.camera.set_imu_mode(4)
