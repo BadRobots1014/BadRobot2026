@@ -64,6 +64,9 @@ class NeoBotContainer:
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
 
+    def driveInit(self) -> None:
+        pass
+
     def robotPeriodic(self) -> None:
         pass
 
