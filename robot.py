@@ -15,8 +15,6 @@ from neo_bot_container import NeoBotContainer
 KRAKEN_SERIAL = "032B4B71"
 NEO_BOT_SERIAL = "032B4B44"
 
-serial = -1
-
 
 class MyRobot(commands2.TimedCommandRobot):
     """
@@ -75,8 +73,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().schedule(self.autonomous_command)
 
-        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
-            self.container.camera.set_imu_mode(4)
+        self.container.driveInit()
 
     def autonomousPeriodic(self) -> None:
         """This function is called periodically during autonomous"""
@@ -90,8 +87,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().cancel(self.autonomous_command)
 
-        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
-            self.container.camera.set_imu_mode(4)
+        self.container.driveInit()
 
     def teleopPeriodic(self) -> None:
         """This function is called periodically during operator control"""
@@ -101,5 +97,4 @@ class MyRobot(commands2.TimedCommandRobot):
         # Cancels all running commands at the start of test mode
         commands2.CommandScheduler.getInstance().cancelAll()
 
-        if self.serial == KRAKEN_SERIAL and self.container is KrakenRobotContainer:
-            self.container.camera.set_imu_mode(4)
+        self.container.driveInit()

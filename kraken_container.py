@@ -398,6 +398,9 @@ class KrakenRobotContainer:
         #    lambda state: self._logger.telemeterize(state)
         # )
 
+    def driveInit(self) -> None:
+        self.camera_ll4.set_imu_mode(4)
+
     def robotPeriodic(self) -> None:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
