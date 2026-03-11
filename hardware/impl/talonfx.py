@@ -104,7 +104,7 @@ class TalonFXMotorController(MotorController):
                     motor_alignment=(
                         phoenix6.signals.MotorAlignmentValue.OPPOSED
                         if motor_controller_config.inverted
-                        ^ motor_controller_config.leader
+                        ^ motor_controller_config.leader.get_inverted()
                         else phoenix6.signals.MotorAlignmentValue.ALIGNED
                     ),
                 )
