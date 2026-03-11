@@ -39,6 +39,15 @@ class IntakeSubsystem(Subsystem):
         self.left = left
         self.right = right
 
+        left_config = MotorControllerConfig(
+            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
+        )
+        self.left.apply_configs(left_config)
+        right_config = MotorControllerConfig(
+            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=left
+        )
+        self.right.apply_configs(right_config)
+
         self.forward = forward
         self.backward = backward
 
@@ -127,6 +136,9 @@ class IntakeSubsystem(Subsystem):
 
     def set_extention_voltage_from_networktable(self) -> None:
         self.left.set_voltage(self.extension_voltage)
+
+    def set_retraction_voltage_from_networktable(self) -> None:
+        self.left.set_voltage(-self.extension_voltage)
 
     def forward_extended(self) -> bool:
         return self.forward.get_state()
