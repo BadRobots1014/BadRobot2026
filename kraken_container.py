@@ -15,6 +15,7 @@ import wpimath.filter
 from wpimath.units import rotationsToRadians
 
 from commands.face_target import FaceTargetCommand
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extension_command import ManualExtensionCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
@@ -26,7 +27,6 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from routines.shoot_in_place import ShootInPlace
 from subsystems import lights, music, shooter
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
@@ -301,7 +301,7 @@ class KrakenRobotContainer:
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(ShootInPlace(self._shooter))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
