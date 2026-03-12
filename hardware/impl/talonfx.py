@@ -94,6 +94,7 @@ class TalonFXMotorController(MotorController):
 
         self.motor.configurator.apply(config)
 
+        # You must setup the status signal on the leader for this to work
         if (
             motor_controller_config.leader is not None
             and motor_controller_config.leader is self.__class__

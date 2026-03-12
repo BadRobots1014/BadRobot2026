@@ -6,6 +6,7 @@ from ntcore import NetworkTableInstance
 
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
+from hardware.impl import talonfx
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -53,6 +54,11 @@ class IntakeSubsystem(Subsystem):
 
         self.left.apply_configs(left_config)
         self.right.apply_configs(right_config)
+
+        if isinstance(self.left, talonfx.TalonFXMotorController):
+            self.left.get_motor_controller().get_motor_voltage().set_update_frequency(
+                100
+            )
 
         self.forward = forward
         self.backward = backward
