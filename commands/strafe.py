@@ -17,6 +17,7 @@ class Strafe(commands2.Command):
         clockwise: bool,
     ):
         super().__init__()
+        self.addRequirements(swerve_subsystem)
         # make sure to add requirements to parent subsystem here
         self.swerve_subsystem = swerve_subsystem
         self.clockwise = clockwise
@@ -42,11 +43,22 @@ class Strafe(commands2.Command):
 
         strafe_speed = kraken_container.MAX_SPEED / 5
 
+        print("XVEL: ", (strafe_speed * math.cos(theta)))
+        print("YVEL: ", (strafe_speed * math.sin(theta)))
+        print("Clockwise: ", self.clockwise)
+
+        # x: strafe_speed * math.cos(theta)
+        # y: strafe_speed * math.sin(theta)
+
         if self.clockwise:
-            self.swerve_subsystem.apply_request(
-                lambda: (
-                    self._drive.with_velocity_x(strafe_speed * math.cos(theta))
-                    .with_velocity_y(strafe_speed * math.sin(theta))
-                    .with_rotational_rate(0)
-                )
+            self.swerve_subsystem.set_control(
+                self._drive.with_velocity_x(strafe_speed * math.sin(theta))
+                .with_velocity_y(-(strafe_speed * math.cos(theta)))
+                .with_rotational_rate(0)
+            )
+        else:
+            self.swerve_subsystem.set_control(
+                self._drive.with_velocity_x(-(strafe_speed * math.sin(theta)))
+                .with_velocity_y(strafe_speed * math.cos(theta))
+                .with_rotational_rate(0)
             )

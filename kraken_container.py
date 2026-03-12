@@ -401,9 +401,7 @@ class KrakenRobotContainer:
             )
         )
 
-        # self.drivetrain.register_telemetry(
-        #    lambda state: self._logger.telemeterize(state)
-        # )
+        self.drivetrain.register_telemetry(self._logger.telemeterize)
 
     def driveInit(self) -> None:
         self.camera_ll4.set_imu_mode(4)
