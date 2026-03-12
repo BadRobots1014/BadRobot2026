@@ -39,6 +39,9 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
     def get_backward_limit(self) -> bool: ...
 
     @abstractmethod
+    def get_inverted(self) -> bool: ...
+
+    @abstractmethod
     def get_motor_controller(
         self,
     ) -> Union["SparkBase", "phoenix6.hardware.TalonFX"]: ...
