@@ -1,6 +1,9 @@
 import commands2
 
+import robot
 from subsystems.shooter import ShooterSubsystem
+
+SHOOT_VELOCITY = 4500
 
 
 class ShootCommand(commands2.Command):
@@ -11,7 +14,10 @@ class ShootCommand(commands2.Command):
         self.shooter = shooter
 
     def execute(self) -> None:
-        self.shooter.set_shoot_velocity_from_networktables()
+        if robot.TEST_MODE_ENABLED:
+            self.shooter.set_shoot_velocity_from_networktables()
+        else:
+            self.shooter.set_shoot_velocity(SHOOT_VELOCITY)
 
     def end(self, interrupted: bool) -> None:
         self.shooter.shoot_motor.disable()

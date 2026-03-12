@@ -34,6 +34,9 @@ class SparkMaxMotorController(MotorController):
     def get_encoder(self) -> Encoder:
         return SparkRelativeEncoder(self.motor.getEncoder())
 
+    def get_encoder_position(self) -> float:
+        return self.get_encoder().get_position()
+
     def get_motor_controller(self) -> SparkBase:
         return self.motor
 
@@ -49,6 +52,12 @@ class SparkMaxMotorController(MotorController):
 
     def get_backward_limit(self) -> bool:
         return self.motor.getReverseLimitSwitch().get()
+
+    def get_inverted(self) -> bool:
+        return self.motor.getInverted()
+
+    def zero_relative_encoder(self) -> None:
+        self.motor.getEncoder().setPosition(0)
 
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
         config = rev.SparkMaxConfig()

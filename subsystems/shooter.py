@@ -17,7 +17,8 @@ JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 SHOOTER_VELOCITY = 4500
-KICKER_VOLTAGE = 4
+KICKER_SHOOT_VOLTAGE = 4
+KICKER_DUMP_VOLTAGE = 4
 
 SHOOTER_P = 0.001
 SHOOTER_I = 0
@@ -45,7 +46,8 @@ class ShooterSubsystem(Subsystem):
         self.kick_encoder = kick_encoder
 
         self.shoot_velocity = SHOOTER_VELOCITY
-        self.kick_voltage = KICKER_VOLTAGE
+        self.kick_shoot_voltage = KICKER_SHOOT_VOLTAGE
+        self.kick_dump_voltage = KICKER_DUMP_VOLTAGE
 
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
@@ -87,21 +89,33 @@ class ShooterSubsystem(Subsystem):
         self._shooter_motor_velocity_topic = self._shooter_table.getDoubleTopic(
             "ShooterMotorVelocity"
         )
-        self._kicker_motor_voltage_topic = self._shooter_table.getDoubleTopic(
-            "KickerMotorVoltage"
+        self._kicker_shoot_motor_voltage_topic = self._shooter_table.getDoubleTopic(
+            "KickerShooterMotorVoltage"
+        )
+        self._kicker_dump_motor_voltage_topic = self._shooter_table.getDoubleTopic(
+            "KickerDumpMotorVoltage"
         )
 
         # set nt defaults
         self._shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
         self._shooter_motor_velocity_pub.set(self.shoot_velocity)
-        self._kicker_motor_voltage_pub = self._kicker_motor_voltage_topic.publish()
-        self._kicker_motor_voltage_pub.set(self.kick_voltage)
+        self._kicker_shoot_motor_voltage_pub = (
+            self._kicker_shoot_motor_voltage_topic.publish()
+        )
+        self._kicker_shoot_motor_voltage_pub.set(self.kick_shoot_voltage)
+        self._kicker_dump_motor_voltage_pub = (
+            self._kicker_dump_motor_voltage_topic.publish()
+        )
+        self._kicker_dump_motor_voltage_pub.set(self.kick_dump_voltage)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
             0  # default value so we know something is going wrong with network tables
         )
-        self._kicker_motor_voltage_sub = self._kicker_motor_voltage_topic.subscribe(
+        self._kicker_shoot_motor_voltage_sub = self._kicker_shoot_motor_voltage_topic.subscribe(
+            0  # default value so we know something is going wrong with network tables
+        )
+        self._kicker_dump_motor_voltage_sub = self._kicker_dump_motor_voltage_topic.subscribe(
             0  # default value so we know something is going wrong with network tables
         )
 
@@ -139,15 +153,26 @@ class ShooterSubsystem(Subsystem):
             _on_shooter_rpm_changed,
         )
 
-        def _on_kicker_voltage_changed(event: ntcore.Event) -> None:
+        def _on_kicker_shoot_voltage_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.kick_voltage = event.data.value.getDouble()
-                print(self.kick_voltage)
+                self.kick_shoot_voltage = event.data.value.getDouble()
+                print(self.kick_shoot_voltage)
 
-        self.kickerListenerHandle = self._inst.addListener(
-            self._kicker_motor_voltage_sub,
+        self.kickerShootListenerHandle = self._inst.addListener(
+            self._kicker_shoot_motor_voltage_sub,
             ntcore.EventFlags.kValueAll,
-            _on_kicker_voltage_changed,
+            _on_kicker_shoot_voltage_changed,
+        )
+
+        def _on_kicker_dump_voltage_changed(event: ntcore.Event) -> None:
+            with self.lock:
+                self.kick_dump_voltage = event.data.value.getDouble()
+                print(self.kick_dump_voltage)
+
+        self.kickerDumpListenerHandle = self._inst.addListener(
+            self._kicker_dump_motor_voltage_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_kicker_dump_voltage_changed,
         )
 
         def _on_shooter_p_changed(event: ntcore.Event) -> None:
@@ -205,8 +230,11 @@ class ShooterSubsystem(Subsystem):
     def set_kick_velocity(self, velocity: float) -> None:
         self.kick_motor.set_velocity(velocity)
 
-    def set_kick_voltage_from_networktables(self) -> None:
-        self.set_kick_voltage(self.kick_voltage)
+    def set_kick_shoot_voltage_from_networktables(self) -> None:
+        self.set_kick_voltage(self.kick_shoot_voltage)
+
+    def set_kick_dump_voltage_from_networktables(self) -> None:
+        self.set_kick_voltage(self.kick_shoot_voltage)
 
     def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
@@ -229,12 +257,12 @@ class ShooterSubsystem(Subsystem):
         ):
             # start unjam process and track time
             self.start_unjam = wpilib.RobotController.getFPGATime()
-            self.kick_motor.set_velocity(-self.kick_voltage)
+            self.kick_motor.set_velocity(-self.kick_shoot_voltage)
             return
         time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
         # go normal if unjamming for more than one second
         if time_unjamming > UNJAM_SPIN_TIME:
-            self.kick_motor.set_velocity(self.kick_voltage)
+            self.kick_motor.set_velocity(self.kick_shoot_voltage)
             return
         return
 

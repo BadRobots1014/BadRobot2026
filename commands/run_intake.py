@@ -1,5 +1,6 @@
 import commands2
 
+import robot
 from subsystems.intake import IntakeSubsystem
 
 INTAKE_VOLTAGE = 4.5
@@ -14,10 +15,15 @@ class RunIntakeCommand(commands2.Command):
         self.dump = dump
 
     def execute(self) -> None:
-        if self.dump:
-            self.intake.set_intake_voltage_from_networktable()
-        else:
+        if not self.dump:
+            if robot.TEST_MODE_ENABLED:
+                self.intake.set_intake_voltage_from_networktable()
+            else:
+                self.intake.set_intake_voltage(INTAKE_VOLTAGE)
+        elif robot.TEST_MODE_ENABLED:
             self.intake.set_dump_voltage_from_networktable()
+        else:
+            self.intake.set_intake_voltage(DUMP_VOLTAGE)
 
     def isFinished(self) -> bool:
         return False
