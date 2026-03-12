@@ -166,7 +166,7 @@ class ShooterSubsystem(Subsystem):
 
         def _on_kicker_dump_voltage_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.kick_dump_voltage_voltage = event.data.value.getDouble()
+                self.kick_dump_voltage = event.data.value.getDouble()
                 print(self.kick_dump_voltage)
 
         self.kickerDumpListenerHandle = self._inst.addListener(
