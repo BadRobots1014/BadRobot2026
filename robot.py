@@ -32,16 +32,16 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
-        serial = wpilib.RobotController.getSerialNumber()
+        self.serial = wpilib.RobotController.getSerialNumber()
         if not wpilib.RobotBase.isReal():
-            serial = KRAKEN_SERIAL
+            self.serial = KRAKEN_SERIAL
 
-        if serial == KRAKEN_SERIAL:
+        if self.serial == KRAKEN_SERIAL:
             self.container = KrakenRobotContainer()
-        elif serial == NEO_BOT_SERIAL:
+        elif self.serial == NEO_BOT_SERIAL:
             self.container = NeoBotContainer()
         else:
-            print(f"Roborio Serial: {serial}")
+            print(f"Roborio Serial: {self.serial}")
 
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -73,6 +73,8 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().schedule(self.autonomous_command)
 
+        self.container.driveInit()
+
     def autonomousPeriodic(self) -> None:
         """This function is called periodically during autonomous"""
         pass
@@ -85,6 +87,8 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             commands2.CommandScheduler.getInstance().cancel(self.autonomous_command)
 
+        self.container.driveInit()
+
     def teleopPeriodic(self) -> None:
         """This function is called periodically during operator control"""
         pass
@@ -92,3 +96,5 @@ class MyRobot(commands2.TimedCommandRobot):
     def testInit(self) -> None:
         # Cancels all running commands at the start of test mode
         commands2.CommandScheduler.getInstance().cancelAll()
+
+        self.container.driveInit()
