@@ -15,6 +15,8 @@ from neo_bot_container import NeoBotContainer
 KRAKEN_SERIAL = "032B4B71"
 NEO_BOT_SERIAL = "032B4B44"
 
+TEST_MODE_ENABLED = False
+
 
 class MyRobot(commands2.TimedCommandRobot):
     """
@@ -98,3 +100,4 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().cancelAll()
 
         self.container.driveInit()
+        self.TEST_MODE_ENABLED = True
