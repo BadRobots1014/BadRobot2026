@@ -24,9 +24,7 @@ class ExtendHopperCommand(commands2.Command):
         if (self.extend and self.intake.forward_extended()) or (
             not self.extend and self.intake.backward_extended()
         ):
-            self.intake.set_extension_voltage(0)
             return True
-
         return False
 
     def end(self, interrupted: bool) -> None:

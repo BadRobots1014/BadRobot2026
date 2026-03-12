@@ -46,6 +46,9 @@ class TalonFXMotorController(MotorController):
     def get_encoder(self) -> Encoder:
         raise Exception("Not Implemented")
 
+    def get_encoder_position(self) -> float:
+        return self.motor.get_position().value
+
     def get_motor_id(self) -> int:
         return self.motor_id
 
@@ -61,6 +64,9 @@ class TalonFXMotorController(MotorController):
         return (
             config.inverted == phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
+
+    def zero_relative_encoder(self) -> None:
+        self.motor.set_position(0)
 
     def apply_configs(self, motor_controller_config: MotorControllerConfig) -> None:
         inverted_value = (
@@ -97,7 +103,8 @@ class TalonFXMotorController(MotorController):
                     motor_controller_config.leader.get_motor_id(),
                     motor_alignment=(
                         phoenix6.signals.MotorAlignmentValue.OPPOSED
-                        if motor_controller_config.inverted ^ self.get_inverted()
+                        if motor_controller_config.inverted
+                        ^ motor_controller_config.leader.get_inverted()
                         else phoenix6.signals.MotorAlignmentValue.ALIGNED
                     ),
                 )
