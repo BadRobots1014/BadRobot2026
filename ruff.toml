@@ -50,6 +50,7 @@ ignore = [
   "FBT001",  # positional boolean
   "FBT002",  # positional boolean
   "TRY002",  # require custom exception
+  "SIM103",  # allow inline conditional
 ]
 
 [lint.per-file-ignores]
