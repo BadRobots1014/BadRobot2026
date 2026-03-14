@@ -16,7 +16,6 @@ from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -157,8 +156,8 @@ class KrakenRobotContainer:
         self.camera_ll2 = Limelight()
 
         # limit switches
-        self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
         self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
+        self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
@@ -181,13 +180,13 @@ class KrakenRobotContainer:
         )
 
         self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
-        self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
+        self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
 
         self._intake = IntakeSubsystem(
             self.intakeMotor,
-            self.right_pinion,
             self.left_pinion,
+            self.right_pinion,
             self.forward_limit_switch,
             self.backward_limit_switch,
             "Limelight",
@@ -307,8 +306,10 @@ class KrakenRobotContainer:
 
         # Run kicker wheel
         self._auxiliary_controller.create_button(
-            R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+            R1_BUTTON,
+            "Run kicker wheel",
+            # ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))

@@ -13,13 +13,16 @@ class AndymarkMagnetic(LimitSwitch):
         self.device_id = device_id
 
     def get_state(self) -> bool:
-        data = self.device.get_newest_data(ANDYMARK_MAGNETIC_API_ID)
+        _health, status = self.device.get_newest_data(ANDYMARK_MAGNETIC_API_ID)
 
         # data[0] returns false when the limit swtich doesn't return packets after multiple calls
-        if not data[0]:
-            print("Not receiving packet from limit switch " + str(self.device_id))
+        # if not health:
+        #     # print("Not receiving packet from limit switch " + str(self.device_id))
+        # # else:
+        # #     if self.device_id == 19:
+        # #         # print("Got signal")
 
-        b = data[1].data
+        b = status.data
         state = (b[0] & 0xFF) != 0
 
         return state

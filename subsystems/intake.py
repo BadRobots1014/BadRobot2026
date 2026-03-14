@@ -49,13 +49,15 @@ class IntakeSubsystem(Subsystem):
             inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
         )
         right_config = MotorControllerConfig(
-            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
+            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
         )
 
         self.left.apply_configs(left_config)
         self.right.apply_configs(right_config)
 
-        if isinstance(self.left, talonfx.TalonFXMotorController):
+        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
+            self.right, talonfx.TalonFXMotorController
+        ):
             self.left.get_motor_controller().get_motor_voltage().set_update_frequency(
                 100
             )
@@ -135,6 +137,22 @@ class IntakeSubsystem(Subsystem):
         if self.backward_extended():
             self.zero_rotations()
 
+        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
+            self.right, talonfx.TalonFXMotorController
+        ):
+            self.nt_table.putString(
+                "Left control mode",
+                str(self.left.get_motor_controller().get_control_mode()),
+            )
+            self.nt_table.putString(
+                "Right control mode",
+                str(self.right.get_motor_controller().get_control_mode()),
+            )
+
+    def test_run(self, voltage: int) -> None:
+        self.left.set_voltage(voltage)
+        self.right.set_voltage(voltage)
+
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
 
@@ -155,14 +173,17 @@ class IntakeSubsystem(Subsystem):
         else:
             self.left.set_voltage(voltage)
 
-    def set_extention_voltage_from_networktable(self, forward: bool = True) -> None:
+    def set_extention_voltage_from_networktable(self) -> None:
         if not self.forward_extended():
-            self.left.set_voltage(self.extension_voltage * -1 if not forward else 1)
+            self.left.set_voltage(self.extension_voltage)
         else:
             self.left.set_voltage(0)
 
     def set_retraction_voltage_from_networktable(self) -> None:
-        self.left.set_voltage(-self.extension_voltage)
+        if not self.backward_extended():
+            self.left.set_voltage(-self.extension_voltage)
+        else:
+            self.left.set_voltage(0)
 
     def forward_extended(self) -> bool:
         return self.forward.get_state()
