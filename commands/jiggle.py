@@ -1,6 +1,6 @@
+from commands.manual_extension_command import ManualExtensionCommand
 import commands2
 
-from commands.manual_extension_command import ManualExtensionCommand
 from subsystems.intake import IntakeSubsystem
 
 WAIT_TIME = 0.1
