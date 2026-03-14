@@ -158,6 +158,9 @@ class IntakeSubsystem(Subsystem):
     def set_extention_voltage_from_networktable(self) -> None:
         self.left.set_voltage(self.extension_voltage)
 
+    def set_retraction_voltage_from_networktable(self) -> None:
+        self.left.set_voltage(-self.extension_voltage)
+
     def forward_extended(self) -> bool:
         return self.forward.get_state()
 

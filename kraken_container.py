@@ -15,7 +15,8 @@ import wpimath.filter
 from wpimath.units import rotationsToRadians
 
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import ExtensionCommand
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
+from commands.manual_extension_command import ManualExtensionCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -307,7 +308,7 @@ class KrakenRobotContainer:
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
@@ -354,10 +355,10 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtensionCommand(self.left_pinion, self.right_pinion, forward=True)
+            ManualExtensionCommand(self._intake, extend=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtensionCommand(self.left_pinion, self.right_pinion, forward=False)
+            ManualExtensionCommand(self._intake, extend=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT
