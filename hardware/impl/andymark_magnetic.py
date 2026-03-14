@@ -10,9 +10,16 @@ class AndymarkMagnetic(LimitSwitch):
     def __init__(self, device_id: int) -> None:
         super().__init__()
         self.device = GenericCAN(device_id, MANUFACTURER_ID, DEVICE_TYPE_ID)
+        self.device_id = device_id
 
     def get_state(self) -> bool:
-        data = self.device.get_latest_data(ANDYMARK_MAGNETIC_API_ID)
+        data = self.device.get_newest_data(ANDYMARK_MAGNETIC_API_ID)
+
+        # data[0] returns false when the limit swtich doesn't return packets after multiple calls
+        if not data[0]:
+            print("Not receiving packet from limit switch " + str(self.device_id))
+
         b = data[1].data
         state = (b[0] & 0xFF) != 0
+
         return state
