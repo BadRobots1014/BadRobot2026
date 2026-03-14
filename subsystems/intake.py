@@ -135,11 +135,6 @@ class IntakeSubsystem(Subsystem):
         if self.backward_extended():
             self.zero_rotations()
 
-        if (self.forward_extended() and self.left.get_voltage() < 0) or (
-            self.backward_extended() and self.left.get_voltage() > 0
-        ):
-            self.set_extension_voltage(0)
-
         # if (self.forward_extended()):
         #     print("Forward Limit")
 
@@ -159,10 +154,18 @@ class IntakeSubsystem(Subsystem):
         self.intake_motor.set_velocity(rpm)
 
     def set_extension_voltage(self, voltage: float) -> None:
-        self.left.set_voltage(voltage)
+        if (voltage > 0 and self.forward_extended()) or (
+            voltage < 0 and self.backward_extended()
+        ):
+            self.left.set_voltage(0)
+        else:
+            self.left.set_voltage(voltage)
 
     def set_extention_voltage_from_networktable(self, forward: bool = True) -> None:
-        self.left.set_voltage(self.extension_voltage * -1 if not forward else 1)
+        if not self.forward_extended():
+            self.left.set_voltage(self.extension_voltage * -1 if not forward else 1)
+        else:
+            self.left.set_voltage(0)
 
     def forward_extended(self) -> bool:
         return self.forward.get_state()
