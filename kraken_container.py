@@ -27,7 +27,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import lights, music, shooter
+from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -156,8 +156,8 @@ class KrakenRobotContainer:
         self.camera_ll2 = Limelight()
 
         # limit switches
-        self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
         self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
+        self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
@@ -187,6 +187,15 @@ class KrakenRobotContainer:
             self.intakeMotor,
             self.left_pinion,
             self.right_pinion,
+            self.forward_limit_switch,
+            self.backward_limit_switch,
+            "Limelight",
+        )
+
+        self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
+            self.intakeMotor,
+            self.left_pinion.get_motor_controller(),
+            self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
             self.backward_limit_switch,
             "Limelight",
@@ -356,10 +365,11 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._intake, extend=True)
+            # ExtendHopperCommand(self._intake, extend=True)
+            ExtendHopperCommand(self._talonIntake, extend=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._intake, extend=False)
+            ExtendHopperCommand(self._talonIntake, extend=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT

@@ -173,7 +173,7 @@ class IntakeSubsystem(Subsystem):
         else:
             self.left.set_voltage(voltage)
 
-    def set_extention_voltage_from_networktable(self) -> None:
+    def set_extension_voltage_from_networktable(self) -> None:
         if not self.forward_extended():
             self.left.set_voltage(self.extension_voltage)
         else:

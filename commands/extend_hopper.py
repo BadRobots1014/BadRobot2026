@@ -2,6 +2,7 @@ import commands2
 import wpimath.units
 
 from subsystems.intake import IntakeSubsystem
+from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 MOTOR_VOLTAGE = 4
 INTAKE_VOLTAGE = 4
@@ -10,13 +11,13 @@ EXTEND_LENGTH_INCHES = 12
 
 
 class ExtendHopperCommand(commands2.Command):
-    def __init__(self, intake: IntakeSubsystem, extend: bool):
+    def __init__(self, intake: IntakeSubsystem | TalonIntakeSubsystem, extend: bool):
         self.intake = intake
         self.extend = extend
 
     def execute(self) -> None:
         if self.extend:
-            self.intake.set_extention_voltage_from_networktable()
+            self.intake.set_extension_voltage_from_networktable()
         else:
             self.intake.set_retraction_voltage_from_networktable()
 
@@ -37,4 +38,4 @@ class ExtendHopperCommand(commands2.Command):
         )
         # recast so compiler knows it's a list
         self.intake.pose_publisher.set([float(x) for x in pose])
-        self.intake.test_run(0)
+        self.intake.set_extension_voltage(0)

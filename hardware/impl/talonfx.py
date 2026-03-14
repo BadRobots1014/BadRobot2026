@@ -107,13 +107,6 @@ class TalonFXMotorController(MotorController):
                     ),
                 )
             )
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
-            print(self.get_motor_controller().device_id)
 
         self.motor.configurator.apply(config)
 
