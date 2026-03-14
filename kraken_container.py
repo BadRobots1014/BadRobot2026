@@ -21,6 +21,7 @@ from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
+from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
@@ -152,7 +153,8 @@ class KrakenRobotContainer:
         # TODO: conditional to disable limelight in sim!!
         #
         # Initialize limelight
-        self.camera = Limelight()
+        self.camera_ll4 = Limelight("limelight-four", enabled=True)
+        self.camera_ll2 = Limelight()
 
         # limit switches
         self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
@@ -193,6 +195,11 @@ class KrakenRobotContainer:
 
         # Configure the button bindings
         self.configureButtonBindings()
+
+        # Configures limelight IMU
+        robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
+        self.camera_ll4.robot_orientation_set(robot_yaw)
+        self.camera_ll4.set_imu_mode(1)
 
     # Joysticks need to be inverted or drive won't work properly
 
@@ -360,6 +367,12 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
+        strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
+        strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
+
+        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
+        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+
         # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
         # )
@@ -384,30 +397,44 @@ class KrakenRobotContainer:
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.button(OPTIONS_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
+                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
+            )
         )
 
-        # self.drivetrain.register_telemetry(
-        #    lambda state: self._logger.telemeterize(state)
-        # )
+        self.drivetrain.register_telemetry(self._logger.telemeterize)
+
+    def driveInit(self) -> None:
+        self.camera_ll4.set_imu_mode(4)
 
     def robotPeriodic(self) -> None:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
-        self.camera.robot_orientation_set(robot_yaw)
+        self.camera_ll4.robot_orientation_set(robot_yaw)
+        self.camera_ll2.robot_orientation_set(robot_yaw)
 
         # Add vision
-        cam_measurement = self.camera.get_vision_measurement()
-        reject_pose = self.camera.tv_sub.get() < 1
-        if not reject_pose:
-            # TODO: change the angular velocity after limelight upgrade
-            reject_pose = (
-                self.drivetrain.pigeon2.get_angular_velocity_z_device().value
-                > LIMELIGHT_MAX_ANGULAR_VELOCITY
-            )
-        if not reject_pose:
+        cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
+        reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
+
+        cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
+        reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
+
+        if (
+            self.drivetrain.pigeon2.get_angular_velocity_z_device().value
+            > LIMELIGHT_MAX_ANGULAR_VELOCITY
+        ):
+            reject_pose_ll4 = False
+            reject_pose_ll2 = False
+
+        if not reject_pose_ll4:
             self.drivetrain.add_vision_measurement(
-                cam_measurement[0], cam_measurement[1], cam_measurement[2]
+                cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
+            )
+
+        if not reject_pose_ll2:
+            self.drivetrain.add_vision_measurement(
+                cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
             )
 
     def getAutonomousCommand(self) -> commands2.Command:

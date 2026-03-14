@@ -6,6 +6,7 @@ from ntcore import NetworkTableInstance
 
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
+from hardware.impl import talonfx
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -16,6 +17,11 @@ INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
 
 EXTENSION_VOLTAGE = 3
+
+ENCODER_ROTATIONS = 0
+ROTATIONS_TO_METERS = (
+    0  # TODO measure how much the hopper extends for one encoder rotation
+)
 
 
 class IntakeSubsystem(Subsystem):
@@ -42,11 +48,17 @@ class IntakeSubsystem(Subsystem):
         left_config = MotorControllerConfig(
             inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
         )
-        self.left.apply_configs(left_config)
         right_config = MotorControllerConfig(
-            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=left
+            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
         )
+
+        self.left.apply_configs(left_config)
         self.right.apply_configs(right_config)
+
+        if isinstance(self.left, talonfx.TalonFXMotorController):
+            self.left.get_motor_controller().get_motor_voltage().set_update_frequency(
+                100
+            )
 
         self.forward = forward
         self.backward = backward
@@ -119,6 +131,15 @@ class IntakeSubsystem(Subsystem):
             _on_extension_voltage_changed,
         )
 
+    def periodic(self) -> None:
+        if self.backward_extended():
+            self.zero_rotations()
+
+        if (self.forward_extended() and self.left.get_voltage() < 0) or (
+            self.backward_extended() and self.left.get_voltage() > 0
+        ):
+            self.set_extension_voltage(0)
+
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
 
@@ -145,3 +166,10 @@ class IntakeSubsystem(Subsystem):
 
     def backward_extended(self) -> bool:
         return self.backward.get_state()
+
+    def zero_rotations(self) -> None:
+        self.left.zero_relative_encoder()
+        self.right.zero_relative_encoder()
+
+    def get_extension_position(self) -> float:
+        return self.left.get_encoder_position() * ROTATIONS_TO_METERS
