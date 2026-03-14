@@ -15,10 +15,8 @@ class ExtendHopperCommand(commands2.Command):
         self.intake = intake
         self.extend = extend
 
-        if self.extend:
-            self.intake.set_extension_voltage(-MOTOR_VOLTAGE)
-        else:
-            self.intake.set_extension_voltage(MOTOR_VOLTAGE)
+    def execute(self) -> None:
+        self.intake.set_extention_voltage_from_networktable(self.extend)
 
     def isFinished(self) -> bool:
         if (self.extend and self.intake.forward_extended()) or (

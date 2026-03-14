@@ -14,8 +14,8 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
-from commands.intake_demo import ExtensionCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -354,10 +354,10 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtensionCommand(self.left_pinion, self.right_pinion, forward=True)
+            ExtendHopperCommand(self._intake, extend=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtensionCommand(self.left_pinion, self.right_pinion, forward=False)
+            ExtendHopperCommand(self._intake, extend=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT

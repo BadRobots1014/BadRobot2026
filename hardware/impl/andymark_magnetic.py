@@ -13,4 +13,6 @@ class AndymarkMagnetic(LimitSwitch):
 
     def get_state(self) -> bool:
         data = self.device.get_latest_data(ANDYMARK_MAGNETIC_API_ID)
-        return data[0] == 1
+        b = data[1].data
+        state = (b[0] & 0xFF) != 0
+        return state
