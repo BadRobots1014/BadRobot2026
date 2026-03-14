@@ -135,12 +135,6 @@ class IntakeSubsystem(Subsystem):
         if self.backward_extended():
             self.zero_rotations()
 
-        # if (self.forward_extended()):
-        #     print("Forward Limit")
-
-        # if (self.backward_extended()):
-        #     print("Backward Limit")
-
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
 
