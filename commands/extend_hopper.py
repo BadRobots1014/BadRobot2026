@@ -11,7 +11,6 @@ EXTEND_LENGTH_INCHES = 12
 
 class ExtendHopperCommand(commands2.Command):
     def __init__(self, intake: IntakeSubsystem, extend: bool):
-        super().__init__()
         self.intake = intake
         self.extend = extend
 

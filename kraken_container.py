@@ -16,6 +16,7 @@ from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -307,7 +308,7 @@ class KrakenRobotContainer:
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
