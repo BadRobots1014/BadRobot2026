@@ -20,6 +20,7 @@ from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
+from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.limelight import Limelight
@@ -365,6 +366,12 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
+        strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
+        strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
+
+        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
+        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+
         # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
         # )
@@ -394,9 +401,7 @@ class KrakenRobotContainer:
             )
         )
 
-        # self.drivetrain.register_telemetry(
-        #    lambda state: self._logger.telemeterize(state)
-        # )
+        self.drivetrain.register_telemetry(self._logger.telemeterize)
 
     def driveInit(self) -> None:
         self.camera_ll4.set_imu_mode(4)
