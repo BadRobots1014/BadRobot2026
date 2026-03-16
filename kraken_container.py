@@ -20,7 +20,6 @@ from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
-from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -305,11 +304,7 @@ class KrakenRobotContainer:
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
 
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            commands2.ConditionalCommand(
-                BangBangShootCommand(self._shooter),
-                ShootCommand(self._shooter),
-                lambda: self._shoot_command.getSelected() == "Bang Bang",
-            )
+            BangBangShootCommand(self._shooter),
         )
 
         # Run kicker wheel
@@ -352,7 +347,7 @@ class KrakenRobotContainer:
         )
 
         # POV right - drive right
-        self._primary_controller.povUp().whileTrue(
+        self._primary_controller.povRight().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     -NUDGE_SPEED
@@ -361,7 +356,7 @@ class KrakenRobotContainer:
         )
 
         # POV left - drive left
-        self._primary_controller.povUp().whileTrue(
+        self._primary_controller.povLeft().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     NUDGE_SPEED
