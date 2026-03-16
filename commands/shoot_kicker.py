@@ -13,6 +13,7 @@ class ShootKickerCommand(commands2.Command):
         super().__init__()
         self.invert = invert
         self.shooter = shooter
+        self.addRequirements(shooter)
 
     def execute(self) -> None:
         if self.invert:

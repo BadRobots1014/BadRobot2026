@@ -12,6 +12,8 @@
 #
 # Examples can be found at https://github.com/robotpy/examples
 
+from __future__ import annotations
+
 import typing
 
 from pyfrc.physics.core import PhysicsInterface
@@ -21,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 
 class PhysicsEngine:
-    def __init__(self, physics_controller: PhysicsInterface, robot: "MyRobot"):
+    def __init__(self, physics_controller: PhysicsInterface, robot: MyRobot):
         self.physics_controller = physics_controller
 
     def update_sim(self, now: float, tm_diff: float) -> None:

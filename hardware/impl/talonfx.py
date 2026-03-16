@@ -36,7 +36,7 @@ class TalonFXMotorController(MotorController):
         )
         self.motor.configurator.apply(configuration)
 
-    def get_motor_controller(self) -> "TalonFX":
+    def get_motor_controller(self) -> TalonFX:
         return self.motor
 
     # Getting active voltage

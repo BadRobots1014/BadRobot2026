@@ -9,6 +9,7 @@ class BangBangShootCommand(commands2.Command):
     def __init__(self, shooter: ShooterSubsystem):
         super().__init__()
         self.shooter = shooter
+        self.addRequirements(shooter)
 
     def execute(self) -> None:
         desired_velocity = self.shooter.shoot_velocity

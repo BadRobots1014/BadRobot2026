@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -13,7 +15,7 @@ class MotorControllerIdleMode(Enum):
 class MotorControllerConfig:
     inverted: bool
     idle_mode: MotorControllerIdleMode
-    leader: "MotorController | None"
+    leader: MotorController | None
     p: float
     i: float
     d: float
@@ -23,7 +25,7 @@ class MotorControllerConfig:
         self,
         inverted: bool = False,
         idle_mode: MotorControllerIdleMode = MotorControllerIdleMode.BRAKE,
-        leader: "MotorController | None" = None,
+        leader: MotorController | None = None,
         p: float = 0,
         i: float = 0,
         d: float = 0,

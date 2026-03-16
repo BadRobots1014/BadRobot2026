@@ -1,5 +1,5 @@
 # ruff.toml — Python 3.14, flat layout
-target-version = "py313"
+target-version = "py314"
 line-length = 88
 
 exclude = [

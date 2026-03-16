@@ -10,7 +10,7 @@ class LightSubsystem(Subsystem):
         super().__init__()
         self.controller = controller
 
-        self.defult_pattern = self.controller.get_solid(255, 255, 0).atBrightness(
+        self.default_pattern = self.controller.get_solid(255, 255, 0).atBrightness(
             BRIGHTNESS_MULTIPLIER
         )
         self.current_pattern = None
@@ -33,7 +33,7 @@ class LightSubsystem(Subsystem):
         ).atBrightness(BRIGHTNESS_MULTIPLIER)
 
     def set_default(self) -> None:
-        self.current_pattern = self.defult_pattern
+        self.current_pattern = self.default_pattern
 
     def periodic(self) -> None:
         if self.current_pattern is None:

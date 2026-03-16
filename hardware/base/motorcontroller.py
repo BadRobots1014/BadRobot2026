@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 import typing
-from typing import Union
 
 from wpiutil import Sendable
 
@@ -44,7 +45,7 @@ class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
     @abstractmethod
     def get_motor_controller(
         self,
-    ) -> Union["SparkBase", "phoenix6.hardware.TalonFX"]: ...
+    ) -> SparkBase | phoenix6.hardware.TalonFX: ...
 
     @abstractmethod
     def get_motor_id(self) -> int: ...

@@ -234,7 +234,7 @@ class ShooterSubsystem(Subsystem):
         self.set_kick_voltage(self.kick_shoot_voltage)
 
     def set_kick_dump_voltage_from_networktables(self) -> None:
-        self.set_kick_voltage(self.kick_shoot_voltage)
+        self.set_kick_voltage(self.kick_dump_voltage)
 
     def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
