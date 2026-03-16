@@ -1,11 +1,11 @@
 import commands2
 import wpimath.units
 
+import robot
 from subsystems.intake import IntakeSubsystem
 from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 MOTOR_VOLTAGE = 4
-INTAKE_VOLTAGE = 4
 
 EXTEND_LENGTH_INCHES = 12
 
@@ -16,17 +16,20 @@ class ExtendHopperCommand(commands2.Command):
         self.extend = extend
 
     def execute(self) -> None:
-        if self.extend:
+        if not robot.TEST_MODE_ENABLED:
+            self.intake.set_extension_voltage(
+                MOTOR_VOLTAGE * -1 if not self.extend else 1
+            )
+        elif self.extend:
             self.intake.set_extension_voltage_from_networktable()
         else:
             self.intake.set_retraction_voltage_from_networktable()
 
     def isFinished(self) -> bool:
-        # if (self.extend and self.intake.forward_extended()) or (
-        #     not self.extend and self.intake.backward_extended()
-        # ):
-        #     return True
-        # return False
+        if (self.extend and self.intake.forward_extended()) or (
+            not self.extend and self.intake.backward_extended()
+        ):
+            return True
         return False
 
     def end(self, interrupted: bool) -> None:

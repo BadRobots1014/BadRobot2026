@@ -13,7 +13,7 @@ class KickerShootWhenReadyCommand(commands2.Command):
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
-        # self.shooter.set_shoot_velocity_from_networktables()
+        self.shooter.set_shoot_velocity_from_networktables()
         if self.shooter.shoot_encoder.get_velocity() > self.shooter.shoot_velocity:
             self.shooter.set_kick_shoot_voltage_from_networktables()
         else:
@@ -26,3 +26,4 @@ class KickerShootWhenReadyCommand(commands2.Command):
     # code that runs after the command is finished
     def end(self, interrupted: bool) -> None:
         self.shooter.kick_motor.set_voltage(0)
+        self.shooter.shoot_motor.set_voltage(0)

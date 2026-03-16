@@ -14,8 +14,10 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -301,24 +303,27 @@ class KrakenRobotContainer:
         self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
         self._shoot_command.addOption("PID", "PID")
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-        #
-        # self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-        #     commands2.ConditionalCommand(
-        #         BangBangShootCommand(self._shooter),
-        #         ShootCommand(self._shooter),
-        #         lambda: self._shoot_command.getSelected() == "Bang Bang",
-        #     )
-        # )
+
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            ShootCommand(self._shooter)
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
         )
 
         # Run kicker wheel
         self._auxiliary_controller.create_button(
             R1_BUTTON,
-            "Run kicker wheel",
-            # ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+            "Run kicker wheel when ready",
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+
+        # uncomment if you want to use the regular kicker command
+        # self._auxiliary_controller.create_button(
+        #     R1_BUTTON,
+        #     "Run kicker wheel",
+        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))

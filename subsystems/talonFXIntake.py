@@ -23,9 +23,6 @@ DUMP_VOLTAGE = -5
 EXTENSION_VOLTAGE = 3
 
 ENCODER_ROTATIONS = 0
-ROTATIONS_TO_METERS = (
-    0  # TODO measure how much the hopper extends for one encoder rotation
-)
 
 
 class TalonIntakeSubsystem(Subsystem):
@@ -60,16 +57,6 @@ class TalonIntakeSubsystem(Subsystem):
         )
 
         self.left.configurator.apply(config)
-
-        # left_config = MotorControllerConfig(
-        #     inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
-        # )
-        # right_config = MotorControllerConfig(
-        #     inverted=False, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
-        # )
-
-        # self.left.apply_configs(left_config)
-        # self.right.apply_configs(right_config)
 
         right.set_control(
             Follower(left.device_id, motor_alignment=MotorAlignmentValue.OPPOSED)
@@ -185,13 +172,13 @@ class TalonIntakeSubsystem(Subsystem):
             self.left.set_control(VoltageOut(0))
 
     def forward_extended(self) -> bool:
-        state = self.forward.get_state()
-        if state:
-            print("Forward Activated")
         return self.forward.get_state()
 
     def backward_extended(self) -> bool:
-        state = self.forward.get_state()
-        if state:
-            print("Backward Activated")
         return self.backward.get_state()
+
+    def zero_rotations(self) -> None:
+        self.left.set_position(0)
+
+    def get_extension_position(self) -> float:
+        return self.left.get_position().value

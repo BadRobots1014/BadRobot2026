@@ -19,9 +19,6 @@ DUMP_VOLTAGE = -5
 EXTENSION_VOLTAGE = 3
 
 ENCODER_ROTATIONS = 0
-ROTATIONS_TO_METERS = (
-    0  # TODO measure how much the hopper extends for one encoder rotation
-)
 
 
 class IntakeSubsystem(Subsystem):
@@ -196,4 +193,4 @@ class IntakeSubsystem(Subsystem):
         self.right.zero_relative_encoder()
 
     def get_extension_position(self) -> float:
-        return self.left.get_encoder_position() * ROTATIONS_TO_METERS
+        return self.left.get_encoder_position()
