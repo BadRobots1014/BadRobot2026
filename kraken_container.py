@@ -71,8 +71,8 @@ NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity
-DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
-ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
+DRIVE_DEADBAND = MAX_SPEED * 0.001  # Add a 10% deadband for controllers
+ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.001  # Add a 10% deadband for controllers
 
 # joysticks
 DRIVER_PORT = 0
