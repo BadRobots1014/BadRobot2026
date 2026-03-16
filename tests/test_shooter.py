@@ -1,4 +1,5 @@
 """Unit tests for ShooterSubsystem."""
+
 from unittest.mock import MagicMock
 
 import pytest
