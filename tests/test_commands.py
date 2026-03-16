@@ -1,4 +1,5 @@
 """Unit tests for robot commands."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -57,7 +58,7 @@ def test_bang_bang_applies_zero_when_at_or_above_target(
 
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
-    with patch("robot.TEST_MODE_ENABLED", False):
+    with patch("robot.TEST_MODE_ENABLED", new=False):
         ShootCommand(shooter).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOT_VELOCITY)
 
@@ -75,7 +76,7 @@ def test_shoot_kicker_inverted_applies_negative_voltage(
 def test_shoot_kicker_normal_applies_positive_voltage(
     shooter: ShooterSubsystem,
 ) -> None:
-    with patch("robot.TEST_MODE_ENABLED", False):
+    with patch("robot.TEST_MODE_ENABLED", new=False):
         ShootKickerCommand(shooter, invert=False).execute()
     shooter.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
 
