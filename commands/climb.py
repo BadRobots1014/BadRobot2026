@@ -8,7 +8,7 @@ class ClimbCommand(commands2.Command):
 
     def __init__(self, climber_subsystem: ClimberSubsystem, extend: bool = True):
         super().__init__()
-        self.climber_subystem = climber_subsystem
+        self.climber_subsystem = climber_subsystem
         self.extend = extend
 
     def execute(self) -> None:

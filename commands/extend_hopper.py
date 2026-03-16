@@ -14,9 +14,12 @@ EXTEND_LENGTH_INCHES = 12
 
 class ExtendHopperCommand(commands2.Command):
     def __init__(self, intake: TalonIntakeSubsystem, extend: bool):
+
         self.intake = intake
         self.extend = extend
         self.pid = controller.PIDController(Kp, Ki, Kd)
+
+        self.addRequirements(intake)
 
         SmartDashboard.putData("Hopper PID", self.pid)
 
