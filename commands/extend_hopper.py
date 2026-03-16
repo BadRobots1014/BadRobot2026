@@ -12,8 +12,10 @@ EXTEND_LENGTH_INCHES = 12
 
 class ExtendHopperCommand(commands2.Command):
     def __init__(self, intake: IntakeSubsystem | TalonIntakeSubsystem, extend: bool):
+        super().__init__()
         self.intake = intake
         self.extend = extend
+        self.addRequirements(intake)
 
     def execute(self) -> None:
         if not robot.TEST_MODE_ENABLED:

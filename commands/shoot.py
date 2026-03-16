@@ -12,6 +12,7 @@ class ShootCommand(commands2.Command):
     def __init__(self, shooter: ShooterSubsystem):
         super().__init__()
         self.shooter = shooter
+        self.addRequirements(shooter)
 
     def execute(self) -> None:
         if robot.TEST_MODE_ENABLED:
