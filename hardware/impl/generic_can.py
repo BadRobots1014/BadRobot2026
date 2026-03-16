@@ -31,3 +31,11 @@ class GenericCAN:
         is_valid = self.device.readPacketNew(api_id, data)
 
         return is_valid, data
+
+    def get_data_with_timeout(
+        self, timeout_ms: int, api_id: int
+    ) -> tuple[bool, wpilib.CANData]:
+        data = wpilib.CANData()
+        is_valid = self.device.readPacketTimeout(api_id, timeout_ms, data)
+
+        return is_valid, data

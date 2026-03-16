@@ -3,10 +3,14 @@ import threading
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
+import phoenix6
+from phoenix6.controls import Follower
+from phoenix6.controls.voltage_out import VoltageOut
+from phoenix6.hardware import TalonFX
+from phoenix6.signals import MotorAlignmentValue
 
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
-from hardware.impl import talonfx
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -21,12 +25,12 @@ EXTENSION_VOLTAGE = 3
 ENCODER_ROTATIONS = 0
 
 
-class IntakeSubsystem(Subsystem):
+class TalonIntakeSubsystem(Subsystem):
     def __init__(
         self,
         intake: MotorController,
-        left: MotorController,
-        right: MotorController,
+        right: TalonFX,
+        left: TalonFX,
         forward: LimitSwitch,
         backward: LimitSwitch,
         camera_name: str = "limelight",
@@ -42,22 +46,23 @@ class IntakeSubsystem(Subsystem):
         self.left = left
         self.right = right
 
-        left_config = MotorControllerConfig(
-            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
-        )
-        right_config = MotorControllerConfig(
-            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
+        inverted_value = phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+
+        idle_mode = phoenix6.signals.NeutralModeValue.BRAKE
+
+        config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.MotorOutputConfigs()
+            .with_inverted(inverted_value)
+            .with_neutral_mode(idle_mode)
         )
 
-        self.left.apply_configs(left_config)
-        self.right.apply_configs(right_config)
+        self.left.configurator.apply(config)
 
-        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
-            self.right, talonfx.TalonFXMotorController
-        ):
-            self.left.get_motor_controller().get_motor_voltage().set_update_frequency(
-                100
-            )
+        right.set_control(
+            Follower(left.device_id, motor_alignment=MotorAlignmentValue.OPPOSED)
+        )
+
+        self.left.get_motor_voltage().set_update_frequency(100)
 
         self.forward = forward
         self.backward = backward
@@ -131,24 +136,8 @@ class IntakeSubsystem(Subsystem):
         )
 
     def periodic(self) -> None:
-        if self.backward_extended():
-            self.zero_rotations()
-
-        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
-            self.right, talonfx.TalonFXMotorController
-        ):
-            self.nt_table.putString(
-                "Left control mode",
-                str(self.left.get_motor_controller().get_control_mode()),
-            )
-            self.nt_table.putString(
-                "Right control mode",
-                str(self.right.get_motor_controller().get_control_mode()),
-            )
-
-    def test_run(self, voltage: int) -> None:
-        self.left.set_voltage(voltage)
-        self.right.set_voltage(voltage)
+        self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
+        self.nt_table.putBoolean("Backward limit: ", self.backward_extended())
 
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
@@ -166,21 +155,21 @@ class IntakeSubsystem(Subsystem):
         if (voltage > 0 and self.forward_extended()) or (
             voltage < 0 and self.backward_extended()
         ):
-            self.left.set_voltage(0)
+            self.left.set_control(VoltageOut(0))
         else:
-            self.left.set_voltage(voltage)
+            self.left.set_control(VoltageOut(voltage))
 
     def set_extension_voltage_from_networktable(self) -> None:
         if not self.forward_extended():
-            self.left.set_voltage(self.extension_voltage)
+            self.left.set_control(VoltageOut(self.extension_voltage))
         else:
-            self.left.set_voltage(0)
+            self.left.set_control(VoltageOut(0))
 
     def set_retraction_voltage_from_networktable(self) -> None:
         if not self.backward_extended():
-            self.left.set_voltage(-self.extension_voltage)
+            self.left.set_control(VoltageOut(-self.extension_voltage))
         else:
-            self.left.set_voltage(0)
+            self.left.set_control(VoltageOut(0))
 
     def forward_extended(self) -> bool:
         return self.forward.get_state()
@@ -189,8 +178,7 @@ class IntakeSubsystem(Subsystem):
         return self.backward.get_state()
 
     def zero_rotations(self) -> None:
-        self.left.zero_relative_encoder()
-        self.right.zero_relative_encoder()
+        self.left.set_position(0)
 
     def get_extension_position(self) -> float:
-        return self.left.get_encoder_position()
+        return self.left.get_position().value

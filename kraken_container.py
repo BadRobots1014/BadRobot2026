@@ -14,9 +14,10 @@ from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
+from commands.bang_bang_shoot import BangBangShootCommand
+from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.manual_extension_command import ManualExtensionCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot import ShootCommand
@@ -28,7 +29,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from subsystems import lights, music, shooter
+from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
@@ -181,13 +182,22 @@ class KrakenRobotContainer:
         )
 
         self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
-        self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
+        self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
 
         self._intake = IntakeSubsystem(
             self.intakeMotor,
-            self.right_pinion,
             self.left_pinion,
+            self.right_pinion,
+            self.forward_limit_switch,
+            self.backward_limit_switch,
+            "Limelight",
+        )
+
+        self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
+            self.intakeMotor,
+            self.left_pinion.get_motor_controller(),
+            self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
             self.backward_limit_switch,
             "Limelight",
@@ -293,22 +303,27 @@ class KrakenRobotContainer:
         self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
         self._shoot_command.addOption("PID", "PID")
         wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-        #
-        # self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-        #     commands2.ConditionalCommand(
-        #         BangBangShootCommand(self._shooter),
-        #         ShootCommand(self._shooter),
-        #         lambda: self._shoot_command.getSelected() == "Bang Bang",
-        #     )
-        # )
+
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            ShootCommand(self._shooter)
+            commands2.ConditionalCommand(
+                BangBangShootCommand(self._shooter),
+                ShootCommand(self._shooter),
+                lambda: self._shoot_command.getSelected() == "Bang Bang",
+            )
         )
 
         # Run kicker wheel
         self._auxiliary_controller.create_button(
-            R1_BUTTON, "Run kicker wheel"
+            R1_BUTTON,
+            "Run kicker wheel when ready",
         ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+
+        # uncomment if you want to use the regular kicker command
+        # self._auxiliary_controller.create_button(
+        #     R1_BUTTON,
+        #     "Run kicker wheel",
+        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
@@ -355,10 +370,11 @@ class KrakenRobotContainer:
         )
 
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ManualExtensionCommand(self._intake, extend=True)
+            # ExtendHopperCommand(self._intake, extend=True)
+            ExtendHopperCommand(self._talonIntake, extend=True)
         )
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ManualExtensionCommand(self._intake, extend=False)
+            ExtendHopperCommand(self._talonIntake, extend=False)
         )
 
         # LIMIT SWITCHES CURRENTLY COMMENTED OUT

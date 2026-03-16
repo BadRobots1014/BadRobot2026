@@ -26,3 +26,4 @@ class KickerShootWhenReadyCommand(commands2.Command):
     # code that runs after the command is finished
     def end(self, interrupted: bool) -> None:
         self.shooter.kick_motor.set_voltage(0)
+        self.shooter.shoot_motor.set_voltage(0)

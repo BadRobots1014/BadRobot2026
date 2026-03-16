@@ -92,16 +92,13 @@ class TalonFXMotorController(MotorController):
         config.slot0.k_d = motor_controller_config.d
         config.slot0.k_v = motor_controller_config.f
 
-        self.motor.configurator.apply(config)
-
         # You must setup the status signal on the leader for this to work
-        if (
-            motor_controller_config.leader is not None
-            and motor_controller_config.leader is self.__class__
+        if motor_controller_config.leader is not None and isinstance(
+            motor_controller_config.leader, TalonFXMotorController
         ):
             self.motor.set_control(
                 phoenix6.controls.follower.Follower(
-                    motor_controller_config.leader.get_motor_id(),
+                    motor_controller_config.leader.get_motor_controller().device_id,
                     motor_alignment=(
                         phoenix6.signals.MotorAlignmentValue.OPPOSED
                         if motor_controller_config.inverted
@@ -110,6 +107,8 @@ class TalonFXMotorController(MotorController):
                     ),
                 )
             )
+
+        self.motor.configurator.apply(config)
 
     def disable(self) -> None:
         self.motor.set_control(VoltageOut(0))
