@@ -17,10 +17,10 @@ from wpimath.units import rotationsToRadians
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.run_intake import RunIntakeCommand
-from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -270,8 +270,13 @@ class KrakenRobotContainer:
             )
         )
 
-        # toggle slow mode
+        # PRIMARY CONTROLLER ---------------------------------------------------------------------------
+
+        # Slow mode (hold)
         self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
+            commands2.cmd.runOnce(self.toggleSlowMode)
+        )
+        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onFalse(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
 
@@ -298,41 +303,6 @@ class KrakenRobotContainer:
             )
         )
 
-        # Run main wheel
-        self._shoot_command = wpilib.SendableChooser()
-        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
-        self._shoot_command.addOption("PID", "PID")
-        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-
-        self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            commands2.ConditionalCommand(
-                BangBangShootCommand(self._shooter),
-                ShootCommand(self._shooter),
-                lambda: self._shoot_command.getSelected() == "Bang Bang",
-            )
-        )
-
-        # Run kicker wheel
-        self._auxiliary_controller.create_button(
-            R1_BUTTON,
-            "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
-
-        # uncomment if you want to use the regular kicker command
-        # self._auxiliary_controller.create_button(
-        #     R1_BUTTON,
-        #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
-
-        self._auxiliary_controller.create_button(
-            R2_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
-
-        # Party Mode
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self.lights, self.music)
-        )
-
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
             self.drivetrain.apply_request(
@@ -352,7 +322,7 @@ class KrakenRobotContainer:
         )
 
         # POV right - drive right
-        self._primary_controller.povUp().whileTrue(
+        self._primary_controller.povRight().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     -NUDGE_SPEED
@@ -361,7 +331,7 @@ class KrakenRobotContainer:
         )
 
         # POV left - drive left
-        self._primary_controller.povUp().whileTrue(
+        self._primary_controller.povLeft().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     NUDGE_SPEED
@@ -369,25 +339,74 @@ class KrakenRobotContainer:
             )
         )
 
+        # Strafe left L1
+        strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
+        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
+
+        # Strafe right R1
+        strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
+        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+
+        # Reset the field-centric heading on Options button press
+        self._primary_controller.button(OPTIONS_BUTTON).onTrue(
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
+                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
+            )
+        )
+
+        # AUX CONTROLLER -------------------------------------------------------------------------------
+
+        # Spin up shooter L2
+        self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
+            BangBangShootCommand(self._shooter),
+        )
+
+        # Run kicker wheel when ready R2
+        self._auxiliary_controller.create_button(
+            R2_BUTTON,
+            "Run kicker wheel when ready",
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+
+        # uncomment if you want to use the regular kicker command
+        # self._auxiliary_controller.create_button(
+        #     R1_BUTTON,
+        #     "Run kicker wheel",
+        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+
+        # Run kicker wheel backwards R1
+        self._auxiliary_controller.create_button(
+            R1_BUTTON, "Run kicker wheel inverted"
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
+
+        # Jiggle L1
+        self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
+            JiggleCommand(self._talonIntake)
+        )
+
+        # Extend hopper Triangle (HOLD)
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            # ExtendHopperCommand(self._intake, extend=True)
             ExtendHopperCommand(self._talonIntake, extend=True)
         )
+
+        # Retract hopper Square (HOLD)
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
             ExtendHopperCommand(self._talonIntake, extend=False)
         )
 
-        # LIMIT SWITCHES CURRENTLY COMMENTED OUT
+        # Intake wheel in (TOGGLE)
         intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
-        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
+
+        # Intake wheel dump (TOGGLE)
+        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
-        strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
-        strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
+        # Party Mode
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+            PartyModeCommand(self.lights, self.music)
+        )
 
-        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
-        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+        self.drivetrain.register_telemetry(self._logger.telemeterize)
 
         # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
         #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
@@ -410,15 +429,6 @@ class KrakenRobotContainer:
         # (self._joystick.button(9) & self._joystick.button(0)).whileTrue(
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
-
-        # Reset the field-centric heading on Options button press
-        self._primary_controller.button(OPTIONS_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
-                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
-            )
-        )
-
-        self.drivetrain.register_telemetry(self._logger.telemeterize)
 
     def driveInit(self) -> None:
         self.camera_ll4.set_imu_mode(4)
