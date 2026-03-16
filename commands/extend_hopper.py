@@ -18,7 +18,7 @@ class ExtendHopperCommand(commands2.Command):
     def execute(self) -> None:
         if not robot.TEST_MODE_ENABLED:
             self.intake.set_extension_voltage(
-                MOTOR_VOLTAGE * -1 if not self.extend else 1
+                MOTOR_VOLTAGE * (-1 if not self.extend else 1)
             )
         elif self.extend:
             self.intake.set_extension_voltage_from_networktable()
