@@ -20,6 +20,7 @@ from commands.face_target import FaceTargetCommand
 from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
+from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -294,6 +295,37 @@ class KrakenRobotContainer:
                 LEFT_Y_AXIS,
                 LEFT_X_AXIS,
             )
+        )
+
+        # Run main wheel
+        self._shoot_command = wpilib.SendableChooser()
+        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
+        self._shoot_command.addOption("PID", "PID")
+        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
+
+        self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
+            BangBangShootCommand(self._shooter),
+        )
+
+        # Run kicker wheel
+        self._auxiliary_controller.create_button(
+            R1_BUTTON,
+            "Run kicker wheel when ready",
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+
+        # uncomment if you want to use the regular kicker command
+        # self._auxiliary_controller.create_button(
+        #     R1_BUTTON,
+        #     "Run kicker wheel",
+        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+
+        self._auxiliary_controller.create_button(
+            R2_BUTTON, "Run kicker wheel inverted"
+        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
+
+        # Party Mode
+        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+            PartyModeCommand(self.lights, self.music)
         )
 
         # POV up - drive forward
