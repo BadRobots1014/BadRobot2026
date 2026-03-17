@@ -341,11 +341,21 @@ class KrakenRobotContainer:
 
         # Strafe left L1
         strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
-        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
+        self._primary_controller.button(CROSS_BUTTON).whileTrue(strafe_l)
 
         # Strafe right R1
         strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
-        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+        self._primary_controller.button(CIRCLE_BUTTON).whileTrue(strafe_r)
+
+        # Extend hopper Triangle (HOLD)
+        self._primary_controller.button(R1_BUTTON).whileTrue(
+            ExtendHopperCommand(self._talonIntake, extend=True)
+        )
+
+        # Retract hopper Square (HOLD)
+        self._primary_controller.button(L1_BUTTON).whileTrue(
+            ExtendHopperCommand(self._talonIntake, extend=False)
+        )
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.button(OPTIONS_BUTTON).onTrue(
