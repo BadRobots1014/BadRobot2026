@@ -20,7 +20,6 @@ from commands.face_target import FaceTargetCommand
 from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
-from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -29,6 +28,8 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
+from routines.dump_routine import DumpRoutine
+from routines.extend_and_intake import ExtendAndIntakeRoutine
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
@@ -404,11 +405,11 @@ class KrakenRobotContainer:
         )
 
         # Intake wheel in (TOGGLE)
-        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+        intake_wheel_in = ExtendAndIntakeRoutine(self._talonIntake)
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
 
         # Intake wheel dump (TOGGLE)
-        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
+        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode

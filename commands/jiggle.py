@@ -13,7 +13,9 @@ class JiggleCommand(commands2.RepeatCommand):
             ExtendHopperCommand(intake, extend=True)
             .withTimeout(TIMEOUT)
             .andThen(commands2.waitcommand.WaitCommand(WAIT_TIME))
-            .andThen(ExtendHopperCommand(intake, extend=True).withTimeout(TIMEOUT))
+            .andThen(
+                ExtendHopperCommand(intake, extend=False).withTimeout(TIMEOUT + 0.01)
+            )
             .andThen(commands2.waitcommand.WaitCommand(WAIT_TIME))
         )
         self.addRequirements(intake)

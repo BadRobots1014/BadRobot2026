@@ -1,14 +1,14 @@
 import commands2
 
 import robot
-from subsystems.intake import IntakeSubsystem
+from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
 
 
 class RunIntakeCommand(commands2.Command):
-    def __init__(self, intake: IntakeSubsystem, dump: bool):
+    def __init__(self, intake: TalonIntakeSubsystem, dump: bool):
         super().__init__()
         self.addRequirements(intake)
         self.intake = intake
