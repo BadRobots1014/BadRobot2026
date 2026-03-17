@@ -130,3 +130,24 @@ def test_retraction_from_nt_stops_when_backward_limit(intake: IntakeSubsystem) -
     intake.backward.get_state.return_value = True
     intake.set_retraction_voltage_from_networktable()
     intake.left.set_voltage.assert_called_once_with(0)
+
+
+# --- periodic() ---
+
+
+def test_periodic_zeros_rotations_when_backward_extended(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.backward.get_state.return_value = True
+    intake.periodic()
+    intake.left.zero_relative_encoder.assert_called_once()
+    intake.right.zero_relative_encoder.assert_called_once()
+
+
+def test_periodic_does_not_zero_rotations_when_not_backward_extended(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.backward.get_state.return_value = False
+    intake.periodic()
+    intake.left.zero_relative_encoder.assert_not_called()
+    intake.right.zero_relative_encoder.assert_not_called()

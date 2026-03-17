@@ -3,15 +3,22 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+import wpimath.units
 
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.climb import ClimbCommand
-from commands.extend_hopper import ExtendHopperCommand
+from commands.extend_hopper import (
+    EXTEND_LENGTH_INCHES,
+    MOTOR_VOLTAGE,
+    ExtendHopperCommand,
+)
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
+from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot import SHOOT_VELOCITY, ShootCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from subsystems.climber import ClimberSubsystem
 from subsystems.intake import IntakeSubsystem
-from subsystems.shooter import ShooterSubsystem
+from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
 
 
 @pytest.fixture
@@ -122,3 +129,190 @@ def test_climb_retract_applies_negative_voltage(climber: ClimberSubsystem) -> No
 def test_climb_end_stops_motor(climber: ClimberSubsystem) -> None:
     ClimbCommand(climber).end(interrupted=False)
     climber.climb_motor.set_voltage.assert_called_once_with(0)
+
+
+# --- ShootCommand (test mode) ---
+
+
+def test_shoot_command_uses_nt_velocity_when_test_mode(
+    shooter: ShooterSubsystem,
+) -> None:
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        ShootCommand(shooter).execute()
+    shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
+
+
+# --- ShootKickerCommand (test mode) ---
+
+
+def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
+    shooter: ShooterSubsystem,
+) -> None:
+    shooter.kick_shoot_voltage = 3.5
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        ShootKickerCommand(shooter, invert=False).execute()
+    shooter.kick_motor.set_voltage.assert_called_once_with(3.5)
+
+
+# --- ExtendHopperCommand execute() ---
+
+
+def test_extend_hopper_execute_extends_with_positive_voltage(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.forward.get_state.return_value = False
+    intake.backward.get_state.return_value = False
+    with patch("robot.TEST_MODE_ENABLED", new=False):
+        ExtendHopperCommand(intake, extend=True).execute()
+    intake.left.set_voltage.assert_called_once_with(1)
+
+
+def test_extend_hopper_execute_retracts_with_negative_voltage(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.forward.get_state.return_value = False
+    intake.backward.get_state.return_value = False
+    with patch("robot.TEST_MODE_ENABLED", new=False):
+        ExtendHopperCommand(intake, extend=False).execute()
+    intake.left.set_voltage.assert_called_once_with(-MOTOR_VOLTAGE)
+
+
+def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.forward.get_state.return_value = False
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        ExtendHopperCommand(intake, extend=True).execute()
+    # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
+    intake.left.set_voltage.assert_called_once_with(intake.extension_voltage)
+
+
+def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.backward.get_state.return_value = False
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        ExtendHopperCommand(intake, extend=False).execute()
+    intake.left.set_voltage.assert_called_once_with(-intake.extension_voltage)
+
+
+# --- ExtendHopperCommand end() ---
+
+
+def test_extend_hopper_end_stops_motor(intake: IntakeSubsystem) -> None:
+    intake.pos_subscriber = MagicMock()
+    intake.pos_subscriber.get.return_value = [0.0] * 6
+    intake.pose_publisher = MagicMock()
+    intake.forward.get_state.return_value = False
+    intake.backward.get_state.return_value = False
+    ExtendHopperCommand(intake, extend=True).end(interrupted=False)
+    intake.left.set_voltage.assert_called_once_with(0)
+
+
+def test_extend_hopper_end_advances_pose_when_extending(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.pos_subscriber = MagicMock()
+    intake.pos_subscriber.get.return_value = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    intake.pose_publisher = MagicMock()
+    ExtendHopperCommand(intake, extend=True).end(interrupted=False)
+    published = intake.pose_publisher.set.call_args[0][0]
+    assert abs(published[0] - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)) < 1e-9
+
+
+def test_extend_hopper_end_retreats_pose_when_retracting(
+    intake: IntakeSubsystem,
+) -> None:
+    intake.pos_subscriber = MagicMock()
+    intake.pos_subscriber.get.return_value = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    intake.pose_publisher = MagicMock()
+    ExtendHopperCommand(intake, extend=False).end(interrupted=False)
+    published = intake.pose_publisher.set.call_args[0][0]
+    expected = 1.0 - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
+    assert abs(published[0] - expected) < 1e-9
+
+
+# --- RunIntakeCommand ---
+
+
+def test_run_intake_applies_intake_voltage_in_normal_mode(
+    intake: IntakeSubsystem,
+) -> None:
+    with patch("robot.TEST_MODE_ENABLED", new=False):
+        RunIntakeCommand(intake, dump=False).execute()
+    intake.intake_motor.set_voltage.assert_called_once_with(INTAKE_VOLTAGE)
+
+
+def test_run_intake_uses_nt_voltage_in_test_mode(intake: IntakeSubsystem) -> None:
+    intake.intake_voltage = 3.0
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        RunIntakeCommand(intake, dump=False).execute()
+    intake.intake_motor.set_voltage.assert_called_once_with(3.0)
+
+
+def test_run_dump_applies_dump_voltage_in_normal_mode(intake: IntakeSubsystem) -> None:
+    with patch("robot.TEST_MODE_ENABLED", new=False):
+        RunIntakeCommand(intake, dump=True).execute()
+    intake.intake_motor.set_voltage.assert_called_once_with(DUMP_VOLTAGE)
+
+
+def test_run_dump_uses_nt_voltage_in_test_mode(intake: IntakeSubsystem) -> None:
+    intake.dump_voltage = -3.5
+    with patch("robot.TEST_MODE_ENABLED", new=True):
+        RunIntakeCommand(intake, dump=True).execute()
+    intake.intake_motor.set_voltage.assert_called_once_with(-3.5)
+
+
+def test_run_intake_never_finishes(intake: IntakeSubsystem) -> None:
+    assert RunIntakeCommand(intake, dump=False).isFinished() is False
+
+
+def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
+    RunIntakeCommand(intake, dump=False).end(interrupted=False)
+    intake.intake_motor.set_voltage.assert_called_once_with(0)
+
+
+# --- KickerShootWhenReadyCommand ---
+
+
+def test_kicker_always_spins_shooter(shooter: ShooterSubsystem) -> None:
+    shooter.shoot_encoder.get_velocity.return_value = 1000.0
+    KickerShootWhenReadyCommand(shooter).execute()
+    shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
+
+
+def test_kicker_fires_when_above_target_velocity(shooter: ShooterSubsystem) -> None:
+    shooter.shoot_velocity = 4500
+    shooter.kick_shoot_voltage = 4.0
+    shooter.shoot_encoder.get_velocity.return_value = 4600.0
+    KickerShootWhenReadyCommand(shooter).execute()
+    shooter.kick_motor.set_voltage.assert_called_once_with(4.0)
+
+
+def test_kicker_does_not_fire_when_below_target_velocity(
+    shooter: ShooterSubsystem,
+) -> None:
+    shooter.shoot_velocity = 4500
+    shooter.shoot_encoder.get_velocity.return_value = 4000.0
+    KickerShootWhenReadyCommand(shooter).execute()
+    shooter.kick_motor.set_voltage.assert_not_called()
+
+
+def test_kicker_does_not_fire_at_exact_target_velocity(
+    shooter: ShooterSubsystem,
+) -> None:
+    """Velocity gate is strict greater-than, so exact match does not fire."""
+    shooter.shoot_velocity = 4500
+    shooter.shoot_encoder.get_velocity.return_value = 4500.0
+    KickerShootWhenReadyCommand(shooter).execute()
+    shooter.kick_motor.set_voltage.assert_not_called()
+
+
+def test_kicker_never_finishes(shooter: ShooterSubsystem) -> None:
+    assert KickerShootWhenReadyCommand(shooter).isFinished() is False
+
+
+def test_kicker_end_stops_both_motors(shooter: ShooterSubsystem) -> None:
+    KickerShootWhenReadyCommand(shooter).end(interrupted=False)
+    shooter.kick_motor.set_voltage.assert_called_once_with(0)
+    shooter.shoot_motor.set_voltage.assert_called_once_with(0)
