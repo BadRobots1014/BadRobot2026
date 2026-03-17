@@ -6,12 +6,13 @@
 
 import commands2
 from commands2.button import Trigger
-from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.auto import AutoBuilder, PathConstraints
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 import wpimath.filter
+from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.bang_bang_shoot import BangBangShootCommand
@@ -69,12 +70,15 @@ TRACKPAD = 14
 # drive speeds/limits
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
+MAX_ACCELERATION = 3  # m/s^2
 NUDGE_SPEED = 0.5
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity
-DRIVE_DEADBAND = MAX_SPEED * 0.001  # Add a 10% deadband for controllers
-ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.001  # Add a 10% deadband for controllers
+
+MAX_ANGULAR_ACCELERATION = 10  # m/s^2
+DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
+ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
 
 # joysticks
 DRIVER_PORT = 0
@@ -101,6 +105,11 @@ LEFT_PINION_ID = 46
 FORWARD_LIMIT_ID = 18
 BACKWARD_LIMIT_ID = 19
 
+# Constraints for pathfinding
+PATHFINDING_CONSTRAINTS = PathConstraints(
+    MAX_SPEED, MAX_ACCELERATION, MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION
+)
+
 
 class KrakenRobotContainer:
     """
@@ -112,7 +121,7 @@ class KrakenRobotContainer:
 
     def __init__(self) -> None:
         # Used for patching components in sim
-        is_real_bot = wpilib.RobotBase.isReal()
+        self.is_real_bot = wpilib.RobotBase.isReal()
 
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
@@ -153,7 +162,7 @@ class KrakenRobotContainer:
 
         self.music = music.MusicSubsystem(self.drivetrain)
 
-        self.led_controller = PWMLED(0, 60) if is_real_bot else DummyLED(0, 60)
+        self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
         self.lights = lights.LightSubsystem(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
@@ -162,19 +171,19 @@ class KrakenRobotContainer:
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
 
-        if not is_real_bot:
+        if not self.is_real_bot:
             patch_limelight("limelight-four")
             patch_limelight("limelight")
 
         # limit switches
         self.forward_limit_switch = (
             AndymarkMagnetic(FORWARD_LIMIT_ID)
-            if is_real_bot
+            if self.is_real_bot
             else DummyLimitSwitch(default_state=False)
         )
         self.backward_limit_switch = (
             AndymarkMagnetic(BACKWARD_LIMIT_ID)
-            if is_real_bot
+            if self.is_real_bot
             else DummyLimitSwitch(default_state=True)
         )
 
@@ -283,6 +292,16 @@ class KrakenRobotContainer:
         # PRIMARY CONTROLLER ---------------------------------------------------------------------------
 
         # Slow mode (hold)
+        # Test pathfinding
+        self._primary_controller.button(1).onTrue(
+            AutoBuilder.pathfindToPose(
+                Pose2d(1, 1, Rotation2d.fromDegrees(180)),
+                PATHFINDING_CONSTRAINTS,
+                goal_end_vel=0,
+            )
+        )
+
+        # toggle slow mode
         self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
@@ -485,6 +504,10 @@ class KrakenRobotContainer:
         self.camera_ll4.set_imu_mode(4)
 
     def robotPeriodic(self) -> None:
+        # All code below is limelight, so skip adding it if in sim
+        if not self.is_real_bot:
+            return None
+
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
