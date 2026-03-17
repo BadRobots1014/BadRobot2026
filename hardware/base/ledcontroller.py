@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
 
 from wpilib import LEDPattern
-from wpiutil import Sendable
-
-from hardware.base import SendableABCMeta
 
 
-class LEDController(Sendable, ABC, metaclass=SendableABCMeta):
+class LEDController(ABC):
     @abstractmethod
     def get_solid(self, r: int, g: int, b: int) -> LEDPattern: ...
 
