@@ -3,9 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import typing
 
-from wpiutil import Sendable
-
-from hardware.base import SendableABCMeta
 from hardware.base.encoder import Encoder
 from hardware.impl.motor_controller_config import MotorControllerConfig
 
@@ -14,7 +11,7 @@ if typing.TYPE_CHECKING:
     from rev import SparkBase
 
 
-class MotorController(Sendable, ABC, metaclass=SendableABCMeta):
+class MotorController(ABC):
     @abstractmethod
     def set_voltage(self, voltage: float) -> None: ...
 
