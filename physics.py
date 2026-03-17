@@ -18,13 +18,20 @@ import typing
 
 from pyfrc.physics.core import PhysicsInterface
 
+from kraken_container import KrakenRobotContainer
+
 if typing.TYPE_CHECKING:
     from robot import MyRobot
 
 
 class PhysicsEngine:
-    def __init__(self, physics_controller: PhysicsInterface, robot: MyRobot):
-        self.physics_controller = physics_controller
+    def __init__(self, _physics_controller: PhysicsInterface, robot: MyRobot):
+        # Must be using KrakenBot
+        assert isinstance(robot.container, KrakenRobotContainer), (
+            "Sim must run on KrakenBot"
+        )
+
+        # Patch Hardware to only use drivetrain (TEMP)
 
     def update_sim(self, now: float, tm_diff: float) -> None:
         pass
