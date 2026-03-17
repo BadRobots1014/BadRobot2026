@@ -164,7 +164,7 @@ def test_extend_hopper_execute_extends_with_positive_voltage(
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
         ExtendHopperCommand(intake, extend=True).execute()
-    intake.left.set_voltage.assert_called_once_with(1)
+    intake.left.set_voltage.assert_called_once_with(4)
 
 
 def test_extend_hopper_execute_retracts_with_negative_voltage(
