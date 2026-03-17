@@ -31,6 +31,7 @@ from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
+from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
@@ -110,6 +111,9 @@ class KrakenRobotContainer:
     """
 
     def __init__(self) -> None:
+        # Used for patching components in sim
+        is_real_bot = wpilib.RobotBase.isReal()
+
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
@@ -149,7 +153,7 @@ class KrakenRobotContainer:
 
         self.music = music.MusicSubsystem(self.drivetrain)
 
-        self.led_controller = PWMLED(0, 60)
+        self.led_controller = PWMLED(0, 60) if is_real_bot else DummyLED(0, 60)
         self.lights = lights.LightSubsystem(self.led_controller)
 
         # TODO: conditional to disable limelight in sim!!
@@ -158,9 +162,21 @@ class KrakenRobotContainer:
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
 
+        if not is_real_bot:
+            patch_limelight("limelight-four")
+            patch_limelight("limelight")
+
         # limit switches
-        self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
-        self.backward_limit_switch = AndymarkMagnetic(BACKWARD_LIMIT_ID)
+        self.forward_limit_switch = (
+            AndymarkMagnetic(FORWARD_LIMIT_ID)
+            if is_real_bot
+            else DummyLimitSwitch(default_state=False)
+        )
+        self.backward_limit_switch = (
+            AndymarkMagnetic(BACKWARD_LIMIT_ID)
+            if is_real_bot
+            else DummyLimitSwitch(default_state=True)
+        )
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
