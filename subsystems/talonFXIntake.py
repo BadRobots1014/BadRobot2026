@@ -22,7 +22,7 @@ DUMP_VOLTAGE = -5
 
 EXTENSION_VOLTAGE = 3
 
-ENCODER_ROTATIONS = 0
+MAX_ENCODER_ROTATIONS = 40
 
 
 class TalonIntakeSubsystem(Subsystem):
@@ -138,6 +138,7 @@ class TalonIntakeSubsystem(Subsystem):
     def periodic(self) -> None:
         self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
         self.nt_table.putBoolean("Backward limit: ", self.backward_extended())
+        self.nt_table.putNumber("Extension encoder", self.get_extension_position())
 
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
@@ -182,3 +183,6 @@ class TalonIntakeSubsystem(Subsystem):
 
     def get_extension_position(self) -> float:
         return self.left.get_position().value
+
+    def get_max_extension_value(self) -> float:
+        return MAX_ENCODER_ROTATIONS

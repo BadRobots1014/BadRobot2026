@@ -1,25 +1,31 @@
 import commands2
-import wpimath.units
+from wpimath import controller, units
 
 import robot
-from subsystems.intake import IntakeSubsystem
 from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 MOTOR_VOLTAGE = 4
+Kp, Ki, Kd = 0.125, 0, 0
 
 EXTEND_LENGTH_INCHES = 12
 
 
 class ExtendHopperCommand(commands2.Command):
-    def __init__(self, intake: IntakeSubsystem | TalonIntakeSubsystem, extend: bool):
+    def __init__(self, intake: TalonIntakeSubsystem, extend: bool):
         self.intake = intake
         self.extend = extend
+        self.pid = controller.PIDController(Kp, Ki, Kd)
 
     def execute(self) -> None:
         if not robot.TEST_MODE_ENABLED:
-            self.intake.set_extension_voltage(
-                MOTOR_VOLTAGE * (-1 if not self.extend else 1)
+            # self.intake.set_extension_voltage(
+            #     MOTOR_VOLTAGE * (-1 if not self.extend else 1)
+            # )
+            output = self.pid.calculate(
+                self.intake.get_extension_position(),
+                0 if not self.extend else self.intake.get_max_extension_value(),
             )
+            self.intake.set_extension_voltage(output)
         elif self.extend:
             self.intake.set_extension_voltage_from_networktable()
         else:
@@ -35,9 +41,9 @@ class ExtendHopperCommand(commands2.Command):
     def end(self, interrupted: bool) -> None:
         pose = self.intake.pos_subscriber.get()
         pose[0] += (
-            wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
+            units.inchesToMeters(EXTEND_LENGTH_INCHES)
             if self.extend
-            else -wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
+            else -units.inchesToMeters(EXTEND_LENGTH_INCHES)
         )
         # recast so compiler knows it's a list
         self.intake.pose_publisher.set([float(x) for x in pose])
