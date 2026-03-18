@@ -2,10 +2,22 @@ import math
 
 import commands2
 from phoenix6 import swerve
+import wpilib
+from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container  # import file instead of class for constants
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+
+# TODO: needs tuning
+
+TURNING_PID_P = 1
+TURNING_PID_I = 0
+TURNING_PID_D = 0
+
+CORRECTION_PID_P = 2
+CORRECTION_PID_I = 0
+CORRECTION_PID_D = 0
 
 
 class Strafe(commands2.Command):
@@ -15,6 +27,7 @@ class Strafe(commands2.Command):
         swerve_subsystem: CommandSwerveDrivetrain,
         target_point: Translation2d,
         clockwise: bool,
+        max_angular_rate: float,
     ):
         super().__init__()
         self.addRequirements(swerve_subsystem)
@@ -30,35 +43,65 @@ class Strafe(commands2.Command):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
         )
+        self.max_angular_rate = max_angular_rate
+
+        self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
+        self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
+
+        self.correction_pid = PIDController(
+            CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
+        )
+
+        wpilib.SmartDashboard.putData("Strafe rotate pid", self.rotate_pid)
+        wpilib.SmartDashboard.putData("Strafe radical pid", self.correction_pid)
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
         # gets current bot pos
         bot_pos = self.swerve_subsystem.get_state().pose
 
-        theta = math.atan2(
-            (self.target_point.y - bot_pos.y),
-            (self.target_point.x - bot_pos.x),
+        x_dist = self.target_point.x - bot_pos.x
+        y_dist = self.target_point.y - bot_pos.y
+
+        theta = math.atan2(y_dist, x_dist)
+
+        strafe_speed = kraken_container.MAX_SPEED / 3
+
+        r_dist = math.hypot(x_dist, y_dist)
+        r_output = self.correction_pid.calculate(r_dist, 3)
+
+        ux = x_dist / r_dist
+        uy = y_dist / r_dist
+
+        vx_radical = r_output * ux
+        vy_radical = r_output * uy
+
+        if self.clockwise:
+            vx_tangent = strafe_speed * math.sin(theta)
+            vy_tangent = -strafe_speed * math.cos(theta)
+        else:
+            vx_tangent = -strafe_speed * math.sin(theta)
+            vy_tangent = strafe_speed * math.cos(theta)
+
+        vx = vx_tangent + vx_radical
+        vy = vy_tangent + vy_radical
+
+        rotational_rate = (
+            self.rotate_pid.calculate(
+                self.swerve_subsystem.get_state().pose.rotation().radians(), theta
+            )
+            * self.max_angular_rate
         )
-
-        strafe_speed = kraken_container.MAX_SPEED / 5
-
-        print("XVEL: ", (strafe_speed * math.cos(theta)))
-        print("YVEL: ", (strafe_speed * math.sin(theta)))
-        print("Clockwise: ", self.clockwise)
-
-        # x: strafe_speed * math.cos(theta)
-        # y: strafe_speed * math.sin(theta)
 
         if self.clockwise:
             self.swerve_subsystem.set_control(
-                self._drive.with_velocity_x(strafe_speed * math.sin(theta))
-                .with_velocity_y(-(strafe_speed * math.cos(theta)))
-                .with_rotational_rate(0)
+                self._drive.with_velocity_x(vx)
+                .with_velocity_y(vy)
+                .with_rotational_rate(rotational_rate)
             )
         else:
             self.swerve_subsystem.set_control(
-                self._drive.with_velocity_x(-(strafe_speed * math.sin(theta)))
-                .with_velocity_y(strafe_speed * math.cos(theta))
-                .with_rotational_rate(0)
+                self._drive.with_velocity_x(vx)
+                .with_velocity_y(vy)
+                .with_rotational_rate(rotational_rate)
             )

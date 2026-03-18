@@ -309,6 +309,22 @@ class KrakenRobotContainer:
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
 
+        strafe_l = Strafe(
+            self.drivetrain,
+            BLUE_HUB_TRANSLATION,
+            clockwise=True,
+            max_angular_rate=MAX_ANGULAR_SPEED,
+        )
+        strafe_r = Strafe(
+            self.drivetrain,
+            BLUE_HUB_TRANSLATION,
+            clockwise=False,
+            max_angular_rate=MAX_ANGULAR_SPEED,
+        )
+
+        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
+        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+
         # Idle while the robot is disabled. This ensures the configured
         # neutral mode is applied to the drive motors while disabled.
         idle = swerve.requests.Idle()
@@ -358,11 +374,6 @@ class KrakenRobotContainer:
             R2_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
 
-        # Party Mode
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self.lights, self.music)
-        )
-
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
             self.drivetrain.apply_request(
@@ -398,14 +409,6 @@ class KrakenRobotContainer:
                 )
             )
         )
-
-        # Strafe left L1
-        strafe_l = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=True)
-        self._primary_controller.button(CROSS_BUTTON).whileTrue(strafe_l)
-
-        # Strafe right R1
-        strafe_r = Strafe(self.drivetrain, BLUE_HUB_TRANSLATION, clockwise=False)
-        self._primary_controller.button(CIRCLE_BUTTON).whileTrue(strafe_r)
 
         # Extend hopper Triangle (HOLD)
         self._primary_controller.button(R1_BUTTON).whileTrue(
