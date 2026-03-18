@@ -271,6 +271,8 @@ class KrakenRobotContainer:
             )
         )
 
+        self.lights.set_default()
+
         # PRIMARY CONTROLLER ---------------------------------------------------------------------------
 
         # Slow mode (hold)
