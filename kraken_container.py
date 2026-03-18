@@ -21,7 +21,6 @@ from commands.face_target import FaceTargetCommand
 from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
-from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -30,9 +29,9 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
+from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
-from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry

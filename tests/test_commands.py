@@ -9,7 +9,6 @@ from commands.bang_bang_shoot import BangBangShootCommand
 from commands.climb import ClimbCommand
 from commands.extend_hopper import (
     EXTEND_LENGTH_INCHES,
-    MOTOR_VOLTAGE,
     ExtendHopperCommand,
 )
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
@@ -17,8 +16,8 @@ from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot import SHOOT_VELOCITY, ShootCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from subsystems.climber import ClimberSubsystem
-from subsystems.intake import IntakeSubsystem
 from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
+from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 
 @pytest.fixture
@@ -29,8 +28,8 @@ def shooter() -> ShooterSubsystem:
 
 
 @pytest.fixture
-def intake() -> IntakeSubsystem:
-    return IntakeSubsystem(
+def intake() -> TalonIntakeSubsystem:
+    return TalonIntakeSubsystem(
         MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
     )
 
@@ -91,22 +90,26 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 # --- ExtendHopperCommand ---
 
 
-def test_extend_finished_when_forward_limit_hit(intake: IntakeSubsystem) -> None:
+def test_extend_finished_when_forward_limit_hit(intake: TalonIntakeSubsystem) -> None:
     intake.forward.get_state.return_value = True
     assert ExtendHopperCommand(intake, extend=True).isFinished() is True
 
 
-def test_extend_not_finished_without_forward_limit(intake: IntakeSubsystem) -> None:
+def test_extend_not_finished_without_forward_limit(
+    intake: TalonIntakeSubsystem,
+) -> None:
     intake.forward.get_state.return_value = False
     assert ExtendHopperCommand(intake, extend=True).isFinished() is False
 
 
-def test_retract_finished_when_backward_limit_hit(intake: IntakeSubsystem) -> None:
+def test_retract_finished_when_backward_limit_hit(intake: TalonIntakeSubsystem) -> None:
     intake.backward.get_state.return_value = True
     assert ExtendHopperCommand(intake, extend=False).isFinished() is True
 
 
-def test_retract_not_finished_without_backward_limit(intake: IntakeSubsystem) -> None:
+def test_retract_not_finished_without_backward_limit(
+    intake: TalonIntakeSubsystem,
+) -> None:
     intake.backward.get_state.return_value = False
     assert ExtendHopperCommand(intake, extend=False).isFinished() is False
 
@@ -158,59 +161,64 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
 
 
 def test_extend_hopper_execute_extends_with_positive_voltage(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(intake, extend=True).execute()
-    intake.left.set_voltage.assert_called_once_with(4)
+        ExtendHopperCommand(intake, extend=True, positive_voltage=4).execute()
+    control = intake.left.set_control.call_args[0][0]
+    assert control.output == 4
 
 
 def test_extend_hopper_execute_retracts_with_negative_voltage(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(intake, extend=False).execute()
-    intake.left.set_voltage.assert_called_once_with(-MOTOR_VOLTAGE)
+        ExtendHopperCommand(intake, extend=False, positive_voltage=4).execute()
+    control = intake.left.set_control.call_args[0][0]
+    assert control.output == -4
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.forward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
         ExtendHopperCommand(intake, extend=True).execute()
     # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
-    intake.left.set_voltage.assert_called_once_with(intake.extension_voltage)
+    control = intake.left.set_control.call_args[0][0]
+    assert control.output == intake.extension_voltage
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
         ExtendHopperCommand(intake, extend=False).execute()
-    intake.left.set_voltage.assert_called_once_with(-intake.extension_voltage)
+    control = intake.left.set_control.call_args[0][0]
+    assert control.output == -intake.extension_voltage
 
 
 # --- ExtendHopperCommand end() ---
 
 
-def test_extend_hopper_end_stops_motor(intake: IntakeSubsystem) -> None:
+def test_extend_hopper_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [0.0] * 6
     intake.pose_publisher = MagicMock()
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
     ExtendHopperCommand(intake, extend=True).end(interrupted=False)
-    intake.left.set_voltage.assert_called_once_with(0)
+    control = intake.left.set_control.call_args[0][0]
+    assert control.output == 0
 
 
 def test_extend_hopper_end_advances_pose_when_extending(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
@@ -221,7 +229,7 @@ def test_extend_hopper_end_advances_pose_when_extending(
 
 
 def test_extend_hopper_end_retreats_pose_when_retracting(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -236,38 +244,40 @@ def test_extend_hopper_end_retreats_pose_when_retracting(
 
 
 def test_run_intake_applies_intake_voltage_in_normal_mode(
-    intake: IntakeSubsystem,
+    intake: TalonIntakeSubsystem,
 ) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
         RunIntakeCommand(intake, dump=False).execute()
     intake.intake_motor.set_voltage.assert_called_once_with(INTAKE_VOLTAGE)
 
 
-def test_run_intake_uses_nt_voltage_in_test_mode(intake: IntakeSubsystem) -> None:
+def test_run_intake_uses_nt_voltage_in_test_mode(intake: TalonIntakeSubsystem) -> None:
     intake.intake_voltage = 3.0
     with patch("robot.TEST_MODE_ENABLED", new=True):
         RunIntakeCommand(intake, dump=False).execute()
     intake.intake_motor.set_voltage.assert_called_once_with(3.0)
 
 
-def test_run_dump_applies_dump_voltage_in_normal_mode(intake: IntakeSubsystem) -> None:
+def test_run_dump_applies_dump_voltage_in_normal_mode(
+    intake: TalonIntakeSubsystem,
+) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
         RunIntakeCommand(intake, dump=True).execute()
     intake.intake_motor.set_voltage.assert_called_once_with(DUMP_VOLTAGE)
 
 
-def test_run_dump_uses_nt_voltage_in_test_mode(intake: IntakeSubsystem) -> None:
+def test_run_dump_uses_nt_voltage_in_test_mode(intake: TalonIntakeSubsystem) -> None:
     intake.dump_voltage = -3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
         RunIntakeCommand(intake, dump=True).execute()
     intake.intake_motor.set_voltage.assert_called_once_with(-3.5)
 
 
-def test_run_intake_never_finishes(intake: IntakeSubsystem) -> None:
+def test_run_intake_never_finishes(intake: TalonIntakeSubsystem) -> None:
     assert RunIntakeCommand(intake, dump=False).isFinished() is False
 
 
-def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
+def test_run_intake_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
     RunIntakeCommand(intake, dump=False).end(interrupted=False)
     intake.intake_motor.set_voltage.assert_called_once_with(0)
 
