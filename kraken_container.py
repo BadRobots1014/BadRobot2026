@@ -32,7 +32,6 @@ from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
-from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -185,15 +184,6 @@ class KrakenRobotContainer:
         self.intakeMotor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
-
-        self._intake = IntakeSubsystem(
-            self.intakeMotor,
-            self.left_pinion,
-            self.right_pinion,
-            self.forward_limit_switch,
-            self.backward_limit_switch,
-            "Limelight",
-        )
 
         self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
             self.intakeMotor,

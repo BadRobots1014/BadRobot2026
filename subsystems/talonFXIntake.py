@@ -56,7 +56,12 @@ class TalonIntakeSubsystem(Subsystem):
             .with_neutral_mode(idle_mode)
         )
 
+        right_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.MotorOutputConfigs().with_neutral_mode(idle_mode)
+        )
+
         self.left.configurator.apply(config)
+        self.right.configurator.apply(right_config)
 
         right.set_control(
             Follower(left.device_id, motor_alignment=MotorAlignmentValue.OPPOSED)
@@ -136,6 +141,11 @@ class TalonIntakeSubsystem(Subsystem):
         )
 
     def periodic(self) -> None:
+        if self.backward_extended():
+            self.set_rotations(0)
+        elif self.forward_extended():
+            self.set_rotations(MAX_ENCODER_ROTATIONS)
+
         self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
         self.nt_table.putBoolean("Backward limit: ", self.backward_extended())
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
@@ -178,8 +188,8 @@ class TalonIntakeSubsystem(Subsystem):
     def backward_extended(self) -> bool:
         return self.backward.get_state()
 
-    def zero_rotations(self) -> None:
-        self.left.set_position(0)
+    def set_rotations(self, rotations: float = 0) -> None:
+        self.left.set_position(rotations)
 
     def get_extension_position(self) -> float:
         return self.left.get_position().value
