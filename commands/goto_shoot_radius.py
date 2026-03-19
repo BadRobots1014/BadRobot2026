@@ -76,8 +76,13 @@ class GotoShootRadius(Command):
         )
 
     def isFinished(self) -> bool:
-        print(str(self.r_dist))
-        if math.fabs(self.r_dist) < self.radius + THRESHOLD:
+        print(str(self.r_dist) + " " + str(self.radius + THRESHOLD))
+        if math.fabs(self.r_dist - self.radius) < THRESHOLD:
             return True
         else:
             return False
+
+    def end(self, interrupted: bool) -> None:
+        self.swerve_subsystem.set_control(
+            self._drive.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        )

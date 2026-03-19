@@ -19,7 +19,7 @@ class SpinShooterCommand(commands2.Command):
             self.shooter.shoot_motor.set_velocity(self.rpm)
             self.shooter.shoot_velocity = self.rpm
         else:
-            self.shooter.set_shoot_velocity_from_networktables()
+            self.shooter.set_shoot_velocity_from_closest_pair()
 
     def end(self, interrupted: bool) -> None:
         self.shooter.shoot_motor.disable()

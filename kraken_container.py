@@ -7,6 +7,8 @@ import math
 
 import commands2
 from commands2 import (
+    ParallelCommandGroup,
+    ParallelDeadlineGroup,
     SequentialCommandGroup,
 )
 from commands2.button import Trigger
@@ -28,6 +30,7 @@ from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
+from commands.spin_shooter import SpinShooterCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -357,14 +360,26 @@ class KrakenRobotContainer:
 
         self._primary_controller.button(2).onTrue(
             SequentialCommandGroup(
-                GotoShootRadius(
-                    self.drivetrain,
-                    self._shooter,
-                    BLUE_HUB_TRANSLATION,
-                    self.drive_pid,
-                    self.rotate_pid,
+                ParallelDeadlineGroup(
+                    GotoShootRadius(
+                        self.drivetrain,
+                        self._shooter,
+                        BLUE_HUB_TRANSLATION,
+                        self.drive_pid,
+                        self.rotate_pid,
+                    ),
+                    SpinShooterCommand(self._shooter, rpm=None),
                 ),
-                strafe_l,
+                ParallelCommandGroup(
+                    GotoShootRadius(
+                        self.drivetrain,
+                        self._shooter,
+                        BLUE_HUB_TRANSLATION,
+                        self.drive_pid,
+                        self.rotate_pid,
+                    ),
+                    KickerShootWhenReadyCommand(self._shooter, rpm=None),
+                ),
             )
         )
 
