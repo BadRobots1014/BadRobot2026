@@ -4,11 +4,11 @@ from commands2 import (
     SequentialCommandGroup,
 )
 from wpimath._controls._controls.controller import PIDController
+from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.spin_shooter import SpinShooterCommand
-from kraken_container import BLUE_HUB_TRANSLATION
 from subsystems import pilights
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
@@ -22,13 +22,14 @@ class GotoAndShoot(SequentialCommandGroup):
         lights: pilights.PiLights,
         drive_pid: PIDController,
         rotate_pid: PIDController,
+        hub: Translation2d,
     ):
         super().__init__(
             ParallelDeadlineGroup(
                 GotoShootRadius(
                     drivetrain,
                     _shooter,
-                    BLUE_HUB_TRANSLATION,
+                    hub,
                     drive_pid,
                     rotate_pid,
                 ),
@@ -38,7 +39,7 @@ class GotoAndShoot(SequentialCommandGroup):
                 GotoShootRadius(
                     drivetrain,
                     _shooter,
-                    BLUE_HUB_TRANSLATION,
+                    hub,
                     drive_pid,
                     rotate_pid,
                 ),

@@ -86,7 +86,8 @@ AUXILIARY_PORT = 1
 JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
-BLUE_HUB_TRANSLATION = Translation2d(4.719, 3.946)
+BLUE_HUB_TRANSLATION = Translation2d(4.62, 4.04)
+RED_HUB_TRANSLATION = Translation2d(-4.62, -4.04)
 
 # shooter can id
 MAIN_SHOOT_MOTOR_ID = 59
@@ -132,6 +133,7 @@ class KrakenRobotContainer:
     def __init__(self) -> None:
         # Used for patching components in sim
         self.is_real_bot = wpilib.RobotBase.isReal()
+        self.is_blue = DriverStation.getAlliance() == DriverStation.Alliance.kBlue
 
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
@@ -353,7 +355,7 @@ class KrakenRobotContainer:
             self.drivetrain,
             self._shooter,
             self._lights,
-            BLUE_HUB_TRANSLATION,
+            BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             clockwise=True,
             max_angular_rate=MAX_ANGULAR_SPEED,
             rotate_pid=self.rotate_pid,
@@ -363,7 +365,7 @@ class KrakenRobotContainer:
             self.drivetrain,
             self._shooter,
             self._lights,
-            BLUE_HUB_TRANSLATION,
+            BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             clockwise=False,
             max_angular_rate=MAX_ANGULAR_SPEED,
             rotate_pid=self.rotate_pid,
@@ -386,7 +388,7 @@ class KrakenRobotContainer:
         self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
             FaceTargetCommand(
                 self.drivetrain,
-                BLUE_HUB_TRANSLATION,
+                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
                 self._drive,
                 self._primary_controller,
                 MAX_SPEED,
@@ -453,7 +455,7 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter, velocity=None),
+            BangBangShootCommand(self._shooter, velocity=2700),
         )
 
         # Run kicker wheel when ready R2
@@ -467,6 +469,7 @@ class KrakenRobotContainer:
                 self._lights,
                 self.drive_pid,
                 self.rotate_pid,
+                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             )
         )
 
