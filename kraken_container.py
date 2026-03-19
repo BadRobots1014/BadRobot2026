@@ -201,11 +201,6 @@ class KrakenRobotContainer:
             else DummyLimitSwitch(default_state=True)
         )
 
-        # Path follower
-        self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
-        SmartDashboard.putData("Auto Mode", self._auto_chooser)
-        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
-
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
         self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
@@ -270,6 +265,7 @@ class KrakenRobotContainer:
                 self._lights,
                 self.drive_pid,
                 self.rotate_pid,
+                BLUE_HUB_TRANSLATION,
             ),
         )
 
@@ -295,6 +291,11 @@ class KrakenRobotContainer:
                 PathPlannerPath.fromPathFile("Pickup Right"), PATHFINDING_CONSTRAINTS
             ),
         )
+
+        # Path follower
+        self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
+        SmartDashboard.putData("Auto Mode", self._auto_chooser)
+        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
     # Joysticks need to be inverted or drive won't work properly
 
