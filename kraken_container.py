@@ -587,11 +587,9 @@ class KrakenRobotContainer:
         # cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
         # reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
 
-        if (
-            self.drivetrain.pigeon2.get_angular_velocity_z_device().value
-            > LIMELIGHT_MAX_ANGULAR_VELOCITY
-        ):
-            reject_pose_ll4 = True
+        reject_pose_ll4 |= (
+            # OR with tv rejection
+            self.drivetrain.pigeon2.get_angular_velocity_z_device().value > LIMELIGHT_MAX_ANGULAR_VELOCITY)
         # reject_pose_ll2 = False
 
         if not reject_pose_ll4:
