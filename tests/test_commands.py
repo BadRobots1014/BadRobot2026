@@ -16,6 +16,7 @@ from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot import SHOOT_VELOCITY, ShootCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from subsystems.climber import ClimberSubsystem
+from subsystems.pilights import PiLights
 from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
 from subsystems.talonFXIntake import TalonIntakeSubsystem
 
@@ -37,6 +38,11 @@ def intake() -> TalonIntakeSubsystem:
 @pytest.fixture
 def climber() -> ClimberSubsystem:
     return ClimberSubsystem(MagicMock())
+
+
+@pytest.fixture
+def lights() -> PiLights:
+    return MagicMock()
 
 
 # --- BangBangShootCommand ---
@@ -90,28 +96,32 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 # --- ExtendHopperCommand ---
 
 
-def test_extend_finished_when_forward_limit_hit(intake: TalonIntakeSubsystem) -> None:
+def test_extend_finished_when_forward_limit_hit(
+    intake: TalonIntakeSubsystem, lights: PiLights
+) -> None:
     intake.forward.get_state.return_value = True
-    assert ExtendHopperCommand(intake, extend=True).isFinished() is True
+    assert ExtendHopperCommand(intake, lights, extend=True).isFinished() is True
 
 
 def test_extend_not_finished_without_forward_limit(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.forward.get_state.return_value = False
-    assert ExtendHopperCommand(intake, extend=True).isFinished() is False
+    assert ExtendHopperCommand(intake, lights, extend=True).isFinished() is False
 
 
-def test_retract_finished_when_backward_limit_hit(intake: TalonIntakeSubsystem) -> None:
+def test_retract_finished_when_backward_limit_hit(
+    intake: TalonIntakeSubsystem, lights: PiLights
+) -> None:
     intake.backward.get_state.return_value = True
-    assert ExtendHopperCommand(intake, extend=False).isFinished() is True
+    assert ExtendHopperCommand(intake, lights, extend=False).isFinished() is True
 
 
 def test_retract_not_finished_without_backward_limit(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.backward.get_state.return_value = False
-    assert ExtendHopperCommand(intake, extend=False).isFinished() is False
+    assert ExtendHopperCommand(intake, lights, extend=False).isFinished() is False
 
 
 # --- ClimbCommand ---
@@ -161,44 +171,44 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
 
 
 def test_extend_hopper_execute_extends_with_positive_voltage(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(intake, extend=True, positive_voltage=4).execute()
+        ExtendHopperCommand(intake, lights, extend=True, positive_voltage=4).execute()
     control = intake.left.set_control.call_args[0][0]
     assert control.output == 4
 
 
 def test_extend_hopper_execute_retracts_with_negative_voltage(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(intake, extend=False, positive_voltage=4).execute()
+        ExtendHopperCommand(intake, lights, extend=False, positive_voltage=4).execute()
     control = intake.left.set_control.call_args[0][0]
     assert control.output == -4
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.forward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(intake, extend=True).execute()
+        ExtendHopperCommand(intake, lights, extend=True).execute()
     # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
     control = intake.left.set_control.call_args[0][0]
     assert control.output == intake.extension_voltage
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.backward.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(intake, extend=False).execute()
+        ExtendHopperCommand(intake, lights, extend=False).execute()
     control = intake.left.set_control.call_args[0][0]
     assert control.output == -intake.extension_voltage
 
@@ -206,35 +216,37 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
 # --- ExtendHopperCommand end() ---
 
 
-def test_extend_hopper_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
+def test_extend_hopper_end_stops_motor(
+    intake: TalonIntakeSubsystem, lights: PiLights
+) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [0.0] * 6
     intake.pose_publisher = MagicMock()
     intake.forward.get_state.return_value = False
     intake.backward.get_state.return_value = False
-    ExtendHopperCommand(intake, extend=True).end(interrupted=False)
+    ExtendHopperCommand(intake, lights, extend=True).end(interrupted=False)
     control = intake.left.set_control.call_args[0][0]
     assert control.output == 0
 
 
 def test_extend_hopper_end_advances_pose_when_extending(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
     intake.pose_publisher = MagicMock()
-    ExtendHopperCommand(intake, extend=True).end(interrupted=False)
+    ExtendHopperCommand(intake, lights, extend=True).end(interrupted=False)
     published = intake.pose_publisher.set.call_args[0][0]
     assert abs(published[0] - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)) < 1e-9
 
 
 def test_extend_hopper_end_retreats_pose_when_retracting(
-    intake: TalonIntakeSubsystem,
+    intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
     intake.pos_subscriber = MagicMock()
     intake.pos_subscriber.get.return_value = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     intake.pose_publisher = MagicMock()
-    ExtendHopperCommand(intake, extend=False).end(interrupted=False)
+    ExtendHopperCommand(intake, lights, extend=False).end(interrupted=False)
     published = intake.pose_publisher.set.call_args[0][0]
     expected = 1.0 - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
     assert abs(published[0] - expected) < 1e-9
@@ -285,44 +297,50 @@ def test_run_intake_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
 # --- KickerShootWhenReadyCommand ---
 
 
-def test_kicker_always_spins_shooter(shooter: ShooterSubsystem) -> None:
+def test_kicker_always_spins_shooter(
+    shooter: ShooterSubsystem, lights: PiLights
+) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 1000.0
-    KickerShootWhenReadyCommand(shooter).execute()
+    KickerShootWhenReadyCommand(shooter, lights).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 
-def test_kicker_fires_when_above_target_velocity(shooter: ShooterSubsystem) -> None:
+def test_kicker_fires_when_above_target_velocity(
+    shooter: ShooterSubsystem, lights: PiLights
+) -> None:
     shooter.shoot_velocity = 4500
     shooter.kick_shoot_voltage = 4.0
     shooter.shoot_encoder.get_velocity.return_value = 4600.0
-    KickerShootWhenReadyCommand(shooter).execute()
+    KickerShootWhenReadyCommand(shooter, lights).execute()
     shooter.kick_motor.set_voltage.assert_called_once_with(4.0)
 
 
 def test_kicker_does_not_fire_when_below_target_velocity(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4000.0
-    KickerShootWhenReadyCommand(shooter).execute()
+    KickerShootWhenReadyCommand(shooter, lights).execute()
     shooter.kick_motor.set_voltage.assert_not_called()
 
 
 def test_kicker_does_not_fire_at_exact_target_velocity(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
     """Velocity gate is strict greater-than, so exact match does not fire."""
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4500.0
-    KickerShootWhenReadyCommand(shooter).execute()
+    KickerShootWhenReadyCommand(shooter, lights).execute()
     shooter.kick_motor.set_voltage.assert_not_called()
 
 
-def test_kicker_never_finishes(shooter: ShooterSubsystem) -> None:
-    assert KickerShootWhenReadyCommand(shooter).isFinished() is False
+def test_kicker_never_finishes(shooter: ShooterSubsystem, lights: PiLights) -> None:
+    assert KickerShootWhenReadyCommand(shooter, lights).isFinished() is False
 
 
-def test_kicker_end_stops_both_motors(shooter: ShooterSubsystem) -> None:
-    KickerShootWhenReadyCommand(shooter).end(interrupted=False)
+def test_kicker_end_stops_both_motors(
+    shooter: ShooterSubsystem, lights: PiLights
+) -> None:
+    KickerShootWhenReadyCommand(shooter, lights).end(interrupted=False)
     shooter.kick_motor.set_voltage.assert_called_once_with(0)
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)

@@ -17,8 +17,8 @@ JAM_TIME = 1  # time to be considered jammed in seconds
 JAM_RPM = 50  # rpm threshold to be considered jammed
 
 SHOOTER_VELOCITY = 4500
-KICKER_SHOOT_VOLTAGE = 4
-KICKER_DUMP_VOLTAGE = 4
+KICKER_SHOOT_VOLTAGE = 4.0
+KICKER_DUMP_VOLTAGE = 4.0
 
 SHOOTER_P = 0.001
 SHOOTER_I = 0

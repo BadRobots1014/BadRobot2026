@@ -26,10 +26,10 @@ class Strafe(commands2.Command):
     def __init__(
         self,
         swerve_subsystem: CommandSwerveDrivetrain,
+        lights: pilights.PiLights,
         target_point: Translation2d,
         clockwise: bool,
         max_angular_rate: float,
-        lights: pilights.PiLights,
     ):
         super().__init__()
         self.addRequirements(swerve_subsystem)

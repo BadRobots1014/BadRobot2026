@@ -26,3 +26,4 @@ class LEDState(Enum):
     SLOW_MODE = 0.00014
     SHOOTER_REV = 0.00016
     SHOOTER_READY = 0.00018
+    PARTY_MODE = -1  # TODO Add rainbow pattern

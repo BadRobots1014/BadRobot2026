@@ -162,7 +162,7 @@ class KrakenRobotContainer:
         self.music = music.MusicSubsystem(self.drivetrain)
 
         self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
-        self.lights = pilights.PiLights()
+        self._lights = pilights.PiLights()
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -260,7 +260,7 @@ class KrakenRobotContainer:
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
         if self.slow_mode:
-            self.lights.set_state(pilights.LEDState.SLOW_MODE)
+            self._lights.set_state(pilights.LEDState.SLOW_MODE)
 
     def configureButtonBindings(self) -> None:
         """
@@ -310,12 +310,14 @@ class KrakenRobotContainer:
 
         strafe_l = Strafe(
             self.drivetrain,
+            self._lights,
             BLUE_HUB_TRANSLATION,
             clockwise=True,
             max_angular_rate=MAX_ANGULAR_SPEED,
         )
         strafe_r = Strafe(
             self.drivetrain,
+            self._lights,
             BLUE_HUB_TRANSLATION,
             clockwise=False,
             max_angular_rate=MAX_ANGULAR_SPEED,
@@ -361,7 +363,7 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             R1_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights))
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(
@@ -411,12 +413,12 @@ class KrakenRobotContainer:
 
         # Extend hopper Triangle (HOLD)
         self._primary_controller.button(R1_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, extend=True)
+            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
         )
 
         # Retract hopper Square (HOLD)
         self._primary_controller.button(L1_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, extend=False)
+            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
         )
 
         # Reset the field-centric heading on Options button press
@@ -437,7 +439,7 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             R2_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights))
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(
@@ -452,30 +454,30 @@ class KrakenRobotContainer:
 
         # Jiggle L1
         self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
-            JiggleCommand(self._talonIntake)
+            JiggleCommand(self._talonIntake, self._lights)
         )
 
         # Extend hopper Triangle (HOLD)
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, extend=True)
+            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
         )
 
         # Retract hopper Square (HOLD)
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, extend=False)
+            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
         )
 
         # Intake wheel in (TOGGLE)
-        intake_wheel_in = ExtendAndIntakeRoutine(self._talonIntake)
+        intake_wheel_in = ExtendAndIntakeRoutine(self._talonIntake, self._lights)
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
 
         # Intake wheel dump (TOGGLE)
-        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter)
+        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter, self._lights)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode
         self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self.lights, self.music)
+            PartyModeCommand(self._lights, self.music)
         )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)

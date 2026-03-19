@@ -4,6 +4,7 @@ from wpimath.geometry import Translation2d
 from commands.goto_commands import goto_shoot_pos
 from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
+from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -16,6 +17,7 @@ class ShootRunRoutine(ParallelCommandGroup):
     def __init__(
         self,
         shooter: ShooterSubsystem,
+        lights: PiLights,
         target_point: Translation2d,
         swerve_subsystem: CommandSwerveDrivetrain,
         max_speed: float,
@@ -31,11 +33,12 @@ class ShootRunRoutine(ParallelCommandGroup):
             max_angular_speed_rads,
             max_acceleration,
             max_angular_acceleration_rads,
+            lights,
         )
         self.addCommands(
             ShootCommand(shooter),
             SequentialCommandGroup(
                 self.GotoShoot,
-                ShootKickerCommand(shooter),
+                ShootKickerCommand(shooter, invert=False),
             ),
         )
