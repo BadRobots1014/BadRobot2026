@@ -13,7 +13,7 @@ class KickerShootWhenReadyCommand(commands2.Command):
         self.shooter = shooter
         self.lights = lights
         self.rpm = rpm
-        self.addRequirements(self.shooter, self.lights)
+        self.addRequirements(self.shooter)
         # make sure to add requirements to parent subsystem here
 
     # runs every scheduled tick (think of it as a while true)

@@ -26,7 +26,7 @@ class Strafe(commands2.Command):
         rotate_pid: PIDController,
     ):
         super().__init__()
-        self.addRequirements(swerve_subsystem, lights)
+        self.addRequirements(swerve_subsystem)
         # make sure to add requirements to parent subsystem here
         self.swerve_subsystem = swerve_subsystem
         self.shooter_subsystem = shooter

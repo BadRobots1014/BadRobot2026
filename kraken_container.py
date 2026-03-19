@@ -23,9 +23,9 @@ import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
-from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
@@ -488,7 +488,7 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter, velocity=2700),
+            KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=3300),
         )
 
         # Run kicker wheel when ready R2

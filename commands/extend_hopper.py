@@ -34,7 +34,7 @@ class ExtendHopperCommand(commands2.Command):
         if self.voltage is not None:
             assert self.voltage >= 0
 
-        self.addRequirements(intake, lights)
+        self.addRequirements(intake)
 
         SmartDashboard.putData("Hopper PID", self.pid)
 
