@@ -1,6 +1,6 @@
 import commands2
 from wpilib import SmartDashboard
-from wpimath import controller, units
+from wpimath import controller
 
 import robot
 from subsystems import pilights
@@ -34,7 +34,7 @@ class ExtendHopperCommand(commands2.Command):
         if self.voltage is not None:
             assert self.voltage >= 0
 
-        self.addRequirements(intake)
+        self.addRequirements(intake, lights)
 
         SmartDashboard.putData("Hopper PID", self.pid)
 

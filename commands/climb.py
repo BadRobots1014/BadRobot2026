@@ -10,6 +10,7 @@ class ClimbCommand(commands2.Command):
         super().__init__()
         self.climber_subsystem = climber_subsystem
         self.extend = extend
+        self.addRequirements(climber_subsystem)
 
     def execute(self) -> None:
         if self.extend:

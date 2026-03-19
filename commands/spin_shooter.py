@@ -8,7 +8,7 @@ SHOOT_VELOCITY = 4500
 class SpinShooterCommand(commands2.Command):
     shooter: ShooterSubsystem
 
-    def __init__(self, shooter: ShooterSubsystem, rpm: float | None):
+    def __init__(self, shooter: ShooterSubsystem, rpm: int | None):
         super().__init__()
         self.shooter = shooter
         self.rpm = rpm

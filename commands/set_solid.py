@@ -11,5 +11,7 @@ class SetSolidCommand(commands2.InstantCommand):
         self.g = g
         self.b = b
 
+        self.addRequirements(light_system)
+
     def initialize(self) -> None:
         self.light_system.set_solid(self.r, self.g, self.b)
