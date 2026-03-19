@@ -9,6 +9,8 @@ from wpimath.geometry import Translation2d
 import kraken_container  # import file instead of class for constants
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
+import subsystems.pilights as pilights
+
 # TODO: needs tuning
 
 TURNING_PID_P = 1
@@ -28,6 +30,7 @@ class Strafe(commands2.Command):
         target_point: Translation2d,
         clockwise: bool,
         max_angular_rate: float,
+        lights: pilights.PiLights
     ):
         super().__init__()
         self.addRequirements(swerve_subsystem)
@@ -55,8 +58,12 @@ class Strafe(commands2.Command):
         wpilib.SmartDashboard.putData("Strafe rotate pid", self.rotate_pid)
         wpilib.SmartDashboard.putData("Strafe radical pid", self.correction_pid)
 
+        self.lights = lights
+
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
+        self.lights.set_state(pilights.LEDState.RADIUS)
+
         # gets current bot pos
         bot_pos = self.swerve_subsystem.get_state().pose
 

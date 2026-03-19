@@ -5,6 +5,7 @@ from pathplannerlib.auto import AutoBuilder, PathConstraints
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+import subsystems.pilights as pilights
 
 # TODO: arbitrary
 DESIRED_RADIUS_METER = 5
@@ -17,7 +18,10 @@ def goto_shoot_pos(
     max_angular_speed_rads: float,
     max_acceleration: float,
     max_angular_acceleration_rads: float,
+    lights: pilights.PiLights
 ) -> Command:
+    lights.set_state(pilights.LEDState.AUTO)
+
     path_constraints = PathConstraints(
         max_speed,
         max_acceleration,

@@ -35,6 +35,7 @@ from routines.extend_and_intake import ExtendAndIntakeRoutine
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
+import subsystems.pilights as pilights
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -162,7 +163,7 @@ class KrakenRobotContainer:
         self.music = music.MusicSubsystem(self.drivetrain)
 
         self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
-        self.lights = lights.LightSubsystem(self.led_controller)
+        self.lights = pilights.PiLights()
 
         # TODO: conditional to disable limelight in sim!!
         #
@@ -259,6 +260,8 @@ class KrakenRobotContainer:
 
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
+        if self.slow_mode:
+            self.lights.set_state(pilights.LEDState.SLOW_MODE)
 
     def configureButtonBindings(self) -> None:
         """
@@ -285,8 +288,6 @@ class KrakenRobotContainer:
                 )
             )
         )
-
-        self.lights.set_default()
 
         # PRIMARY CONTROLLER ---------------------------------------------------------------------------
 
