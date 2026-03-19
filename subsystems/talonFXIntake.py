@@ -33,7 +33,6 @@ class TalonIntakeSubsystem(Subsystem):
         left: TalonFX,
         forward: LimitSwitch,
         backward: LimitSwitch,
-        camera_name: str = "limelight",
     ) -> None:
         super().__init__()
         self.intake_motor = intake
@@ -78,13 +77,6 @@ class TalonIntakeSubsystem(Subsystem):
 
         # setup network tables
         self.nt_inst = NetworkTableInstance.getDefault()
-        self.nt_ll_table = self.nt_inst.getTable(camera_name)
-        self.pose_publisher = self.nt_ll_table.getDoubleArrayTopic(
-            "camerapose_robotspace"
-        ).publish()
-        self.pos_subscriber = self.nt_ll_table.getDoubleArrayTopic(
-            "camerapose_robotspace"
-        ).subscribe([0, 0, 0, 0, 0, 0])
 
         self.nt_table = self.nt_inst.getTable("intake")
 

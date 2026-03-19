@@ -95,12 +95,4 @@ class ExtendHopperCommand(commands2.Command):
         return False
 
     def end(self, interrupted: bool) -> None:
-        pose = self.intake.pos_subscriber.get()
-        pose[0] += (
-            units.inchesToMeters(EXTEND_LENGTH_INCHES)
-            if self.extend
-            else -units.inchesToMeters(EXTEND_LENGTH_INCHES)
-        )
-        # recast so compiler knows it's a list
-        self.intake.pose_publisher.set([float(x) for x in pose])
-        self.intake.set_extension_voltage(0)
+        pass

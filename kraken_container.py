@@ -227,7 +227,6 @@ class KrakenRobotContainer:
             self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
             self.backward_limit_switch,
-            "Limelight",
         )
 
         self.drivetrain = TunerConstants.create_drivetrain()
