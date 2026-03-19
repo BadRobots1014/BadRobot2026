@@ -12,7 +12,7 @@ from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
-from wpimath._controls._controls.controller import PIDController
+from wpimath.controller import PIDController
 import wpimath.filter
 from wpimath.units import rotationsToRadians
 
