@@ -468,12 +468,12 @@ class KrakenRobotContainer:
         )
 
         # Extend hopper Triangle (HOLD)
-        self._primary_controller.button(R1_BUTTON).whileTrue(
+        self._primary_controller.button(TRIANGLE_BUTTON).whileTrue(
             ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
         )
 
         # Retract hopper Square (HOLD)
-        self._primary_controller.button(L1_BUTTON).whileTrue(
+        self._primary_controller.button(SQUARE_BUTTON).whileTrue(
             ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
         )
 
@@ -521,6 +521,10 @@ class KrakenRobotContainer:
         # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
         #     JiggleCommand(self._talonIntake, self._lights)
         # )
+
+        self._auxiliary_controller.create_button(L1_BUTTON, "kick maual").whileTrue(
+            ShootKickerCommand(self._shooter, invert=False)
+        )
 
         # Extend hopper Triangle (HOLD)
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
