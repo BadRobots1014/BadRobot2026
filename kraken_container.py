@@ -297,6 +297,9 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
+        # TODO: move publishing stream url to limelight
+        SmartDashboard.putString("limelight_2_stream", "http://limelight.local:5800")
+
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self) -> float:
