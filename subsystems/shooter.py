@@ -4,6 +4,7 @@ from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
 import wpilib
+import wpimath.units
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
@@ -24,6 +25,9 @@ SHOOTER_P = 0.001
 SHOOTER_I = 0
 SHOOTER_D = 0
 SHOOTER_F = 0.00181111111  # trusting dre
+
+# radius: meters, shooter speed: rpm
+CLOSE_SHOOT_PAIR = (wpimath.units.inchesToMeters(64.5 + 23.51), 2700)
 
 
 class ShooterSubsystem(Subsystem):
@@ -52,6 +56,8 @@ class ShooterSubsystem(Subsystem):
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
         self.start_unjam = -1
+
+        self.closest_pair = CLOSE_SHOOT_PAIR
 
         # Config shoot motor
         self.shoot_config = MotorControllerConfig(
@@ -214,6 +220,19 @@ class ShooterSubsystem(Subsystem):
         self.shooter_f_changed_handle = self._inst.addListener(
             self._shooter_f_sub, ntcore.EventFlags.kValueAll, _on_shooter_f_changed
         )
+
+    def set_radius_pair(self, _r_dist: float) -> float:
+        # close_dist = math.fabs(r_dist - CLOSE_SHOOT_PAIR[0])
+        # far_dist = math.fabs(r_dist - FAR_SHOOT_PAIR[0])
+        #
+        # print(str(close_dist) + " " + str(far_dist))
+        #
+        # if close_dist < far_dist:
+        #     self.closest_pair = CLOSE_SHOOT_PAIR
+        # else:
+        #     self.closest_pair = FAR_SHOOT_PAIR
+
+        return self.closest_pair[0]
 
     def set_shoot_voltage(self, volts: float) -> None:
         self.shoot_motor.set_voltage(volts)

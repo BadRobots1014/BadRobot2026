@@ -7,18 +7,9 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container  # import file instead of class for constants
+from subsystems.shooter import ShooterSubsystem
 from subsystems import pilights
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
-
-# TODO: needs tuning
-
-TURNING_PID_P = 1
-TURNING_PID_I = 0
-TURNING_PID_D = 0
-
-CORRECTION_PID_P = 2
-CORRECTION_PID_I = 0
-CORRECTION_PID_D = 0
 
 
 class Strafe(commands2.Command):
@@ -26,15 +17,19 @@ class Strafe(commands2.Command):
     def __init__(
         self,
         swerve_subsystem: CommandSwerveDrivetrain,
+        shooter: ShooterSubsystem,
         lights: pilights.PiLights,
         target_point: Translation2d,
         clockwise: bool,
         max_angular_rate: float,
+        drive_pid: PIDController,
+        rotate_pid: PIDController,
     ):
         super().__init__()
         self.addRequirements(swerve_subsystem)
         # make sure to add requirements to parent subsystem here
         self.swerve_subsystem = swerve_subsystem
+        self.shooter_subsystem = shooter
         self.clockwise = clockwise
         self.target_point = target_point
         self._drive = (
@@ -47,15 +42,11 @@ class Strafe(commands2.Command):
         )
         self.max_angular_rate = max_angular_rate
 
-        self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
-        self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
-
-        self.correction_pid = PIDController(
-            CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
-        )
+        self.rotate_pid = rotate_pid
+        self.drive_pid = drive_pid
 
         wpilib.SmartDashboard.putData("Strafe rotate pid", self.rotate_pid)
-        wpilib.SmartDashboard.putData("Strafe radical pid", self.correction_pid)
+        wpilib.SmartDashboard.putData("Strafe radical pid", self.drive_pid)
 
         self.lights = lights
 
@@ -74,7 +65,8 @@ class Strafe(commands2.Command):
         strafe_speed = kraken_container.MAX_SPEED / 3
 
         r_dist = math.hypot(x_dist, y_dist)
-        r_output = self.correction_pid.calculate(r_dist, 3)
+        radius = self.shooter_subsystem.set_radius_pair(r_dist)
+        r_output = self.drive_pid.calculate(r_dist, radius)
 
         ux = x_dist / r_dist
         uy = y_dist / r_dist
@@ -99,15 +91,8 @@ class Strafe(commands2.Command):
             * self.max_angular_rate
         )
 
-        if self.clockwise:
-            self.swerve_subsystem.set_control(
-                self._drive.with_velocity_x(vx)
-                .with_velocity_y(vy)
-                .with_rotational_rate(rotational_rate)
-            )
-        else:
-            self.swerve_subsystem.set_control(
-                self._drive.with_velocity_x(vx)
-                .with_velocity_y(vy)
-                .with_rotational_rate(rotational_rate)
-            )
+        self.swerve_subsystem.set_control(
+            self._drive.with_velocity_x(vx)
+            .with_velocity_y(vy)
+            .with_rotational_rate(rotational_rate)
+        )

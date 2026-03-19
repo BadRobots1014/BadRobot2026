@@ -13,8 +13,8 @@ from commands.extend_hopper import (
 )
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
-from commands.shoot import SHOOT_VELOCITY, ShootCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
+from commands.spin_shooter import SHOOT_VELOCITY, SpinShooterCommand
 from subsystems.climber import ClimberSubsystem
 from subsystems.pilights import PiLights
 from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
@@ -71,7 +71,7 @@ def test_bang_bang_applies_zero_when_at_or_above_target(
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ShootCommand(shooter).execute()
+        SpinShooterCommand(shooter).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOT_VELOCITY)
 
 
@@ -151,7 +151,7 @@ def test_shoot_command_uses_nt_velocity_when_test_mode(
     shooter: ShooterSubsystem,
 ) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ShootCommand(shooter).execute()
+        SpinShooterCommand(shooter).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 

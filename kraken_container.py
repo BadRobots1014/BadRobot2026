@@ -3,14 +3,19 @@
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
+import math
 
 import commands2
+from commands2 import (
+    SequentialCommandGroup,
+)
 from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder, PathConstraints
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
+from wpimath._controls._controls.controller import PIDController
 import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
@@ -18,6 +23,7 @@ from wpimath.units import rotationsToRadians
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.goto_shoot_radius import GotoShootRadius
 from commands.jiggle import JiggleCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
@@ -70,7 +76,7 @@ TRACKPAD = 14
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
-NUDGE_SPEED = 0.5
+NUDGE_SPEED = 0.7
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity
@@ -108,6 +114,16 @@ BACKWARD_LIMIT_ID = 19
 PATHFINDING_CONSTRAINTS = PathConstraints(
     MAX_SPEED, MAX_ACCELERATION, MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION
 )
+
+# TODO: needs tuning
+
+TURNING_PID_P = 1
+TURNING_PID_I = 0
+TURNING_PID_D = 0
+
+CORRECTION_PID_P = 3
+CORRECTION_PID_I = 0
+CORRECTION_PID_D = 0
 
 
 class KrakenRobotContainer:
@@ -219,13 +235,20 @@ class KrakenRobotContainer:
             "Limelight",
         )
 
-        # Configure the button bindings
-        self.configureButtonBindings()
-
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
         self.camera_ll4.set_imu_mode(1)
+
+        self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
+        self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
+
+        self.drive_pid = PIDController(
+            CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
+        )
+
+        # Configure the button bindings
+        self.configureButtonBindings()
 
     # Joysticks need to be inverted or drive won't work properly
 
@@ -310,21 +333,40 @@ class KrakenRobotContainer:
 
         strafe_l = Strafe(
             self.drivetrain,
-            self._lights,
+            self._shooter,
+            self._lights
             BLUE_HUB_TRANSLATION,
             clockwise=True,
             max_angular_rate=MAX_ANGULAR_SPEED,
+            rotate_pid=self.rotate_pid,
+            drive_pid=self.drive_pid,
         )
         strafe_r = Strafe(
             self.drivetrain,
+            self._shooter,
             self._lights,
             BLUE_HUB_TRANSLATION,
             clockwise=False,
             max_angular_rate=MAX_ANGULAR_SPEED,
+            rotate_pid=self.rotate_pid,
+            drive_pid=self.drive_pid,
         )
 
         self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
         self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+
+        self._primary_controller.button(2).onTrue(
+            SequentialCommandGroup(
+                GotoShootRadius(
+                    self.drivetrain,
+                    self._shooter,
+                    BLUE_HUB_TRANSLATION,
+                    self.drive_pid,
+                    self.rotate_pid,
+                ),
+                strafe_l,
+            )
+        )
 
         # Idle while the robot is disabled. This ensures the configured
         # neutral mode is applied to the drive motors while disabled.
@@ -349,21 +391,15 @@ class KrakenRobotContainer:
             )
         )
 
-        # Run main wheel
-        self._shoot_command = wpilib.SendableChooser()
-        self._shoot_command.setDefaultOption("Bang Bang", "Bang Bang")
-        self._shoot_command.addOption("PID", "PID")
-        wpilib.SmartDashboard.putData("Shoot Command", self._shoot_command)
-
         self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter),
+            BangBangShootCommand(self._shooter, velocity=None),
         )
 
-        # Run kicker wheel
+        # Run shoot routine
         self._auxiliary_controller.create_button(
             R1_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=None))
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(
@@ -432,14 +468,14 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter),
+            BangBangShootCommand(self._shooter, velocity=None),
         )
 
         # Run kicker wheel when ready R2
         self._auxiliary_controller.create_button(
             R2_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=None))
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(

@@ -2,8 +2,8 @@ from commands2 import ParallelCommandGroup, SequentialCommandGroup
 from wpimath.geometry import Translation2d
 
 from commands.goto_commands import goto_shoot_pos
-from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
+from commands.spin_shooter import SpinShooterCommand
 from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
@@ -36,7 +36,7 @@ class ShootRunRoutine(ParallelCommandGroup):
             lights,
         )
         self.addCommands(
-            ShootCommand(shooter),
+            SpinShooterCommand(shooter),
             SequentialCommandGroup(
                 self.GotoShoot,
                 ShootKickerCommand(shooter, invert=False),
