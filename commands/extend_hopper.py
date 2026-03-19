@@ -95,4 +95,4 @@ class ExtendHopperCommand(commands2.Command):
         return False
 
     def end(self, interrupted: bool) -> None:
-        pass
+        self.intake.set_extension_voltage(0)

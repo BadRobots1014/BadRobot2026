@@ -26,7 +26,6 @@ from wpimath.units import rotationsToRadians
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
-from commands.jiggle import JiggleCommand
 from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
@@ -296,6 +295,9 @@ class KrakenRobotContainer:
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
+        SmartDashboard.putData(
+            "Command Scheduler", commands2.CommandScheduler.getInstance()
+        )
 
         # TODO: move publishing stream url to limelight
         self.camera = HttpCamera("Limelight-stream", "http://limelight.local:5800")
@@ -515,10 +517,10 @@ class KrakenRobotContainer:
             R1_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
 
-        # Jiggle L1
-        self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
-            JiggleCommand(self._talonIntake, self._lights)
-        )
+        # # Jiggle L1
+        # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
+        #     JiggleCommand(self._talonIntake, self._lights)
+        # )
 
         # Extend hopper Triangle (HOLD)
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
@@ -589,7 +591,9 @@ class KrakenRobotContainer:
 
         reject_pose_ll4 |= (
             # OR with tv rejection
-            self.drivetrain.pigeon2.get_angular_velocity_z_device().value > LIMELIGHT_MAX_ANGULAR_VELOCITY)
+            self.drivetrain.pigeon2.get_angular_velocity_z_device().value
+            > LIMELIGHT_MAX_ANGULAR_VELOCITY
+        )
         # reject_pose_ll2 = False
 
         if not reject_pose_ll4:
