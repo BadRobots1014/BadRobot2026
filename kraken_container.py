@@ -7,13 +7,19 @@ import math
 
 import commands2
 from commands2.button import Trigger
-from pathplannerlib.auto import AutoBuilder, NamedCommands, PathConstraints
+from pathplannerlib.auto import (
+    AutoBuilder,
+    NamedCommands,
+    PathConstraints,
+    PathPlannerPath,
+)
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 from wpimath.controller import PIDController
 import wpimath.filter
+from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.bang_bang_shoot import BangBangShootCommand
@@ -269,6 +275,26 @@ class KrakenRobotContainer:
 
         # Run auto builder
         self.drivetrain._configure_auto_builder()
+
+        # Configure commands used in auto that require AutoBuilder
+        NamedCommands.registerCommand(
+            "GotoHumanFeed",
+            AutoBuilder.pathfindToPose(
+                Pose2d(0.6, 0.65, Rotation2d.fromDegrees(0)), PATHFINDING_CONSTRAINTS
+            ),
+        )
+        NamedCommands.registerCommand(
+            "GotoLeftAndPickup",
+            AutoBuilder.pathfindThenFollowPath(
+                PathPlannerPath.fromPathFile("Pickup Left"), PATHFINDING_CONSTRAINTS
+            ),
+        )
+        NamedCommands.registerCommand(
+            "GotoRightAndPickup",
+            AutoBuilder.pathfindThenFollowPath(
+                PathPlannerPath.fromPathFile("Pickup Right"), PATHFINDING_CONSTRAINTS
+            ),
+        )
 
     # Joysticks need to be inverted or drive won't work properly
 
