@@ -1,11 +1,12 @@
 import commands2
 
+from subsystems.lights import LightSubsystem
 from subsystems.music import MusicSubsystem
-from subsystems.pilights import LEDState, PiLights
 
+import subsystems.pilights as pilights
 
 class PartyModeCommand(commands2.Command):
-    def __init__(self, light_system: PiLights, music_system: MusicSubsystem):
+    def __init__(self, light_system: pilights.PiLights, music_system: MusicSubsystem):
         super().__init__()
         self.light_system = light_system
         self.music_system = music_system
@@ -18,7 +19,7 @@ class PartyModeCommand(commands2.Command):
 
     def initialize(self) -> None:
         print("PARTY MODE USED")
-        self.light_system.set_state(LEDState.PARTY_MODE)
+        self.light_system.set_state(pilights.LEDState.PARTY_MODE)
         self.music_system.play_song()
 
     def end(self, interrupted: bool) -> None:
