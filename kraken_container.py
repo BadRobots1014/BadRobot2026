@@ -6,11 +6,6 @@
 import math
 
 import commands2
-from commands2 import (
-    ParallelCommandGroup,
-    ParallelDeadlineGroup,
-    SequentialCommandGroup,
-)
 from commands2.button import Trigger
 from pathplannerlib.auto import AutoBuilder, PathConstraints
 from pathplannerlib.path import Translation2d
@@ -19,18 +14,14 @@ import wpilib
 from wpilib import DriverStation, SmartDashboard
 from wpimath._controls._controls.controller import PIDController
 import wpimath.filter
-from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
-from commands.goto_shoot_radius import GotoShootRadius
 from commands.jiggle import JiggleCommand
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
-from commands.spin_shooter import SpinShooterCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -41,6 +32,7 @@ from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
+from routines.goto_and_shoot import GotoAndShoot
 from subsystems import music, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
@@ -318,13 +310,13 @@ class KrakenRobotContainer:
 
         # Slow mode (hold)
         # Test pathfinding
-        self._primary_controller.button(1).onTrue(
-            AutoBuilder.pathfindToPose(
-                Pose2d(1, 1, Rotation2d.fromDegrees(180)),
-                PATHFINDING_CONSTRAINTS,
-                goal_end_vel=0,
-            )
-        )
+        # self._primary_controller.button(1).onTrue(
+        #     AutoBuilder.pathfindToPose(
+        #         Pose2d(1, 1, Rotation2d.fromDegrees(180)),
+        #         PATHFINDING_CONSTRAINTS,
+        #         goal_end_vel=0,
+        #     )
+        # )
 
         # toggle slow mode
         self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
@@ -337,7 +329,7 @@ class KrakenRobotContainer:
         strafe_l = Strafe(
             self.drivetrain,
             self._shooter,
-            self._lights
+            self._lights,
             BLUE_HUB_TRANSLATION,
             clockwise=True,
             max_angular_rate=MAX_ANGULAR_SPEED,
@@ -357,31 +349,6 @@ class KrakenRobotContainer:
 
         self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
         self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
-
-        self._primary_controller.button(2).onTrue(
-            SequentialCommandGroup(
-                ParallelDeadlineGroup(
-                    GotoShootRadius(
-                        self.drivetrain,
-                        self._shooter,
-                        BLUE_HUB_TRANSLATION,
-                        self.drive_pid,
-                        self.rotate_pid,
-                    ),
-                    SpinShooterCommand(self._shooter, rpm=None),
-                ),
-                ParallelCommandGroup(
-                    GotoShootRadius(
-                        self.drivetrain,
-                        self._shooter,
-                        BLUE_HUB_TRANSLATION,
-                        self.drive_pid,
-                        self.rotate_pid,
-                    ),
-                    KickerShootWhenReadyCommand(self._shooter, rpm=None),
-                ),
-            )
-        )
 
         # Idle while the robot is disabled. This ensures the configured
         # neutral mode is applied to the drive motors while disabled.
@@ -405,26 +372,6 @@ class KrakenRobotContainer:
                 LEFT_X_AXIS,
             )
         )
-
-        self._auxiliary_controller.create_button(L1_BUTTON, "Run main wheel").whileTrue(
-            BangBangShootCommand(self._shooter, velocity=None),
-        )
-
-        # Run shoot routine
-        self._auxiliary_controller.create_button(
-            R1_BUTTON,
-            "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=None))
-
-        # uncomment if you want to use the regular kicker command
-        # self._auxiliary_controller.create_button(
-        #     R1_BUTTON,
-        #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
-
-        self._auxiliary_controller.create_button(
-            R2_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
@@ -490,7 +437,15 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             R2_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=None))
+        ).whileTrue(
+            GotoAndShoot(
+                self._shooter,
+                self.drivetrain,
+                self._lights,
+                self.drive_pid,
+                self.rotate_pid,
+            )
+        )
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(
@@ -566,31 +521,31 @@ class KrakenRobotContainer:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
-        self.camera_ll2.robot_orientation_set(robot_yaw)
+        # self.camera_ll2.robot_orientation_set(robot_yaw)
 
         # Add vision
         cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
         reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
 
-        cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
-        reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
+        # cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
+        # reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
 
         if (
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         ):
             reject_pose_ll4 = False
-            reject_pose_ll2 = False
+        # reject_pose_ll2 = False
 
         if not reject_pose_ll4:
             self.drivetrain.add_vision_measurement(
                 cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
             )
 
-        if not reject_pose_ll2:
-            self.drivetrain.add_vision_measurement(
-                cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
-            )
+        # if not reject_pose_ll2:
+        #    self.drivetrain.add_vision_measurement(
+        #        cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
+        #    )
 
     def getAutonomousCommand(self) -> commands2.Command:
         """

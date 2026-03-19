@@ -7,8 +7,8 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container  # import file instead of class for constants
-from subsystems.shooter import ShooterSubsystem
 from subsystems import pilights
+from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 

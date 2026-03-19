@@ -6,7 +6,9 @@ from subsystems.shooter import ShooterSubsystem
 
 class KickerShootWhenReadyCommand(commands2.Command):
     # pass in parent subsystem
-    def __init__(self, shooter: ShooterSubsystem, lights: pilights.PiLights, rpm: float | None) -> None:
+    def __init__(
+        self, shooter: ShooterSubsystem, lights: pilights.PiLights, rpm: float | None
+    ) -> None:
         super().__init__()
         self.shooter = shooter
         self.lights = lights

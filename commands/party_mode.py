@@ -1,9 +1,8 @@
 import commands2
 
-from subsystems.lights import LightSubsystem
+from subsystems import pilights
 from subsystems.music import MusicSubsystem
 
-import subsystems.pilights as pilights
 
 class PartyModeCommand(commands2.Command):
     def __init__(self, light_system: pilights.PiLights, music_system: MusicSubsystem):
