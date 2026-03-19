@@ -3,14 +3,10 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-import wpimath.units
 
 from commands.bang_bang_shoot import BangBangShootCommand
 from commands.climb import ClimbCommand
-from commands.extend_hopper import (
-    EXTEND_LENGTH_INCHES,
-    ExtendHopperCommand,
-)
+from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
@@ -53,7 +49,7 @@ def test_bang_bang_applies_full_voltage_when_below_target(
 ) -> None:
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 3000.0
-    BangBangShootCommand(shooter).execute()
+    BangBangShootCommand(shooter, None).execute()
     shooter.shoot_motor.set_voltage.assert_called_once_with(12)
 
 
@@ -62,7 +58,7 @@ def test_bang_bang_applies_zero_when_at_or_above_target(
 ) -> None:
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 5000.0
-    BangBangShootCommand(shooter).execute()
+    BangBangShootCommand(shooter, None).execute()
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)
 
 
@@ -70,8 +66,7 @@ def test_bang_bang_applies_zero_when_at_or_above_target(
 
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
-    with patch("robot.TEST_MODE_ENABLED", new=False):
-        SpinShooterCommand(shooter).execute()
+    SpinShooterCommand(shooter, SHOOT_VELOCITY).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOT_VELOCITY)
 
 
@@ -144,17 +139,6 @@ def test_climb_end_stops_motor(climber: ClimberSubsystem) -> None:
     climber.climb_motor.set_voltage.assert_called_once_with(0)
 
 
-# --- ShootCommand (test mode) ---
-
-
-def test_shoot_command_uses_nt_velocity_when_test_mode(
-    shooter: ShooterSubsystem,
-) -> None:
-    with patch("robot.TEST_MODE_ENABLED", new=True):
-        SpinShooterCommand(shooter).execute()
-    shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
-
-
 # --- ShootKickerCommand (test mode) ---
 
 
@@ -219,37 +203,9 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
 def test_extend_hopper_end_stops_motor(
     intake: TalonIntakeSubsystem, lights: PiLights
 ) -> None:
-    intake.pos_subscriber = MagicMock()
-    intake.pos_subscriber.get.return_value = [0.0] * 6
-    intake.pose_publisher = MagicMock()
-    intake.forward.get_state.return_value = False
-    intake.backward.get_state.return_value = False
     ExtendHopperCommand(intake, lights, extend=True).end(interrupted=False)
     control = intake.left.set_control.call_args[0][0]
     assert control.output == 0
-
-
-def test_extend_hopper_end_advances_pose_when_extending(
-    intake: TalonIntakeSubsystem, lights: PiLights
-) -> None:
-    intake.pos_subscriber = MagicMock()
-    intake.pos_subscriber.get.return_value = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
-    intake.pose_publisher = MagicMock()
-    ExtendHopperCommand(intake, lights, extend=True).end(interrupted=False)
-    published = intake.pose_publisher.set.call_args[0][0]
-    assert abs(published[0] - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)) < 1e-9
-
-
-def test_extend_hopper_end_retreats_pose_when_retracting(
-    intake: TalonIntakeSubsystem, lights: PiLights
-) -> None:
-    intake.pos_subscriber = MagicMock()
-    intake.pos_subscriber.get.return_value = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    intake.pose_publisher = MagicMock()
-    ExtendHopperCommand(intake, lights, extend=False).end(interrupted=False)
-    published = intake.pose_publisher.set.call_args[0][0]
-    expected = 1.0 - wpimath.units.inchesToMeters(EXTEND_LENGTH_INCHES)
-    assert abs(published[0] - expected) < 1e-9
 
 
 # --- RunIntakeCommand ---
@@ -301,26 +257,24 @@ def test_kicker_always_spins_shooter(
     shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 1000.0
-    KickerShootWhenReadyCommand(shooter, lights).execute()
+    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 
 def test_kicker_fires_when_above_target_velocity(
     shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
-    shooter.shoot_velocity = 4500
     shooter.kick_shoot_voltage = 4.0
     shooter.shoot_encoder.get_velocity.return_value = 4600.0
-    KickerShootWhenReadyCommand(shooter, lights).execute()
+    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
     shooter.kick_motor.set_voltage.assert_called_once_with(4.0)
 
 
 def test_kicker_does_not_fire_when_below_target_velocity(
     shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
-    shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4000.0
-    KickerShootWhenReadyCommand(shooter, lights).execute()
+    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
     shooter.kick_motor.set_voltage.assert_not_called()
 
 
@@ -328,19 +282,18 @@ def test_kicker_does_not_fire_at_exact_target_velocity(
     shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
     """Velocity gate is strict greater-than, so exact match does not fire."""
-    shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4500.0
-    KickerShootWhenReadyCommand(shooter, lights).execute()
+    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
     shooter.kick_motor.set_voltage.assert_not_called()
 
 
 def test_kicker_never_finishes(shooter: ShooterSubsystem, lights: PiLights) -> None:
-    assert KickerShootWhenReadyCommand(shooter, lights).isFinished() is False
+    assert KickerShootWhenReadyCommand(shooter, lights, None).isFinished() is False
 
 
 def test_kicker_end_stops_both_motors(
     shooter: ShooterSubsystem, lights: PiLights
 ) -> None:
-    KickerShootWhenReadyCommand(shooter, lights).end(interrupted=False)
+    KickerShootWhenReadyCommand(shooter, lights, None).end(interrupted=False)
     shooter.kick_motor.set_voltage.assert_called_once_with(0)
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)
