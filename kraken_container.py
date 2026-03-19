@@ -7,6 +7,7 @@ import math
 
 import commands2
 from commands2.button import Trigger
+from cscore import CameraServer, HttpCamera
 from pathplannerlib.auto import (
     AutoBuilder,
     NamedCommands,
@@ -298,7 +299,8 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
         # TODO: move publishing stream url to limelight
-        SmartDashboard.putString("limelight_2_stream", "http://limelight.local:5800")
+        self.camera = HttpCamera("Limelight", "http://limelight.local:5800")
+        CameraServer.addCamera(self.camera)
 
     # Joysticks need to be inverted or drive won't work properly
 
