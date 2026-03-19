@@ -5,9 +5,22 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "GotoTowerAndShoot"
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 8.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "GotoTowerAndShoot"
+                }
+              }
+            ]
           }
         }
       ]
