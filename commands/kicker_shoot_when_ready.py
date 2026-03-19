@@ -1,21 +1,25 @@
 import commands2
+import subsystems.pilights as pilights
 
 from subsystems.shooter import ShooterSubsystem
 
 
 class KickerShootWhenReadyCommand(commands2.Command):
     # pass in parent subsystem
-    def __init__(self, shooter: ShooterSubsystem):
+    def __init__(self, shooter: ShooterSubsystem, lights: pilights.PiLights):
         super().__init__()
         self.shooter = shooter
-        self.addRequirements(self.shooter)
+        self.lights = lights
+        self.addRequirements(self.shooter, self.lights)
         # make sure to add requirements to parent subsystem here
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
         self.shooter.set_shoot_velocity_from_networktables()
+        self.lights.set_state(pilights.LEDState.SHOOTER_REV)
         if self.shooter.shoot_encoder.get_velocity() > self.shooter.shoot_velocity:
             self.shooter.set_kick_shoot_voltage_from_networktables()
+            self.lights.set_state(pilights.LEDState.SHOOTER_READY)
         else:
             pass
 

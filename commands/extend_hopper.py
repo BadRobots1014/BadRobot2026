@@ -4,6 +4,7 @@ from wpimath import controller, units
 
 import robot
 from subsystems.talonFXIntake import TalonIntakeSubsystem
+import subsystems.pilights as pilights
 
 Kp, Ki, Kd, Kv = 0.2, 0, 0, 1
 
@@ -16,6 +17,7 @@ class ExtendHopperCommand(commands2.Command):
         self,
         intake: TalonIntakeSubsystem,
         extend: bool,
+        lights: pilights.PiLights,
         positive_voltage: float | None = None,
     ):
         # Cannot pass in a negative voltage
@@ -23,6 +25,7 @@ class ExtendHopperCommand(commands2.Command):
         self.extend = extend
         self.pid = controller.PIDController(Kp, Ki, Kd)
         self.voltage = positive_voltage
+        self.lights = lights
 
         if self.voltage is not None:
             assert self.voltage >= 0
@@ -41,6 +44,7 @@ class ExtendHopperCommand(commands2.Command):
                 self.intake.set_extension_voltage(
                     output + Kv * (-1 if not self.extend else 1)
                 )
+                self.lights.set_state(pilights.LEDState.HOPPER_EXTEND if self.extend else pilights.LEDState.HOPPER_RETRACT)
 
                 SmartDashboard.putNumber("PID output", output)
                 SmartDashboard.putNumber(
@@ -54,6 +58,7 @@ class ExtendHopperCommand(commands2.Command):
                 self.intake.set_extension_voltage(
                     self.voltage * (-1 if not self.extend else 1)
                 )
+                self.lights.set_state(pilights.LEDState.HOPPER_EXTEND if self.extend else pilights.LEDState.HOPPER_RETRACT)
         elif self.extend:
             self.intake.set_extension_voltage_from_networktable()
         else:
@@ -63,6 +68,7 @@ class ExtendHopperCommand(commands2.Command):
         if (self.extend and self.intake.forward_extended()) or (
             not self.extend and self.intake.backward_extended()
         ):
+            self.lights.set_state(pilights.LEDState.HOPPER_EXTENDED if self.extend else pilights.LEDState.HOPPER_RETRACTED)
             return True
         return False
 
