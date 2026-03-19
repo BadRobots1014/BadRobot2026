@@ -7,9 +7,8 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container  # import file instead of class for constants
+from subsystems import pilights
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
-
-import subsystems.pilights as pilights
 
 # TODO: needs tuning
 
@@ -30,7 +29,7 @@ class Strafe(commands2.Command):
         target_point: Translation2d,
         clockwise: bool,
         max_angular_rate: float,
-        lights: pilights.PiLights
+        lights: pilights.PiLights,
     ):
         super().__init__()
         self.addRequirements(swerve_subsystem)

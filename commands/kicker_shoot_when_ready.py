@@ -1,6 +1,6 @@
 import commands2
-import subsystems.pilights as pilights
 
+from subsystems import pilights
 from subsystems.shooter import ShooterSubsystem
 
 

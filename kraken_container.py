@@ -32,10 +32,9 @@ from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
-from subsystems import lights, music, shooter, talonFXIntake
+from subsystems import music, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
-import subsystems.pilights as pilights
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 

@@ -6,7 +6,6 @@ from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
-import subsystems.pilights as pilights
 
 
 class ShootRunRoutine(ParallelCommandGroup):
