@@ -299,7 +299,7 @@ class KrakenRobotContainer:
         SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
 
         # TODO: move publishing stream url to limelight
-        self.camera = HttpCamera("Limelight", "http://limelight.local:5800")
+        self.camera = HttpCamera("Limelight-stream", "http://limelight.local:5800")
         CameraServer.addCamera(self.camera)
 
     # Joysticks need to be inverted or drive won't work properly
@@ -592,7 +592,7 @@ class KrakenRobotContainer:
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         ):
-            reject_pose_ll4 = False
+            reject_pose_ll4 = True
         # reject_pose_ll2 = False
 
         if not reject_pose_ll4:
