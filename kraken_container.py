@@ -7,7 +7,7 @@ import math
 
 import commands2
 from commands2.button import Trigger
-from pathplannerlib.auto import AutoBuilder, PathConstraints
+from pathplannerlib.auto import AutoBuilder, NamedCommands, PathConstraints
 from pathplannerlib.path import Translation2d
 from phoenix6 import swerve
 import wpilib
@@ -168,10 +168,6 @@ class KrakenRobotContainer:
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
         )
 
-        self.drivetrain = TunerConstants.create_drivetrain()
-
-        self.music = music.MusicSubsystem(self.drivetrain)
-
         self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
         self._lights = pilights.PiLights()
 
@@ -230,6 +226,10 @@ class KrakenRobotContainer:
             "Limelight",
         )
 
+        self.drivetrain = TunerConstants.create_drivetrain()
+
+        self.music = music.MusicSubsystem(self.drivetrain)
+
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
@@ -244,6 +244,29 @@ class KrakenRobotContainer:
 
         # Configure the button bindings
         self.configureButtonBindings()
+
+        # Configure commands used in auto
+        NamedCommands.registerCommand(
+            "ExtendAndIntake",
+            ExtendAndIntakeRoutine(self._talonIntake, self._lights),
+        )
+        NamedCommands.registerCommand(
+            "RetractHopper",
+            ExtendHopperCommand(self._talonIntake, self._lights, extend=False),
+        )
+        NamedCommands.registerCommand(
+            "GotoTowerAndShoot",
+            GotoAndShoot(
+                self._shooter,
+                self.drivetrain,
+                self._lights,
+                self.drive_pid,
+                self.rotate_pid,
+            ),
+        )
+
+        # Run auto builder
+        self.drivetrain._configure_auto_builder()
 
     # Joysticks need to be inverted or drive won't work properly
 

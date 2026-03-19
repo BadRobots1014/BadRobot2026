@@ -231,7 +231,8 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
 
         if utils.is_simulation():
             self._start_sim_thread()
-        self._configure_auto_builder()
+        # Defer to manual init
+        # self._configure_auto_builder()
 
     def _configure_auto_builder(self) -> None:
         config = RobotConfig.fromGUISettings()
