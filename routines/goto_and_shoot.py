@@ -10,6 +10,7 @@ from commands.goto_shoot_radius import GotoShootRadius
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.spin_shooter import SpinShooterCommand
 from subsystems import pilights
+from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -18,6 +19,7 @@ class GotoAndShoot(SequentialCommandGroup):
     def __init__(
         self,
         _shooter: ShooterSubsystem,
+        _kicker: KickerSubsystem,
         drivetrain: CommandSwerveDrivetrain,
         lights: pilights.PiLights,
         drive_pid: PIDController,
@@ -43,6 +45,6 @@ class GotoAndShoot(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                KickerShootWhenReadyCommand(_shooter, lights, rpm=None),
+                KickerShootWhenReadyCommand(_shooter, _kicker, lights, rpm=None),
             ),
         )

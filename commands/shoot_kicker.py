@@ -1,27 +1,27 @@
 import commands2
 
 import robot
-from subsystems.shooter import ShooterSubsystem
+from subsystems.kicker import KickerSubsystem
 
 KICKER_VOLTAGE = 3
 
 
 class ShootKickerCommand(commands2.Command):
-    shooter: ShooterSubsystem
+    kicker: KickerSubsystem
 
-    def __init__(self, shooter: ShooterSubsystem, invert: bool):
+    def __init__(self, kicker: KickerSubsystem, invert: bool):
         super().__init__()
         self.invert = invert
-        self.shooter = shooter
-        self.addRequirements(shooter)
+        self.kicker = kicker
+        self.addRequirements(kicker)
 
     def execute(self) -> None:
         if self.invert:
-            self.shooter.set_kick_voltage(-KICKER_VOLTAGE)
+            self.kicker.set_kick_voltage(-KICKER_VOLTAGE)
         elif robot.TEST_MODE_ENABLED:
-            self.shooter.set_kick_shoot_voltage_from_networktables()
+            self.kicker.set_kick_shoot_voltage_from_networktables()
         else:
-            self.shooter.set_kick_voltage(KICKER_VOLTAGE)
+            self.kicker.set_kick_voltage(KICKER_VOLTAGE)
 
     def end(self, interrupted: bool) -> None:
-        self.shooter.kick_motor.disable()
+        self.kicker.kick_motor.disable()

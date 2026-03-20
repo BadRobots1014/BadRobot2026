@@ -39,7 +39,7 @@ from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShoot
-from subsystems import music, pilights, shooter, talonFXIntake
+from subsystems import kicker, music, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -212,6 +212,10 @@ class KrakenRobotContainer:
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
+        )
+
+        # kicker
+        self._kicker = kicker.KickerSubsystem(
             self.kick_motor,
             self.kick_encoder,
         )
@@ -488,7 +492,9 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=3300),
+            KickerShootWhenReadyCommand(
+                self._shooter, self._kicker, self._lights, rpm=3300
+            ),
         )
 
         # Run kicker wheel when ready R2
@@ -510,12 +516,12 @@ class KrakenRobotContainer:
         # self._auxiliary_controller.create_button(
         #     R1_BUTTON,
         #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         # Run kicker wheel backwards R1
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
+        ).whileTrue(ShootKickerCommand(self._kicker, invert=True))
 
         # # Jiggle L1
         # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
@@ -541,7 +547,7 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
 
         # Intake wheel dump (TOGGLE)
-        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter, self._lights)
+        intake_wheel_out = DumpRoutine(self._talonIntake, self._kicker, self._lights)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode

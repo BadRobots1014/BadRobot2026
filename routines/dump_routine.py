@@ -8,8 +8,8 @@ from commands2 import (
 from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
+from subsystems.kicker import KickerSubsystem
 from subsystems.pilights import PiLights
-from subsystems.shooter import ShooterSubsystem
 from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 
@@ -19,7 +19,7 @@ class DumpRoutine(SequentialCommandGroup):
     """
 
     def __init__(
-        self, intake: TalonIntakeSubsystem, shooter: ShooterSubsystem, lights: PiLights
+        self, intake: TalonIntakeSubsystem, kicker: KickerSubsystem, lights: PiLights
     ):
         super().__init__()
         self.addCommands(
@@ -28,9 +28,9 @@ class DumpRoutine(SequentialCommandGroup):
                 RunIntakeCommand(intake, dump=True),
                 RepeatCommand(
                     SequentialCommandGroup(
-                        ShootKickerCommand(shooter, invert=False).withTimeout(0.2),
+                        ShootKickerCommand(kicker, invert=False).withTimeout(0.2),
                         WaitCommand(0.2),
-                        ShootKickerCommand(shooter, invert=True).withTimeout(0.2),
+                        ShootKickerCommand(kicker, invert=True).withTimeout(0.2),
                         WaitCommand(0.2),
                     )
                 ),
