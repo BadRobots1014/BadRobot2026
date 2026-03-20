@@ -559,8 +559,8 @@ class KrakenRobotContainer:
         #     JiggleCommand(self._talonIntake, self._lights)
         # )
 
-        self._auxiliary_controller.create_button(L1_BUTTON, "kick maual").whileTrue(
-            ShootKickerCommand(self._shooter, invert=False)
+        self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
+            ShootKickerCommand(self._kicker, invert=False)
         )
 
         # Extend hopper Triangle (HOLD)
