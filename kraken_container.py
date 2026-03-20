@@ -258,7 +258,9 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "KickerShootWhenReady",
-            KickerShootWhenReadyCommand(self._shooter, self._lights, 3500),
+            KickerShootWhenReadyCommand(self._shooter, self._lights, 3300).withTimeout(
+                10
+            ),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
@@ -620,4 +622,9 @@ class KrakenRobotContainer:
 
         :returns: the command to run in autonomous
         """
-        return self._auto_chooser.getSelected()
+        command: commands2.Command = self._auto_chooser.getSelected()
+        return command.andThen(
+            KickerShootWhenReadyCommand(
+                self._shooter, self._lights, rpm=3300
+            ).withTimeout(10)
+        )
