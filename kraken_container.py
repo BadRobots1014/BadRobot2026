@@ -257,6 +257,10 @@ class KrakenRobotContainer:
             ExtendHopperCommand(self._talonIntake, self._lights, extend=False),
         )
         NamedCommands.registerCommand(
+            "KickerShootWhenReady",
+            KickerShootWhenReadyCommand(self._shooter, self._lights, 3500),
+        )
+        NamedCommands.registerCommand(
             "GotoTowerAndShoot",
             GotoAndShoot(
                 self._shooter,
