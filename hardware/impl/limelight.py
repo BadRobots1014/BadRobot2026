@@ -48,6 +48,9 @@ class Limelight:
             "robot_orientation_set"
         ).publish()
 
+        # Used in set_throttle — controls frame skipping for LL4 thermal management
+        self.throttle_set_pub = self.nt_table.getIntegerTopic("throttle_set").publish()
+
     def _enabled_changed(self, event: ntcore.Event) -> None:
         self.enabled = event.data.value.getBoolean()
 
@@ -86,3 +89,11 @@ class Limelight:
 
     def set_imu_mode(self, imumode: int) -> None:
         self.nt_table.putNumber("imumode_set", imumode)
+
+    def set_throttle(self, n: int) -> None:
+        """Set LL4 frame-skip throttle for thermal management.
+
+        Processes one frame after every n skipped frames.
+        Recommended: 50-200 while disabled, 0 during active play.
+        """
+        self.throttle_set_pub.set(n)

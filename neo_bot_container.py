@@ -64,6 +64,9 @@ class NeoBotContainer:
             commands2.RunCommand(drive_logic, self.drivetrain)
         )
 
+    def disabledInit(self) -> None:
+        pass
+
     def driveInit(self) -> None:
         pass
 
