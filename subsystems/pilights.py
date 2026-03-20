@@ -4,18 +4,6 @@ from commands2 import Subsystem
 import wpilib
 
 
-class PiLights(Subsystem):
-    def __init__(self):
-        super().__init__()
-        self.high = False
-
-        self.PWMOUT = wpilib.DigitalOutput(0)
-
-    def set_state(self, state: LEDState) -> None:
-        self.PWMOUT.pulse(state.value)
-        print(f"Changing state to {state.name} - {state.value}")
-
-
 class LEDState(Enum):
     HOPPER_EXTEND = 0.00002  # 1
     HOPPER_RETRACT = 0.00004  # 2
@@ -27,3 +15,15 @@ class LEDState(Enum):
     SHOOTER_REV = 0.00016
     SHOOTER_READY = 0.00018
     PARTY_MODE = 0.0002
+
+
+class PiLights(Subsystem):
+    def __init__(self):
+        super().__init__()
+        self.high = False
+
+        self.PWMOUT = wpilib.DigitalOutput(0)
+
+    def set_state(self, state: LEDState) -> None:
+        self.PWMOUT.pulse(state.value)
+        print(f"Changing state to {state.name} - {state.value}")

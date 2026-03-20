@@ -8,10 +8,11 @@ from commands.bang_bang_shoot import BangBangShootCommand
 from commands.climb import ClimbCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
+from commands.run_intake import DUMP_VOLTAGE, HALF_OUT, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from commands.spin_shooter import SHOOT_VELOCITY, SpinShooterCommand
 from subsystems.climber import ClimberSubsystem
+from subsystems.kicker import KickerSubsystem
 from subsystems.pilights import PiLights
 from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
 from subsystems.talonFXIntake import TalonIntakeSubsystem
@@ -19,9 +20,12 @@ from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(
-        MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
-    )
+    return ShooterSubsystem(MagicMock(), MagicMock(), MagicMock())
+
+
+@pytest.fixture
+def kicker() -> KickerSubsystem:
+    return KickerSubsystem(MagicMock(), MagicMock())
 
 
 @pytest.fixture
@@ -74,18 +78,18 @@ def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> No
 
 
 def test_shoot_kicker_inverted_applies_negative_voltage(
-    shooter: ShooterSubsystem,
+    kicker: KickerSubsystem,
 ) -> None:
-    ShootKickerCommand(shooter, invert=True).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(-KICKER_VOLTAGE)
+    ShootKickerCommand(kicker, invert=True).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(-KICKER_VOLTAGE)
 
 
 def test_shoot_kicker_normal_applies_positive_voltage(
-    shooter: ShooterSubsystem,
+    kicker: KickerSubsystem,
 ) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ShootKickerCommand(shooter, invert=False).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
+        ShootKickerCommand(kicker, invert=False).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
 
 
 # --- ExtendHopperCommand ---
@@ -143,12 +147,12 @@ def test_climb_end_stops_motor(climber: ClimberSubsystem) -> None:
 
 
 def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
-    shooter: ShooterSubsystem,
+    kicker: KickerSubsystem,
 ) -> None:
-    shooter.kick_shoot_voltage = 3.5
+    kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ShootKickerCommand(shooter, invert=False).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(3.5)
+        ShootKickerCommand(kicker, invert=False).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(3.5)
 
 
 # --- ExtendHopperCommand execute() ---
@@ -241,8 +245,14 @@ def test_run_dump_uses_nt_voltage_in_test_mode(intake: TalonIntakeSubsystem) -> 
     intake.intake_motor.set_voltage.assert_called_once_with(-3.5)
 
 
-def test_run_intake_never_finishes(intake: TalonIntakeSubsystem) -> None:
+def test_run_intake_runns_over_half_out(intake: TalonIntakeSubsystem) -> None:
+    intake.intake_motor.get_encoder_position.return_value = HALF_OUT + 1
     assert RunIntakeCommand(intake, dump=False).isFinished() is False
+
+
+def test_run_intake_stops_half_out(intake: TalonIntakeSubsystem) -> None:
+    intake.intake_motor.get_encoder_position.return_value = HALF_OUT
+    assert RunIntakeCommand(intake, dump=False).isFinished() is True
 
 
 def test_run_intake_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
@@ -254,46 +264,50 @@ def test_run_intake_end_stops_motor(intake: TalonIntakeSubsystem) -> None:
 
 
 def test_kicker_always_spins_shooter(
-    shooter: ShooterSubsystem, lights: PiLights
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
 ) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 1000.0
-    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
+    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 
 def test_kicker_fires_when_above_target_velocity(
-    shooter: ShooterSubsystem, lights: PiLights
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
 ) -> None:
-    shooter.kick_shoot_voltage = 4.0
+    kicker.kick_shoot_voltage = 4.0
     shooter.shoot_encoder.get_velocity.return_value = 4600.0
-    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(4.0)
+    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(4.0)
 
 
 def test_kicker_does_not_fire_when_below_target_velocity(
-    shooter: ShooterSubsystem, lights: PiLights
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
 ) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 4000.0
-    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
-    shooter.kick_motor.set_voltage.assert_not_called()
+    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
+    kicker.kick_motor.set_voltage.assert_not_called()
 
 
 def test_kicker_does_not_fire_at_exact_target_velocity(
-    shooter: ShooterSubsystem, lights: PiLights
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
 ) -> None:
     """Velocity gate is strict greater-than, so exact match does not fire."""
     shooter.shoot_encoder.get_velocity.return_value = 4500.0
-    KickerShootWhenReadyCommand(shooter, lights, SHOOTER_VELOCITY).execute()
-    shooter.kick_motor.set_voltage.assert_not_called()
+    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
+    kicker.kick_motor.set_voltage.assert_not_called()
 
 
-def test_kicker_never_finishes(shooter: ShooterSubsystem, lights: PiLights) -> None:
-    assert KickerShootWhenReadyCommand(shooter, lights, None).isFinished() is False
+def test_kicker_never_finishes(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
+) -> None:
+    assert (
+        KickerShootWhenReadyCommand(shooter, kicker, lights, None).isFinished() is False
+    )
 
 
 def test_kicker_end_stops_both_motors(
-    shooter: ShooterSubsystem, lights: PiLights
+    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
 ) -> None:
-    KickerShootWhenReadyCommand(shooter, lights, None).end(interrupted=False)
-    shooter.kick_motor.set_voltage.assert_called_once_with(0)
+    KickerShootWhenReadyCommand(shooter, kicker, lights, None).end(interrupted=False)
+    kicker.kick_motor.set_voltage.assert_called_once_with(0)
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)
