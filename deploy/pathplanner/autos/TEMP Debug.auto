@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Manual Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "KickerShootWhenReady"
+            "pathName": "Shoot Mid"
           }
         }
       ]
