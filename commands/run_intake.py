@@ -6,6 +6,9 @@ from subsystems.talonFXIntake import TalonIntakeSubsystem
 INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
 
+# TODO: Find half of total encoder rotation
+HALF_OUT = 1
+
 
 class RunIntakeCommand(commands2.Command):
     def __init__(self, intake: TalonIntakeSubsystem, dump: bool):
@@ -13,6 +16,7 @@ class RunIntakeCommand(commands2.Command):
         self.addRequirements(intake)
         self.intake = intake
         self.dump = dump
+        self.current_extend_pos = 0
 
     def execute(self) -> None:
         if not self.dump:
@@ -26,7 +30,7 @@ class RunIntakeCommand(commands2.Command):
             self.intake.set_intake_voltage(DUMP_VOLTAGE)
 
     def isFinished(self) -> bool:
-        return False
+        return self.intake.intake_motor.get_encoder_position() <= HALF_OUT
 
     def end(self, interrupted: bool) -> None:
         self.intake.set_intake_voltage(0)
