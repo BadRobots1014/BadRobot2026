@@ -28,9 +28,8 @@ class Limelight:
         # Getters
 
         # returns [x, y, x, roll, pitch, yaw, latency]
-        self.pose_sub = self.nt_table.getDoubleArrayTopic(
-            "botpose_orb_wpiblue"
-        ).subscribe([0] * 7)
+        self.pose_topic = self.nt_table.getDoubleArrayTopic("botpose_orb_wpiblue")
+        self.pose_sub = self.pose_topic.subscribe([0] * 7)
         # MegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch, MT2yaw]
         self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
             [0] * 12
@@ -70,7 +69,7 @@ class Limelight:
 
         pose = self.array_to_pose2d(arr)
         # arr[6] is latency in ms, and is used to compute absolute timestamp of pose estimate
-        timestamp = Timer.getFPGATimestamp() - (arr[6] * 1000.0)
+        timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
         return pose, timestamp, deviation
 
