@@ -28,7 +28,6 @@ from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
-from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -42,7 +41,7 @@ from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShoot
 from routines.shoot_in_place import ShootInPlace
-from subsystems import music, pilights, shooter, talonFXIntake
+from subsystems import kicker, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -221,6 +220,10 @@ class KrakenRobotContainer:
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
+        )
+
+        # kicker
+        self._kicker = kicker.KickerSubsystem(
             self.kick_motor,
             self.kick_encoder,
         )
@@ -239,7 +242,8 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        self.music = music.MusicSubsystem(self.drivetrain)
+        # takes a while and sometimes causes tests to fail maybe?
+        # self.music = music.MusicSubsystem(self.drivetrain)
 
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
@@ -267,14 +271,15 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "KickerShootWhenReady",
-            KickerShootWhenReadyCommand(self._shooter, self._lights, 3300).withTimeout(
-                10
+            KickerShootWhenReadyCommand(
+                self._shooter, self._kicker, self._lights, 3500
             ),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
             GotoAndShoot(
                 self._shooter,
+                self._kicker,
                 self.drivetrain,
                 self._lights,
                 self.drive_pid,
@@ -283,7 +288,8 @@ class KrakenRobotContainer:
             ),
         )
         NamedCommands.registerCommand(
-            "jiggle shoot", ShootInPlace(self._talonIntake, self._shooter, self._lights)
+            "jiggle shoot",
+            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights),
         )
 
         # Run auto builder
@@ -515,7 +521,9 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=3300),
+            KickerShootWhenReadyCommand(
+                self._shooter, self._kicker, self._lights, rpm=3300
+            ),
         )
 
         # Run kicker wheel when ready R2
@@ -525,6 +533,7 @@ class KrakenRobotContainer:
         ).whileTrue(
             GotoAndShoot(
                 self._shooter,
+                self._kicker,
                 self.drivetrain,
                 self._lights,
                 self.drive_pid,
@@ -537,19 +546,21 @@ class KrakenRobotContainer:
         # self._auxiliary_controller.create_button(
         #     R1_BUTTON,
         #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootInPlace(self._talonIntake, self._shooter, self._lights))
+        ).whileTrue(
+            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights)
+        )
 
         # # Jiggle L1
         # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
         #     JiggleCommand(self._talonIntake, self._lights)
         # )
 
-        self._auxiliary_controller.create_button(L1_BUTTON, "kick maual").whileTrue(
-            ShootKickerCommand(self._shooter, invert=False)
+        self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
+            ShootKickerCommand(self._kicker, invert=False)
         )
 
         # Extend hopper Triangle (HOLD)
@@ -567,13 +578,13 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
 
         # Intake wheel dump (TOGGLE)
-        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter, self._lights)
+        intake_wheel_out = DumpRoutine(self._talonIntake, self._kicker, self._lights)
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self._lights, self.music)
-        )
+        # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+        #    PartyModeCommand(self._lights, self.music)
+        # )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
 
@@ -648,5 +659,7 @@ class KrakenRobotContainer:
         """
         command: commands2.Command = self._auto_chooser.getSelected()
         return command.andThen(
-            ShootInPlace(self._talonIntake, self._shooter, self._lights).withTimeout(10)
+            ShootInPlace(
+                self._talonIntake, self._shooter, self._kicker, self._lights
+            ).withTimeout(10)
         )

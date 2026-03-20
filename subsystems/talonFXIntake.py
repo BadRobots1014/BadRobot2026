@@ -8,6 +8,7 @@ from phoenix6.controls import Follower
 from phoenix6.controls.voltage_out import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import MotorAlignmentValue
+from wpilib import SmartDashboard
 
 from hardware.base.motorcontroller import MotorController
 from hardware.base.switch import LimitSwitch
@@ -141,6 +142,7 @@ class TalonIntakeSubsystem(Subsystem):
         self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
         self.nt_table.putBoolean("Backward limit: ", self.backward_extended())
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
+        SmartDashboard.putBoolean("Intake Active", self.intake_motor.get_voltage() != 0)
 
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
