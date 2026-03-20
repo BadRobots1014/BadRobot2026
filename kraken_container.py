@@ -599,7 +599,12 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
+    def disabledInit(self) -> None:
+        # Process fewer frames while disabled to reduce heat
+        self.camera_ll4.set_throttle(99)  # 99 equals 1% (process 1, skip 99)
+
     def driveInit(self) -> None:
+        self.camera_ll4.set_throttle(0)  # Process all frames
         self.camera_ll4.set_imu_mode(4)
 
     def robotPeriodic(self) -> None:
