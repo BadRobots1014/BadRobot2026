@@ -288,7 +288,8 @@ class KrakenRobotContainer:
             ),
         )
         NamedCommands.registerCommand(
-            "jiggle shoot", ShootInPlace(self._talonIntake, self._shooter, self._lights)
+            "jiggle shoot",
+            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights),
         )
 
         # Run auto builder
