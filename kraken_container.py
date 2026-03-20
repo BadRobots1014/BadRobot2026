@@ -192,9 +192,6 @@ class KrakenRobotContainer:
         self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
 
-        self.robo_pub = self.robo_yaw_sub.publish()
-        self.adjusted_pub = self.adjusted_sub.publish()
-
         if not self.is_real_bot:
             patch_limelight("limelight-four")
             patch_limelight("limelight")
