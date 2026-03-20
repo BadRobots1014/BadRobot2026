@@ -96,7 +96,7 @@ JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
 BLUE_HUB_TRANSLATION = Translation2d(4.62, 4.04)
-RED_HUB_TRANSLATION = Translation2d(-4.62, -4.04)
+RED_HUB_TRANSLATION = Translation2d(11.92, 4.04)
 
 # shooter can id
 MAIN_SHOOT_MOTOR_ID = 59
@@ -279,7 +279,7 @@ class KrakenRobotContainer:
                 self._lights,
                 self.drive_pid,
                 self.rotate_pid,
-                BLUE_HUB_TRANSLATION,
+                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             ),
         )
         NamedCommands.registerCommand(
