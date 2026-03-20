@@ -32,8 +32,8 @@ from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
-from telemetry import Telemetry
 from subsystems.kicker import KickerSubsystem
+from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 

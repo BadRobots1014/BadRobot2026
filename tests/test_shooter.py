@@ -4,29 +4,25 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from subsystems.kicker import KICKER_DUMP_VOLTAGE, KICKER_SHOOT_VOLTAGE, KickerSubsystem
 from subsystems.shooter import (
     SHOOTER_VELOCITY,
     ShooterSubsystem,
-)
-
-from subsystems.kicker import (
-    KICKER_DUMP_VOLTAGE,
-    KICKER_SHOOT_VOLTAGE,
-    KickerSubsystem
 )
 
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
     return ShooterSubsystem(
-        MagicMock(), MagicMock(), MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
     )
+
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(
-        MagicMock(), MagicMock()
-    )
+    return KickerSubsystem(MagicMock(), MagicMock())
 
 
 def test_default_shoot_velocity(shooter: ShooterSubsystem) -> None:
@@ -82,6 +78,8 @@ def test_shoot_distance_reads_encoder(shooter: ShooterSubsystem) -> None:
     assert shooter.shoot_distance == 10.5
 
 
-def test_kick_distance_reads_encoder(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+def test_kick_distance_reads_encoder(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
+) -> None:
     kicker.kick_encoder.get_position.return_value = 3.2
     assert kicker.kick_distance == 3.2

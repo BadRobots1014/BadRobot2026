@@ -18,21 +18,19 @@ from commands.shoot import SHOOT_VELOCITY, ShootCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from subsystems.climber import ClimberSubsystem
 from subsystems.intake import IntakeSubsystem
-from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
 from subsystems.kicker import KickerSubsystem
+from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
 
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(
-        MagicMock(), MagicMock(), MagicMock()
-    )
+    return ShooterSubsystem(MagicMock(), MagicMock(), MagicMock())
+
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(
-        MagicMock(), MagicMock()
-    )
+    return KickerSubsystem(MagicMock(), MagicMock())
+
 
 @pytest.fixture
 def intake() -> IntakeSubsystem:
@@ -281,13 +279,17 @@ def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
 # --- KickerShootWhenReadyCommand ---
 
 
-def test_kicker_always_spins_shooter(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+def test_kicker_always_spins_shooter(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
+) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 1000.0
     KickerShootWhenReadyCommand(shooter, kicker).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 
-def test_kicker_fires_when_above_target_velocity(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+def test_kicker_fires_when_above_target_velocity(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
+) -> None:
     shooter.shoot_velocity = 4500
     kicker.kick_shoot_voltage = 4.0
     shooter.shoot_encoder.get_velocity.return_value = 4600.0
@@ -314,11 +316,15 @@ def test_kicker_does_not_fire_at_exact_target_velocity(
     kicker.kick_motor.set_voltage.assert_not_called()
 
 
-def test_kicker_never_finishes(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+def test_kicker_never_finishes(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
+) -> None:
     assert KickerShootWhenReadyCommand(shooter, kicker).isFinished() is False
 
 
-def test_kicker_end_stops_both_motors(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+def test_kicker_end_stops_both_motors(
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
+) -> None:
     KickerShootWhenReadyCommand(shooter, kicker).end(interrupted=False)
     kicker.kick_motor.set_voltage.assert_called_once_with(0)
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)

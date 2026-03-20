@@ -1,7 +1,7 @@
 import commands2
 
-from subsystems.shooter import ShooterSubsystem
 from subsystems.kicker import KickerSubsystem
+from subsystems.shooter import ShooterSubsystem
 
 
 class KickerShootWhenReadyCommand(commands2.Command):

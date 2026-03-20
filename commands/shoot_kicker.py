@@ -1,8 +1,8 @@
 import commands2
 
 import robot
-from subsystems.shooter import ShooterSubsystem
 from subsystems.kicker import KickerSubsystem
+from subsystems.shooter import ShooterSubsystem
 
 KICKER_VOLTAGE = 3
 
@@ -10,7 +10,9 @@ KICKER_VOLTAGE = 3
 class ShootKickerCommand(commands2.Command):
     shooter: ShooterSubsystem
 
-    def __init__(self, shooter: ShooterSubsystem, kicker: KickerSubsystem, invert: bool):
+    def __init__(
+        self, shooter: ShooterSubsystem, kicker: KickerSubsystem, invert: bool
+    ):
         super().__init__()
         self.invert = invert
         self.shooter = shooter
