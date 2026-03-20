@@ -8,7 +8,7 @@ from commands.bang_bang_shoot import BangBangShootCommand
 from commands.climb import ClimbCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
+from commands.run_intake import DUMP_VOLTAGE, HALF_OUT, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from commands.spin_shooter import SHOOT_VELOCITY, SpinShooterCommand
 from subsystems.climber import ClimberSubsystem
@@ -245,8 +245,14 @@ def test_run_dump_uses_nt_voltage_in_test_mode(intake: TalonIntakeSubsystem) -> 
     intake.intake_motor.set_voltage.assert_called_once_with(-3.5)
 
 
-def test_run_intake_never_finishes(intake: TalonIntakeSubsystem) -> None:
+def test_run_intake_runns_over_half_out(intake: TalonIntakeSubsystem) -> None:
+    intake.intake_motor.get_encoder_position.return_value = HALF_OUT + 1
     assert RunIntakeCommand(intake, dump=False).isFinished() is False
+
+
+def test_run_intake_stops_half_out(intake: TalonIntakeSubsystem) -> None:
+    intake.intake_motor.get_encoder_position.return_value = HALF_OUT
+    assert RunIntakeCommand(intake, dump=False).isFinished() is True
 
 
 def test_run_intake_end_stops_motor(intake: TalonIntakeSubsystem) -> None:

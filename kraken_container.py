@@ -39,7 +39,7 @@ from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShoot
-from subsystems import kicker, music, pilights, shooter, talonFXIntake
+from subsystems import kicker, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -240,7 +240,8 @@ class KrakenRobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        self.music = music.MusicSubsystem(self.drivetrain)
+        # takes a while and sometimes causes tests to fail maybe?
+        # self.music = music.MusicSubsystem(self.drivetrain)
 
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
@@ -643,6 +644,6 @@ class KrakenRobotContainer:
         command: commands2.Command = self._auto_chooser.getSelected()
         return command.andThen(
             KickerShootWhenReadyCommand(
-                self._shooter, self._lights, rpm=3200
+                self._shooter, self._kicker, self._lights, rpm=3200
             ).withTimeout(10)
         )
