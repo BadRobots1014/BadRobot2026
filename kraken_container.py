@@ -33,6 +33,7 @@ from subsystems import lights, music, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from subsystems.intake import IntakeSubsystem
 from telemetry import Telemetry
+from subsystems.kicker import KickerSubsystem
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -192,6 +193,9 @@ class KrakenRobotContainer:
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
+        )
+
+        self._kicker = KickerSubsystem(
             self.kick_motor,
             self.kick_encoder,
         )
@@ -327,7 +331,7 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             R1_BUTTON,
             "Run kicker wheel when ready",
-        ).whileTrue(KickerShootWhenReadyCommand(self._shooter))
+        ).whileTrue(KickerShootWhenReadyCommand(self._shooter, self._kicker))
 
         # uncomment if you want to use the regular kicker command
         # self._auxiliary_controller.create_button(
@@ -337,7 +341,7 @@ class KrakenRobotContainer:
 
         self._auxiliary_controller.create_button(
             R2_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootKickerCommand(self._shooter, invert=True))
+        ).whileTrue(ShootKickerCommand(self._shooter, self._kicker, invert=True))
 
         # Party Mode
         self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(

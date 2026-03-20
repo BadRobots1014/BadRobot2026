@@ -19,14 +19,20 @@ from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from subsystems.climber import ClimberSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
+from subsystems.kicker import KickerSubsystem
 
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
     return ShooterSubsystem(
-        MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        MagicMock(), MagicMock(), MagicMock()
     )
 
+@pytest.fixture
+def kicker() -> KickerSubsystem:
+    return KickerSubsystem(
+        MagicMock(), MagicMock()
+    )
 
 @pytest.fixture
 def intake() -> IntakeSubsystem:
@@ -74,18 +80,18 @@ def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> No
 
 
 def test_shoot_kicker_inverted_applies_negative_voltage(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
 ) -> None:
-    ShootKickerCommand(shooter, invert=True).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(-KICKER_VOLTAGE)
+    ShootKickerCommand(shooter, kicker, invert=True).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(-KICKER_VOLTAGE)
 
 
 def test_shoot_kicker_normal_applies_positive_voltage(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
 ) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ShootKickerCommand(shooter, invert=False).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
+        ShootKickerCommand(shooter, kicker, invert=False).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
 
 
 # --- ExtendHopperCommand ---
@@ -146,12 +152,12 @@ def test_shoot_command_uses_nt_velocity_when_test_mode(
 
 
 def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
 ) -> None:
-    shooter.kick_shoot_voltage = 3.5
+    kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ShootKickerCommand(shooter, invert=False).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(3.5)
+        ShootKickerCommand(shooter, kicker, invert=False).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(3.5)
 
 
 # --- ExtendHopperCommand execute() ---
@@ -275,44 +281,44 @@ def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
 # --- KickerShootWhenReadyCommand ---
 
 
-def test_kicker_always_spins_shooter(shooter: ShooterSubsystem) -> None:
+def test_kicker_always_spins_shooter(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 1000.0
-    KickerShootWhenReadyCommand(shooter).execute()
+    KickerShootWhenReadyCommand(shooter, kicker).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
 
 
-def test_kicker_fires_when_above_target_velocity(shooter: ShooterSubsystem) -> None:
+def test_kicker_fires_when_above_target_velocity(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
     shooter.shoot_velocity = 4500
-    shooter.kick_shoot_voltage = 4.0
+    kicker.kick_shoot_voltage = 4.0
     shooter.shoot_encoder.get_velocity.return_value = 4600.0
-    KickerShootWhenReadyCommand(shooter).execute()
-    shooter.kick_motor.set_voltage.assert_called_once_with(4.0)
+    KickerShootWhenReadyCommand(shooter, kicker).execute()
+    kicker.kick_motor.set_voltage.assert_called_once_with(4.0)
 
 
 def test_kicker_does_not_fire_when_below_target_velocity(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
 ) -> None:
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4000.0
-    KickerShootWhenReadyCommand(shooter).execute()
-    shooter.kick_motor.set_voltage.assert_not_called()
+    KickerShootWhenReadyCommand(shooter, kicker).execute()
+    kicker.kick_motor.set_voltage.assert_not_called()
 
 
 def test_kicker_does_not_fire_at_exact_target_velocity(
-    shooter: ShooterSubsystem,
+    shooter: ShooterSubsystem, kicker: KickerSubsystem
 ) -> None:
     """Velocity gate is strict greater-than, so exact match does not fire."""
     shooter.shoot_velocity = 4500
     shooter.shoot_encoder.get_velocity.return_value = 4500.0
-    KickerShootWhenReadyCommand(shooter).execute()
-    shooter.kick_motor.set_voltage.assert_not_called()
+    KickerShootWhenReadyCommand(shooter, kicker).execute()
+    kicker.kick_motor.set_voltage.assert_not_called()
 
 
-def test_kicker_never_finishes(shooter: ShooterSubsystem) -> None:
-    assert KickerShootWhenReadyCommand(shooter).isFinished() is False
+def test_kicker_never_finishes(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+    assert KickerShootWhenReadyCommand(shooter, kicker).isFinished() is False
 
 
-def test_kicker_end_stops_both_motors(shooter: ShooterSubsystem) -> None:
-    KickerShootWhenReadyCommand(shooter).end(interrupted=False)
-    shooter.kick_motor.set_voltage.assert_called_once_with(0)
+def test_kicker_end_stops_both_motors(shooter: ShooterSubsystem, kicker: KickerSubsystem) -> None:
+    KickerShootWhenReadyCommand(shooter, kicker).end(interrupted=False)
+    kicker.kick_motor.set_voltage.assert_called_once_with(0)
     shooter.shoot_motor.set_voltage.assert_called_once_with(0)

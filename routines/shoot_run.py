@@ -6,6 +6,7 @@ from commands.shoot import ShootCommand
 from commands.shoot_kicker import ShootKickerCommand
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+from subsystems.kicker import KickerSubsystem
 
 
 class ShootRunRoutine(ParallelCommandGroup):
@@ -16,6 +17,7 @@ class ShootRunRoutine(ParallelCommandGroup):
     def __init__(
         self,
         shooter: ShooterSubsystem,
+        kicker: KickerSubsystem,
         target_point: Translation2d,
         swerve_subsystem: CommandSwerveDrivetrain,
         max_speed: float,
@@ -36,6 +38,6 @@ class ShootRunRoutine(ParallelCommandGroup):
             ShootCommand(shooter),
             SequentialCommandGroup(
                 self.GotoShoot,
-                ShootKickerCommand(shooter),
+                ShootKickerCommand(shooter, kicker, False),
             ),
         )
