@@ -28,9 +28,8 @@ class Limelight:
         # Getters
 
         # returns [x, y, x, roll, pitch, yaw, latency]
-        self.pose_sub = self.nt_table.getDoubleArrayTopic(
-            "botpose_orb_wpiblue"
-        ).subscribe([0] * 7)
+        self.pose_topic = self.nt_table.getDoubleArrayTopic("botpose_orb_wpiblue")
+        self.pose_sub = self.pose_topic.subscribe([0] * 7)
         # MegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch, MT2yaw]
         self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
             [0] * 12

@@ -8,6 +8,7 @@ import math
 import commands2
 from commands2.button import Trigger
 from cscore import CameraServer, HttpCamera
+import ntcore
 from pathplannerlib.auto import (
     AutoBuilder,
     NamedCommands,
@@ -77,7 +78,7 @@ TRACKPAD = 14
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
-NUDGE_SPEED = 0.7
+NUDGE_SPEED = 0.6 * MAX_SPEED
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity
@@ -184,6 +185,12 @@ class KrakenRobotContainer:
         # Initialize limelight
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
+
+        self.nt_instance = ntcore.NetworkTableInstance.getDefault()
+        self.ll_table = self.nt_instance.getTable("limelight")
+
+        self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
+        self.rejected_pub = self.rejected_sub.publish()
 
         if not self.is_real_bot:
             patch_limelight("limelight-four")
@@ -605,6 +612,8 @@ class KrakenRobotContainer:
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         )
         # reject_pose_ll2 = False
+
+        self.rejected_pub.set(reject_pose_ll4)
 
         if not reject_pose_ll4:
             self.drivetrain.add_vision_measurement(
