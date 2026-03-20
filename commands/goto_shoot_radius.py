@@ -2,7 +2,6 @@ import math
 
 from commands2 import Command
 from phoenix6 import swerve
-from wpilib import DriverStation
 from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
@@ -47,18 +46,11 @@ class GotoShootRadius(Command):
 
     def execute(self) -> None:
         bot_pos = self.swerve_subsystem.get_state().pose
-        blue = DriverStation.getAlliance() == DriverStation.Alliance.kBlue
-        if blue:
-            x_dist = bot_pos.x - self.target_point.x
-            y_dist = bot_pos.y - self.target_point.y
-        else:
-            x_dist = self.target_point.x - bot_pos.x
-            y_dist = self.target_point.y - bot_pos.y
+        x_dist = self.target_point.x - bot_pos.x
+        y_dist = self.target_point.y - bot_pos.y
 
         theta = math.atan2(y_dist, x_dist)
 
-        if blue:
-            theta = (theta + math.pi) % (2 * math.pi)
         self.r_dist = math.hypot(x_dist, y_dist)
 
         self.radius = self.shooter.set_radius_pair(self.r_dist)
