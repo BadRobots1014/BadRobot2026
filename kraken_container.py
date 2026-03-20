@@ -41,7 +41,7 @@ from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShoot
 from routines.shoot_in_place import ShootInPlace
-from subsystems import kicker, pilights, shooter, talonFXIntake
+from subsystems import intake, kicker, pilights, shooter
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -232,7 +232,7 @@ class KrakenRobotContainer:
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
 
-        self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
+        self._talonIntake = intake.IntakeSubsystem(
             self.intakeMotor,
             self.left_pinion.get_motor_controller(),
             self.right_pinion.get_motor_controller(),

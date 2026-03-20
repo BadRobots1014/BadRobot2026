@@ -2,16 +2,16 @@ from commands2 import ParallelCommandGroup
 
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from routines.time_jiggle import TimeJiggle
+from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
-from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 
 class ShootInPlace(ParallelCommandGroup):
     def __init__(
         self,
-        talon_intake: TalonIntakeSubsystem,
+        talon_intake: IntakeSubsystem,
         shooter: ShooterSubsystem,
         kicker: KickerSubsystem,
         lights: PiLights,

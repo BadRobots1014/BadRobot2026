@@ -1,12 +1,12 @@
 from commands2 import RepeatCommand, SequentialCommandGroup, WaitCommand
 
 from commands.manual_extend_hopper import ManualExtendHopperCommand
+from subsystems.intake import IntakeSubsystem
 from subsystems.pilights import PiLights
-from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 
 class TimeJiggle(RepeatCommand):
-    def __init__(self, talon_intake: TalonIntakeSubsystem, lights: PiLights):
+    def __init__(self, talon_intake: IntakeSubsystem, lights: PiLights):
         super().__init__(
             SequentialCommandGroup(
                 ManualExtendHopperCommand(

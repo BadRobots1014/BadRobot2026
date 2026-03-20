@@ -4,7 +4,7 @@ from wpimath import controller
 
 import robot
 from subsystems import pilights
-from subsystems.talonFXIntake import TalonIntakeSubsystem
+from subsystems.intake import IntakeSubsystem
 
 Kp, Ki, Kd, Kv = 0.2, 0, 0, 1
 
@@ -15,7 +15,7 @@ EXTEND_LENGTH_INCHES = 12
 class ExtendHopperCommand(commands2.Command):
     def __init__(
         self,
-        intake: TalonIntakeSubsystem,
+        intake: IntakeSubsystem,
         lights: pilights.PiLights,
         extend: bool,
         positive_voltage: float | None = None,

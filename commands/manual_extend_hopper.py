@@ -4,13 +4,13 @@ from wpimath import controller
 
 from commands.extend_hopper import Kd, Ki, Kp
 from subsystems import pilights
-from subsystems.talonFXIntake import TalonIntakeSubsystem
+from subsystems.intake import IntakeSubsystem
 
 
 class ManualExtendHopperCommand(Command):
     def __init__(
         self,
-        intake: TalonIntakeSubsystem,
+        intake: IntakeSubsystem,
         lights: pilights.PiLights,
         extend: bool,
         positive_voltage: float | None = None,
