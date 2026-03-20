@@ -78,7 +78,7 @@ TRACKPAD = 14
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
-NUDGE_SPEED = 0.6 * MAX_SPEED
+NUDGE_SPEED = 0.4 * MAX_SPEED
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity
@@ -191,6 +191,12 @@ class KrakenRobotContainer:
 
         self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
+
+        self.robo_yaw_sub = self.nt_instance.getFloatTopic("robo_yaw")
+        self.adjusted_sub = self.nt_instance.getBooleanTopic("adjusted_yaw")
+
+        self.robo_pub = self.robo_yaw_sub.publish()
+        self.adjusted_pub = self.adjusted_sub.publish()
 
         if not self.is_real_bot:
             patch_limelight("limelight-four")
@@ -596,6 +602,7 @@ class KrakenRobotContainer:
 
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
+        self.robo_pub.set(robot_yaw)
         self.camera_ll4.robot_orientation_set(robot_yaw)
         # self.camera_ll2.robot_orientation_set(robot_yaw)
 
@@ -620,6 +627,8 @@ class KrakenRobotContainer:
                 cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
             )
 
+        self.adjusted_pub.set(self.drivetrain.get_state().pose.rotation().degrees())
+
         # if not reject_pose_ll2:
         #    self.drivetrain.add_vision_measurement(
         #        cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
@@ -634,6 +643,6 @@ class KrakenRobotContainer:
         command: commands2.Command = self._auto_chooser.getSelected()
         return command.andThen(
             KickerShootWhenReadyCommand(
-                self._shooter, self._lights, rpm=3300
+                self._shooter, self._lights, rpm=3200
             ).withTimeout(10)
         )
