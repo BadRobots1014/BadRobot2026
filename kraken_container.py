@@ -27,6 +27,7 @@ from wpimath.units import rotationsToRadians
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
+from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -39,6 +40,7 @@ from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShoot
+from routines.shoot_in_place import ShootInPlace
 from subsystems import kicker, pilights, shooter, talonFXIntake
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
@@ -93,7 +95,7 @@ JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
 BLUE_HUB_TRANSLATION = Translation2d(4.62, 4.04)
-RED_HUB_TRANSLATION = Translation2d(-4.62, -4.04)
+RED_HUB_TRANSLATION = Translation2d(11.92, 4.04)
 
 # shooter can id
 MAIN_SHOOT_MOTOR_ID = 59
@@ -282,8 +284,11 @@ class KrakenRobotContainer:
                 self._lights,
                 self.drive_pid,
                 self.rotate_pid,
-                BLUE_HUB_TRANSLATION,
+                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             ),
+        )
+        NamedCommands.registerCommand(
+            "jiggle shoot", ShootInPlace(self._talonIntake, self._shooter, self._lights)
         )
 
         # Run auto builder
@@ -504,6 +509,15 @@ class KrakenRobotContainer:
 
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
+        # manual extend
+        self._auxiliary_controller.povUp().whileTrue(
+            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=True)
+        )
+        # manual retract
+        self._auxiliary_controller.povDown().whileTrue(
+            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=False)
+        )
+
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
             KickerShootWhenReadyCommand(
@@ -533,10 +547,11 @@ class KrakenRobotContainer:
         #     "Run kicker wheel",
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
-        # Run kicker wheel backwards R1
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootKickerCommand(self._kicker, invert=True))
+        ).whileTrue(
+            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights)
+        )
 
         # # Jiggle L1
         # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
@@ -643,7 +658,7 @@ class KrakenRobotContainer:
         """
         command: commands2.Command = self._auto_chooser.getSelected()
         return command.andThen(
-            KickerShootWhenReadyCommand(
-                self._shooter, self._kicker, self._lights, rpm=3200
+            ShootInPlace(
+                self._talonIntake, self._shooter, self._kicker, self._lights
             ).withTimeout(10)
         )

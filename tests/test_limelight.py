@@ -37,7 +37,9 @@ def test_timestamp_uses_ms_to_seconds_conversion(limelight: Limelight) -> None:
     limelight.pose_sub.get.return_value = pose_array
     limelight.stddevs_sub.get.return_value = [0.0] * 12
 
-    with patch("hardware.impl.limelight.Timer.getFPGATimestamp", return_value=fpga_time):
+    with patch(
+        "hardware.impl.limelight.Timer.getFPGATimestamp", return_value=fpga_time
+    ):
         _, timestamp, _ = limelight.get_vision_measurement()
 
     assert timestamp == pytest.approx(expected_timestamp), (
@@ -55,7 +57,9 @@ def test_timestamp_not_far_in_past(limelight: Limelight) -> None:
     limelight.pose_sub.get.return_value = pose_array
     limelight.stddevs_sub.get.return_value = [0.0] * 12
 
-    with patch("hardware.impl.limelight.Timer.getFPGATimestamp", return_value=fpga_time):
+    with patch(
+        "hardware.impl.limelight.Timer.getFPGATimestamp", return_value=fpga_time
+    ):
         _, timestamp, _ = limelight.get_vision_measurement()
 
     # With the bug (*1000), timestamp would be 100 - 100000 = -99900 — absurdly far in the past
