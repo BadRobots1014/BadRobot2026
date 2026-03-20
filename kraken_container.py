@@ -261,7 +261,9 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "KickerShootWhenReady",
-            KickerShootWhenReadyCommand(self._shooter, self._lights, 3500),
+            KickerShootWhenReadyCommand(
+                self._shooter, self._kicker, self._lights, 3500
+            ),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
