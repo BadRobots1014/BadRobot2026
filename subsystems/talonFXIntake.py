@@ -17,7 +17,7 @@ from hardware.impl.motor_controller_config import (
 )
 
 # Dumping velocity should be 1500
-INTAKE_VOLTAGE = 4.5
+INTAKE_VOLTAGE = 5.5
 DUMP_VOLTAGE = -5.0
 
 EXTENSION_VOLTAGE = 3
