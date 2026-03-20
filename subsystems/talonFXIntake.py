@@ -20,7 +20,7 @@ from hardware.impl.motor_controller_config import (
 INTAKE_VOLTAGE = 5.5
 DUMP_VOLTAGE = -5.0
 
-EXTENSION_VOLTAGE = 3
+EXTENSION_VOLTAGE = 2
 
 MAX_ENCODER_ROTATIONS = 40
 
