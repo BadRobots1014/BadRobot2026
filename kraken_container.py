@@ -26,7 +26,6 @@ from wpimath.units import rotationsToRadians
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.party_mode import PartyModeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -264,6 +263,7 @@ class KrakenRobotContainer:
             "GotoTowerAndShoot",
             GotoAndShoot(
                 self._shooter,
+                self._kicker,
                 self.drivetrain,
                 self._lights,
                 self.drive_pid,
@@ -504,6 +504,7 @@ class KrakenRobotContainer:
         ).whileTrue(
             GotoAndShoot(
                 self._shooter,
+                self._kicker,
                 self.drivetrain,
                 self._lights,
                 self.drive_pid,
@@ -551,9 +552,9 @@ class KrakenRobotContainer:
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self._lights, self.music)
-        )
+        # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+        #    PartyModeCommand(self._lights, self.music)
+        # )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
 

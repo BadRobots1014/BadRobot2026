@@ -2,6 +2,7 @@ import threading
 
 from commands2 import Subsystem
 import ntcore
+from ntcore import NetworkTableInstance
 import wpilib
 
 from hardware.base.encoder import Encoder
@@ -49,6 +50,7 @@ class KickerSubsystem(Subsystem):
         )
         self.kick_motor.apply_configs(kick_config)
 
+        self._inst = NetworkTableInstance.getDefault()
         self._shooter_table = self._inst.getTable("ShooterTable")
         # Create nt topics
         self._kicker_shoot_motor_voltage_topic = self._shooter_table.getDoubleTopic(
