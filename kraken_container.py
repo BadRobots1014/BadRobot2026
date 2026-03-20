@@ -192,9 +192,6 @@ class KrakenRobotContainer:
         self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
 
-        self.robo_yaw_sub = self.nt_instance.getFloatTopic("robo_yaw")
-        self.adjusted_sub = self.nt_instance.getBooleanTopic("adjusted_yaw")
-
         self.robo_pub = self.robo_yaw_sub.publish()
         self.adjusted_pub = self.adjusted_sub.publish()
 
@@ -602,7 +599,6 @@ class KrakenRobotContainer:
 
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
-        self.robo_pub.set(robot_yaw)
         self.camera_ll4.robot_orientation_set(robot_yaw)
         # self.camera_ll2.robot_orientation_set(robot_yaw)
 
@@ -627,7 +623,7 @@ class KrakenRobotContainer:
                 cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
             )
 
-        self.adjusted_pub.set(self.drivetrain.get_state().pose.rotation().degrees())
+        return None
 
         # if not reject_pose_ll2:
         #    self.drivetrain.add_vision_measurement(

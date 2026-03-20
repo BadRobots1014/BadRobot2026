@@ -69,7 +69,7 @@ class Limelight:
 
         pose = self.array_to_pose2d(arr)
         # arr[6] is latency in ms, and is used to compute absolute timestamp of pose estimate
-        timestamp = Timer.getFPGATimestamp() - (arr[6] * 1000.0)
+        timestamp = Timer.getFPGATimestamp() - (arr[6] / 1000.0)
         deviation = self.get_deviation()
         return pose, timestamp, deviation
 
