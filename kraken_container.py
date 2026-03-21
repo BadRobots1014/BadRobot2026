@@ -324,7 +324,7 @@ class KrakenRobotContainer:
         )
 
         # TODO: move publishing stream url to limelight
-        self.camera = HttpCamera("Limelight-stream", "http://limelight.local:5800")
+        self.camera = HttpCamera("LimelightPublisher", "http://10.10.14.12:5801")
         CameraServer.addCamera(self.camera)
 
     # Joysticks need to be inverted or drive won't work properly
