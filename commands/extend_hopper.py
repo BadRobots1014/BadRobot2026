@@ -22,6 +22,7 @@ class ExtendHopperCommand(commands2.Command):
         positive_distance_limit: float | None = None,
     ):
         # Cannot pass in a negative voltage
+        super().__init__()
         self.hopper = hopper
         self.lights = lights
 
