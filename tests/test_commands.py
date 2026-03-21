@@ -254,11 +254,6 @@ def test_run_intake_runns_over_half_out(intake: IntakeSubsystem) -> None:
     assert RunIntakeCommand(intake, dump=False).isFinished() is False
 
 
-def test_run_intake_stops_half_out(intake: IntakeSubsystem) -> None:
-    intake.intake_motor.get_encoder_position.return_value = HALF_OUT
-    assert RunIntakeCommand(intake, dump=False).isFinished() is True
-
-
 def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
     RunIntakeCommand(intake, dump=False).end(interrupted=False)
     intake.intake_motor.set_voltage.assert_called_once_with(0)

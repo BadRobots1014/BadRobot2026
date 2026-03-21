@@ -30,7 +30,7 @@ class RunIntakeCommand(commands2.Command):
             self.intake.set_intake_voltage(DUMP_VOLTAGE)
 
     def isFinished(self) -> bool:
-        return False  # self.intake.intake_motor.get_encoder_position() <= HALF_OUT
+        return False
 
     def end(self, interrupted: bool) -> None:
         self.intake.set_intake_voltage(0)
