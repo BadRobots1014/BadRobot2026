@@ -16,7 +16,7 @@ from pathplannerlib.auto import (
     PathPlannerPath,
 )
 from pathplannerlib.path import Translation2d
-from phoenix6 import swerve
+from phoenix6 import SignalLogger, swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 from wpimath.controller import PIDController
@@ -142,6 +142,9 @@ class KrakenRobotContainer:
         # Used for patching components in sim
         self.is_real_bot = wpilib.RobotBase.isReal()
         self.is_blue = DriverStation.getAlliance() == DriverStation.Alliance.kBlue
+
+        if not self.is_real_bot:
+            SignalLogger.stop()
 
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform

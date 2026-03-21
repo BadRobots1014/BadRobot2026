@@ -55,7 +55,7 @@ class HopperSubsystem(Subsystem):
         self.forward_limit_switch = forward_limit_switch
         self.backward_limit_switch = backward_limit_switch
 
-        self.extention_voltage = EXTENSION_VOLTAGE
+        self.extension_voltage = EXTENSION_VOLTAGE
 
         self.nt_inst = NetworkTableInstance.getDefault()
 
