@@ -15,7 +15,7 @@ from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
-class GotoAndShoot(SequentialCommandGroup):
+class GotoAndShootRoutine(SequentialCommandGroup):
     def __init__(
         self,
         _shooter: ShooterSubsystem,

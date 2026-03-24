@@ -16,7 +16,7 @@ from pathplannerlib.auto import (
     PathPlannerPath,
 )
 from pathplannerlib.path import Translation2d
-from phoenix6 import swerve
+from phoenix6 import SignalLogger, swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 from wpimath.controller import PIDController
@@ -39,9 +39,9 @@ from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
-from routines.goto_and_shoot import GotoAndShoot
-from routines.shoot_in_place import ShootInPlace
-from subsystems import kicker, pilights, shooter, talonFXIntake
+from routines.goto_and_shoot import GotoAndShootRoutine
+from routines.shoot_in_place import ShootInPlaceRoutine
+from subsystems import hopper, intake, kicker, pilights, shooter
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -143,6 +143,9 @@ class KrakenRobotContainer:
         self.is_real_bot = wpilib.RobotBase.isReal()
         self.is_blue = DriverStation.getAlliance() == DriverStation.Alliance.kBlue
 
+        if not self.is_real_bot:
+            SignalLogger.stop()
+
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
@@ -232,8 +235,11 @@ class KrakenRobotContainer:
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
 
-        self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
+        self._intake = intake.IntakeSubsystem(
             self.intakeMotor,
+        )
+
+        self._hopper = hopper.HopperSubsystem(
             self.left_pinion.get_motor_controller(),
             self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
@@ -263,11 +269,11 @@ class KrakenRobotContainer:
         # Configure commands used in auto
         NamedCommands.registerCommand(
             "ExtendAndIntake",
-            ExtendAndIntakeRoutine(self._talonIntake, self._lights),
+            ExtendAndIntakeRoutine(self._intake, self._hopper, self._lights),
         )
         NamedCommands.registerCommand(
             "RetractHopper",
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False),
+            ExtendHopperCommand(self._hopper, self._lights, extend=False),
         )
         NamedCommands.registerCommand(
             "KickerShootWhenReady",
@@ -277,7 +283,7 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
-            GotoAndShoot(
+            GotoAndShootRoutine(
                 self._shooter,
                 self._kicker,
                 self.drivetrain,
@@ -289,7 +295,9 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "jiggle shoot",
-            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights),
+            ShootInPlaceRoutine(
+                self._hopper, self._shooter, self._kicker, self._lights
+            ),
         )
 
         # Run auto builder
@@ -493,12 +501,12 @@ class KrakenRobotContainer:
 
         # Extend hopper Triangle (HOLD)
         self._primary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
         # Retract hopper Square (HOLD)
         self._primary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
+            ExtendHopperCommand(self._hopper, self._lights, extend=False)
         )
 
         # Reset the field-centric heading on Options button press
@@ -512,11 +520,11 @@ class KrakenRobotContainer:
 
         # manual extend
         self._auxiliary_controller.povUp().whileTrue(
-            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=True)
+            ManualExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
         # manual retract
         self._auxiliary_controller.povDown().whileTrue(
-            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=False)
+            ManualExtendHopperCommand(self._hopper, self._lights, extend=False)
         )
 
         # Spin up shooter L2
@@ -531,7 +539,7 @@ class KrakenRobotContainer:
             R2_BUTTON,
             "Run kicker wheel when ready",
         ).whileTrue(
-            GotoAndShoot(
+            GotoAndShootRoutine(
                 self._shooter,
                 self._kicker,
                 self.drivetrain,
@@ -551,7 +559,7 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             R1_BUTTON, "Run kicker wheel inverted"
         ).whileTrue(
-            ShootInPlace(self._talonIntake, self._shooter, self._kicker, self._lights)
+            ShootInPlaceRoutine(self._hopper, self._shooter, self._kicker, self._lights)
         )
 
         # # Jiggle L1
@@ -565,20 +573,24 @@ class KrakenRobotContainer:
 
         # Extend hopper Triangle (HOLD)
         self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
         # Retract hopper Square (HOLD)
         self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
+            ExtendHopperCommand(self._hopper, self._lights, extend=False)
         )
 
         # Intake wheel in (TOGGLE)
-        intake_wheel_in = ExtendAndIntakeRoutine(self._talonIntake, self._lights)
+        intake_wheel_in = ExtendAndIntakeRoutine(
+            self._intake, self._hopper, self._lights
+        )
         self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
 
         # Intake wheel dump (TOGGLE)
-        intake_wheel_out = DumpRoutine(self._talonIntake, self._kicker, self._lights)
+        intake_wheel_out = DumpRoutine(
+            self._intake, self._hopper, self._kicker, self._lights
+        )
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode
@@ -659,7 +671,7 @@ class KrakenRobotContainer:
         """
         command: commands2.Command = self._auto_chooser.getSelected()
         return command.andThen(
-            ShootInPlace(
-                self._talonIntake, self._shooter, self._kicker, self._lights
+            ShootInPlaceRoutine(
+                self._hopper, self._shooter, self._kicker, self._lights
             ).withTimeout(10)
         )

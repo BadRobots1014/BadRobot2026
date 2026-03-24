@@ -1,7 +1,7 @@
 import commands2
 
 import robot
-from subsystems.talonFXIntake import TalonIntakeSubsystem
+from subsystems.intake import IntakeSubsystem
 
 INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
@@ -11,7 +11,7 @@ HALF_OUT = 1
 
 
 class RunIntakeCommand(commands2.Command):
-    def __init__(self, intake: TalonIntakeSubsystem, dump: bool):
+    def __init__(self, intake: IntakeSubsystem, dump: bool):
         super().__init__()
         self.addRequirements(intake)
         self.intake = intake
@@ -30,7 +30,7 @@ class RunIntakeCommand(commands2.Command):
             self.intake.set_intake_voltage(DUMP_VOLTAGE)
 
     def isFinished(self) -> bool:
-        return False  # self.intake.intake_motor.get_encoder_position() <= HALF_OUT
+        return False
 
     def end(self, interrupted: bool) -> None:
         self.intake.set_intake_voltage(0)
