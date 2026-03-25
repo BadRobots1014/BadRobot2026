@@ -7,6 +7,11 @@ class BangBangShootCommand(commands2.Command):
     shooter: ShooterSubsystem
 
     def __init__(self, shooter: ShooterSubsystem, velocity: float | None):
+        """
+        Apply Bang algorithm to maintain shooter rpm (velocity)
+
+        :param velocity: desired rpm to maintain. Defaults to shooter.shoot_velocity
+        """
         super().__init__()
         self.shooter = shooter
         self.addRequirements(shooter)
