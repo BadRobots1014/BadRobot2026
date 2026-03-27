@@ -28,14 +28,3 @@ requires = [
     "robotpy-navx",
     "robotpy-pathplannerlib"
 ]
-
-## These poetry settings are only used for managing dependencies on dev machines. RobotPy does not evaluate them.
-
-[tool.poetry]
-package-mode = false
-
-[tool.poetry.dependencies]
-python = "3.14.*"  # Pinned to the version that will be on the RIO / supported by robotpy
-robotpy = "^2026.2.2"
-
-[tool.poetry.group.dev.dependencies]
