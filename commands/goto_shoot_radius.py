@@ -21,6 +21,11 @@ class GotoShootRadius(Command):
         drive_pid: PIDController,
         rotate_pid: PIDController,
     ) -> None:
+        """
+        Attempt to maintain THRESHOLD distance from `target_point`
+
+        :param target_point: WPILib position (blue centered) of desired location.
+        """
         self.swerve_subsystem = swerve_subsystem
         self.shooter = shooter
         self.target_point = target_point
