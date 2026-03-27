@@ -12,10 +12,6 @@ from hardware.impl.motor_controller_config import (
     MotorControllerIdleMode,
 )
 
-UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
-JAM_TIME = 1  # time to be considered jammed in seconds
-JAM_RPM = 50  # rpm threshold to be considered jammed
-
 SHOOTER_VELOCITY = 4500
 
 SHOOTER_P = 0.001
