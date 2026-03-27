@@ -184,8 +184,6 @@ class KrakenRobotContainer:
         self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
         self._lights = pilights.PiLights()
 
-        # TODO: conditional to disable limelight in sim!!
-        #
         # Initialize limelight
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
@@ -429,17 +427,12 @@ class KrakenRobotContainer:
             drive_pid=self.drive_pid,
         )
 
-        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
-        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
-
-        # Idle while the robot is disabled. This ensures the configured
-        # neutral mode is applied to the drive motors while disabled.
-        idle = swerve.requests.Idle()
-        Trigger(DriverStation.isDisabled).whileTrue(
-            self.drivetrain.apply_request(lambda: idle).ignoringDisable(
-                doesRunWhenDisabled=True
-            )
-        )
+        self._primary_controller.create_button(
+            L1_BUTTON, "Strafe Left Around Tower"
+        ).whileTrue(strafe_l)
+        self._primary_controller.create_button(
+            R1_BUTTON, "Strafe Right Around Tower"
+        ).whileTrue(strafe_r)
 
         # Face target
         self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
@@ -492,19 +485,28 @@ class KrakenRobotContainer:
         )
 
         # Extend hopper Triangle (HOLD)
-        self._primary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=True)
-        )
+        self._primary_controller.create_button(
+            TRIANGLE_BUTTON, "Extend Hopper"
+        ).whileTrue(ExtendHopperCommand(self._hopper, self._lights, extend=True))
 
         # Retract hopper Square (HOLD)
-        self._primary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=False)
-        )
+        self._primary_controller.create_button(
+            SQUARE_BUTTON, "Retract Hopper"
+        ).whileTrue(ExtendHopperCommand(self._hopper, self._lights, extend=False))
 
         # Reset the field-centric heading on Options button press
-        self._primary_controller.button(OPTIONS_BUTTON).onTrue(
+        self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
                 commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
+            )
+        )
+
+        # Idle while the robot is disabled. This ensures the configured
+        # neutral mode is applied to the drive motors while disabled.
+        idle = swerve.requests.Idle()
+        Trigger(DriverStation.isDisabled).whileTrue(
+            self.drivetrain.apply_request(lambda: idle).ignoringDisable(
+                doesRunWhenDisabled=True
             )
         )
 
@@ -520,7 +522,7 @@ class KrakenRobotContainer:
         )
 
         # Spin up shooter L2
-        self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
+        self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
             KickerShootWhenReadyCommand(
                 self._shooter, self._kicker, self._lights, rpm=3300
             ),
