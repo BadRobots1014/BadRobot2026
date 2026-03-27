@@ -9,7 +9,7 @@ from subsystems.pilights import PiLights
 
 class RetractInRoutine(ParallelCommandGroup):
     """
-    Extends the hopper and runs the intake. Can be used to intake or dump depending on dump argument(False to intake, True to dump)
+    Retract the hopper and runs the intake.
     """
 
     def __init__(
