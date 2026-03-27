@@ -25,7 +25,6 @@ from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
-from commands.face_target import FaceTargetCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.shoot_kicker import ShootKickerCommand
@@ -433,20 +432,6 @@ class KrakenRobotContainer:
         self._primary_controller.create_button(
             R1_BUTTON, "Strafe Right Around Tower"
         ).whileTrue(strafe_r)
-
-        # Face target
-        self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
-            FaceTargetCommand(
-                self.drivetrain,
-                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
-                self._drive,
-                self._primary_controller,
-                MAX_SPEED,
-                MAX_ANGULAR_SPEED,
-                LEFT_Y_AXIS,
-                LEFT_X_AXIS,
-            )
-        )
 
         # POV up - drive forward
         self._primary_controller.povUp().whileTrue(
