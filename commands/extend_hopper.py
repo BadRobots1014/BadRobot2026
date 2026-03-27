@@ -21,7 +21,12 @@ class ExtendHopperCommand(commands2.Command):
         positive_voltage: float | None = None,
         positive_distance_limit: float | None = None,
     ):
-        # Cannot pass in a negative voltage
+        """
+        Extends or Retracts the hopper until hardware limit / distance limit hit.
+
+        :param extend: whether to extend or retract hopper
+        :param positive_voltage:
+        """
         super().__init__()
         self.hopper = hopper
         self.lights = lights
@@ -84,8 +89,8 @@ class ExtendHopperCommand(commands2.Command):
         # Finish on distance travelled
         if self.distance_limit is not None:
             distance = self.hopper.get_extension_position() - self.intiial_pos
-            direction = 1 if self.extend else -1
-            if distance * direction > self.distance_limit:
+            distance_magnitude = abs(distance)
+            if distance_magnitude > self.distance_limit:
                 return True
         # Finish on limit
         if (self.extend and self.hopper.forward_extended()) or (
