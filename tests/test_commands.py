@@ -4,13 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from commands.bang_bang_shoot import BangBangShootCommand
-from commands.climb import ClimbCommand
 from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_intake import DUMP_VOLTAGE, HALF_OUT, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
-from commands.spin_shooter import SHOOT_VELOCITY, SpinShooterCommand
+from commands.spin_shooter import SpinShooterCommand
 from subsystems.climber import ClimberSubsystem
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
@@ -49,33 +47,12 @@ def lights() -> PiLights:
     return MagicMock()
 
 
-# --- BangBangShootCommand ---
-
-
-def test_bang_bang_applies_full_voltage_when_below_target(
-    shooter: ShooterSubsystem,
-) -> None:
-    shooter.shoot_velocity = 4500
-    shooter.shoot_encoder.get_velocity.return_value = 3000.0
-    BangBangShootCommand(shooter, None).execute()
-    shooter.shoot_motor.set_voltage.assert_called_once_with(12)
-
-
-def test_bang_bang_applies_zero_when_at_or_above_target(
-    shooter: ShooterSubsystem,
-) -> None:
-    shooter.shoot_velocity = 4500
-    shooter.shoot_encoder.get_velocity.return_value = 5000.0
-    BangBangShootCommand(shooter, None).execute()
-    shooter.shoot_motor.set_voltage.assert_called_once_with(0)
-
-
 # --- ShootCommand ---
 
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
-    SpinShooterCommand(shooter, SHOOT_VELOCITY).execute()
-    shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOT_VELOCITY)
+    SpinShooterCommand(shooter, 4000).execute()
+    shooter.shoot_motor.set_velocity.assert_called_once_with(4000)
 
 
 # --- ShootKickerCommand ---
@@ -127,26 +104,6 @@ def test_retract_not_finished_without_backward_limit(
     assert ExtendHopperCommand(hopper, lights, extend=False).isFinished() is False
 
 
-# --- ClimbCommand ---
-
-
-def test_climb_extend_applies_positive_voltage(climber: ClimberSubsystem) -> None:
-    ClimbCommand(climber, extend=True).execute()
-    voltage = climber.climb_motor.set_voltage.call_args[0][0]
-    assert voltage > 0
-
-
-def test_climb_retract_applies_negative_voltage(climber: ClimberSubsystem) -> None:
-    ClimbCommand(climber, extend=False).execute()
-    voltage = climber.climb_motor.set_voltage.call_args[0][0]
-    assert voltage < 0
-
-
-def test_climb_end_stops_motor(climber: ClimberSubsystem) -> None:
-    ClimbCommand(climber).end(interrupted=False)
-    climber.climb_motor.set_voltage.assert_called_once_with(0)
-
-
 # --- ShootKickerCommand (test mode) ---
 
 
@@ -168,7 +125,7 @@ def test_extend_hopper_execute_extends_with_positive_voltage(
     hopper.forward_limit_switch.get_state.return_value = False
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, lights, extend=True, positive_voltage=4).execute()
+        ExtendHopperCommand(hopper, lights, extend=True, extension_voltage=4).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == 4
 
@@ -179,7 +136,7 @@ def test_extend_hopper_execute_retracts_with_negative_voltage(
     hopper.forward_limit_switch.get_state.return_value = False
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, lights, extend=False, positive_voltage=4).execute()
+        ExtendHopperCommand(hopper, lights, extend=False, extension_voltage=4).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == -4
 
