@@ -9,7 +9,6 @@ from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
 from commands.spin_shooter import SpinShooterCommand
-from subsystems.climber import ClimberSubsystem
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
@@ -35,11 +34,6 @@ def intake() -> IntakeSubsystem:
 @pytest.fixture
 def hopper() -> HopperSubsystem:
     return HopperSubsystem(MagicMock(), MagicMock(), MagicMock(), MagicMock())
-
-
-@pytest.fixture
-def climber() -> ClimberSubsystem:
-    return ClimberSubsystem(MagicMock())
 
 
 @pytest.fixture
