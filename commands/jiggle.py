@@ -21,8 +21,8 @@ class JiggleCommand(commands2.RepeatCommand):
                 hopper,
                 lights,
                 extend=True,
-                positive_voltage=JIGGLE_VOLTAGE,
-                positive_distance_limit=JIGGLE_DISTANCE,
+                extension_voltage=JIGGLE_VOLTAGE,
+                max_distance_limit=JIGGLE_DISTANCE,
             )
             .withTimeout(TIMEOUT)
             .andThen(commands2.waitcommand.WaitCommand(WAIT_TIME))
@@ -31,8 +31,8 @@ class JiggleCommand(commands2.RepeatCommand):
                     hopper,
                     lights,
                     extend=True,
-                    positive_voltage=JIGGLE_VOLTAGE,
-                    positive_distance_limit=JIGGLE_DISTANCE,
+                    extension_voltage=JIGGLE_VOLTAGE,
+                    max_distance_limit=JIGGLE_DISTANCE,
                 ).withTimeout(TIMEOUT + 0.01)
             )
             .andThen(commands2.waitcommand.WaitCommand(WAIT_TIME))
