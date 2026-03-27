@@ -4,7 +4,7 @@ from subsystems import pilights
 from subsystems.hopper import HopperSubsystem
 
 
-class ManualExtendHopperCommand(Command):
+class ExtendHopperCommand(Command):
     def __init__(
         self,
         hopper: HopperSubsystem,

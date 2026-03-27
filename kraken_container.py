@@ -24,8 +24,8 @@ import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
+from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.run_kicker import RunKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -478,13 +478,13 @@ class KrakenRobotContainer:
 
         # manual extend
         self._auxiliary_controller.povUp().whileTrue(
-            ManualExtendHopperCommand(self._hopper, self._lights, extend=True)
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
         if robot.TEST_MODE_ENABLED:
             # manual retract
             self._auxiliary_controller.povDown().whileTrue(
-                ManualExtendHopperCommand(self._hopper, self._lights, extend=False)
+                ExtendHopperCommand(self._hopper, self._lights, extend=False)
             )
 
         # Spin up shooter L2

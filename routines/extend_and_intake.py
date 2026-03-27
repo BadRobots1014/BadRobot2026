@@ -1,6 +1,6 @@
 from commands2 import ParallelCommandGroup, SequentialCommandGroup
 
-from commands.manual_extend_hopper import ManualExtendHopperCommand
+from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
@@ -18,7 +18,7 @@ class ExtendAndIntakeRoutine(ParallelCommandGroup):
         super().__init__()
         self.addCommands(
             SequentialCommandGroup(
-                ManualExtendHopperCommand(hopper, lights, extend=True),
+                ExtendHopperCommand(hopper, lights, extend=True),
                 RunIntakeCommand(intake, dump=False),
             )
         )
