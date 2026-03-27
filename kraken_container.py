@@ -36,7 +36,7 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
+from hardware.sim_hardware import DummyLED, DummyLimitSwitch
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
@@ -195,10 +195,6 @@ class KrakenRobotContainer:
 
         self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
-
-        if not self.is_real_bot:
-            patch_limelight("limelight-four")
-            patch_limelight("limelight")
 
         # limit switches
         self.forward_limit_switch = (

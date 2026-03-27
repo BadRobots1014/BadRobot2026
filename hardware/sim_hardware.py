@@ -1,6 +1,5 @@
 # Physical hardware / configuration that is patched out in simulation
 
-from ntcore import NetworkTableInstance
 from wpilib import Color, LEDPattern
 
 from hardware.base.ledcontroller import LEDController
@@ -45,14 +44,3 @@ class DummyLimitSwitch(LimitSwitch):
 
     def get_state(self) -> bool:
         return self.default_state
-
-
-def patch_limelight(limelight_name: str) -> None:
-    """Disable Limelight for pose estimation"""
-    nt_inst = NetworkTableInstance.getDefault()
-    nt_table = nt_inst.getTable(limelight_name)
-
-    # tv = target valid
-    tv_sub = nt_table.getIntegerTopic("tv").publish()
-    # Pose estimation won't be used if no valid targets
-    tv_sub.set(0)
