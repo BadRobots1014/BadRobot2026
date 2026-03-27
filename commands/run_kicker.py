@@ -1,6 +1,5 @@
 import commands2
 
-import robot
 from subsystems.kicker import KickerSubsystem
 
 KICKER_VOLTAGE = 3
@@ -21,8 +20,6 @@ class RunKickerCommand(commands2.Command):
     def execute(self) -> None:
         if self.invert:
             self.kicker.set_kick_voltage(-KICKER_VOLTAGE)
-        elif robot.TEST_MODE_ENABLED:
-            self.kicker.set_kick_shoot_voltage_from_networktables()
         else:
             self.kicker.set_kick_voltage(KICKER_VOLTAGE)
 
