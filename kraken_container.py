@@ -322,10 +322,6 @@ class KrakenRobotContainer:
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
-        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
-        SmartDashboard.putData(
-            "Command Scheduler", commands2.CommandScheduler.getInstance()
-        )
 
         # TODO: move publishing stream url to limelight
         self.camera = HttpCamera("LimelightPublisher", "http://10.10.14.12:5801")
