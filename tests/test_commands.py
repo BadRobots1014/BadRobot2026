@@ -7,8 +7,8 @@ import pytest
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
-from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand
-from commands.spin_shooter import SpinShooterCommand
+from commands.run_kicker import KICKER_VOLTAGE, RunKickerCommand
+from commands.run_shooter import RunShooterCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
@@ -45,7 +45,7 @@ def lights() -> PiLights:
 
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
-    SpinShooterCommand(shooter, 4000).execute()
+    RunShooterCommand(shooter, 4000).execute()
     shooter.shoot_motor.set_velocity.assert_called_once_with(4000)
 
 
@@ -55,7 +55,7 @@ def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> No
 def test_shoot_kicker_inverted_applies_negative_voltage(
     kicker: KickerSubsystem,
 ) -> None:
-    ShootKickerCommand(kicker, invert=True).execute()
+    RunKickerCommand(kicker, invert=True).execute()
     kicker.kick_motor.set_voltage.assert_called_once_with(-KICKER_VOLTAGE)
 
 
@@ -63,7 +63,7 @@ def test_shoot_kicker_normal_applies_positive_voltage(
     kicker: KickerSubsystem,
 ) -> None:
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ShootKickerCommand(kicker, invert=False).execute()
+        RunKickerCommand(kicker, invert=False).execute()
     kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
 
 
@@ -106,7 +106,7 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
 ) -> None:
     kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ShootKickerCommand(kicker, invert=False).execute()
+        RunKickerCommand(kicker, invert=False).execute()
     kicker.kick_motor.set_voltage.assert_called_once_with(3.5)
 
 

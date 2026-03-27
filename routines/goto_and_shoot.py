@@ -8,7 +8,7 @@ from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.spin_shooter import SpinShooterCommand
+from commands.run_shooter import RunShooterCommand
 from subsystems import pilights
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
@@ -35,7 +35,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                SpinShooterCommand(_shooter, rpm=None),
+                RunShooterCommand(_shooter, rpm=None),
             ),
             ParallelCommandGroup(
                 GotoShootRadius(

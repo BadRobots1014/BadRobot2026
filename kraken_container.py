@@ -26,7 +26,7 @@ from wpimath.units import rotationsToRadians
 
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
-from commands.shoot_kicker import ShootKickerCommand
+from commands.run_kicker import RunKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -517,7 +517,7 @@ class KrakenRobotContainer:
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
-            ShootKickerCommand(self._kicker, invert=False)
+            RunKickerCommand(self._kicker, invert=False)
         )
 
         # Intake wheel in (TOGGLE)

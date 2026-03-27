@@ -3,7 +3,7 @@ import commands2
 from subsystems.shooter import ShooterSubsystem
 
 
-class SpinShooterCommand(commands2.Command):
+class RunShooterCommand(commands2.Command):
     shooter: ShooterSubsystem
 
     def __init__(self, shooter: ShooterSubsystem, rpm: int | None):

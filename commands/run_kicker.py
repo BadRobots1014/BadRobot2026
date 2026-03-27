@@ -6,7 +6,7 @@ from subsystems.kicker import KickerSubsystem
 KICKER_VOLTAGE = 3
 
 
-class ShootKickerCommand(commands2.Command):
+class RunKickerCommand(commands2.Command):
     kicker: KickerSubsystem
 
     def __init__(self, kicker: KickerSubsystem, invert: bool):

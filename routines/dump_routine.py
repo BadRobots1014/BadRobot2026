@@ -7,7 +7,7 @@ from commands2 import (
 
 from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
-from commands.shoot_kicker import ShootKickerCommand
+from commands.run_kicker import RunKickerCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
@@ -33,9 +33,9 @@ class DumpRoutine(SequentialCommandGroup):
                 RunIntakeCommand(intake, dump=True),
                 RepeatCommand(
                     SequentialCommandGroup(
-                        ShootKickerCommand(kicker, invert=False).withTimeout(0.2),
+                        RunKickerCommand(kicker, invert=False).withTimeout(0.2),
                         WaitCommand(0.2),
-                        ShootKickerCommand(kicker, invert=True).withTimeout(0.2),
+                        RunKickerCommand(kicker, invert=True).withTimeout(0.2),
                         WaitCommand(0.2),
                     )
                 ),
