@@ -189,7 +189,7 @@ class KrakenRobotContainer:
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.ll_table = self.nt_instance.getTable("limelight")
 
-        self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
+        self.rejected_sub = self.ll_table.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
 
         # limit switches
