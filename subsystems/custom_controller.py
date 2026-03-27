@@ -12,6 +12,7 @@ button_to_string = {
     7: "L2",
     8: "R2",
     9: "SHARE",
+    10: "OPTION",
 }
 
 
