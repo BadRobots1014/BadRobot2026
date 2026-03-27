@@ -3,7 +3,6 @@ import threading
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
-import wpilib
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
@@ -11,10 +10,6 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
-
-UNJAM_SPIN_TIME = 1  # time to spin to unjam in seconds
-JAM_TIME = 1  # time to be considered jammed in seconds
-JAM_RPM = 50  # rpm threshold to be considered jammed
 
 KICKER_SHOOT_VOLTAGE = 4.0
 KICKER_DUMP_VOLTAGE = 4.0
@@ -118,30 +113,6 @@ class KickerSubsystem(Subsystem):
 
     def reset_kick(self) -> None:
         self.kick_encoder.set_position(0)
-
-    def kick_unjam(self) -> None:
-        # first if checks for first instance of jamming
-        if self.time_of_stall == -1 and self.kick_encoder.get_velocity() < JAM_RPM:
-            self.time_of_stall = wpilib.RobotController.getFPGATime()
-            return
-        # gets current time jammed
-        time_stalled = wpilib.RobotController.getFPGATime() - self.time_of_stall
-        # check if jammed for more than once second
-        if (
-            self.time_of_stall != -1
-            and self.kick_encoder.get_velocity() < JAM_RPM
-            and time_stalled > JAM_TIME
-        ):
-            # start unjam process and track time
-            self.start_unjam = wpilib.RobotController.getFPGATime()
-            self.kick_motor.set_velocity(-self.kick_shoot_voltage)
-            return
-        time_unjamming = wpilib.RobotController.getFPGATime() - self.start_unjam
-        # go normal if unjamming for more than one second
-        if time_unjamming > UNJAM_SPIN_TIME:
-            self.kick_motor.set_velocity(self.kick_shoot_voltage)
-            return
-        return
 
     def periodic(self) -> None:
         # constantly checks procedure for unjam
