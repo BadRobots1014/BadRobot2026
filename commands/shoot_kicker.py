@@ -10,6 +10,9 @@ class ShootKickerCommand(commands2.Command):
     kicker: KickerSubsystem
 
     def __init__(self, kicker: KickerSubsystem, invert: bool):
+        """
+        Run the kicker motor.
+        """
         super().__init__()
         self.invert = invert
         self.kicker = kicker
