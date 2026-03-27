@@ -620,21 +620,16 @@ class KrakenRobotContainer:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
-        # self.camera_ll2.robot_orientation_set(robot_yaw)
 
         # Add vision
         cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
         reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
-
-        # cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
-        # reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
 
         reject_pose_ll4 |= (
             # OR with tv rejection
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         )
-        # reject_pose_ll2 = False
 
         self.rejected_pub.set(reject_pose_ll4)
 
@@ -644,11 +639,6 @@ class KrakenRobotContainer:
             )
 
         return None
-
-        # if not reject_pose_ll2:
-        #    self.drivetrain.add_vision_measurement(
-        #        cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
-        #    )
 
     def getAutonomousCommand(self) -> commands2.Command:
         """
