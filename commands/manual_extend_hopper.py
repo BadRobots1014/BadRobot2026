@@ -10,20 +10,17 @@ class ManualExtendHopperCommand(Command):
         hopper: HopperSubsystem,
         lights: pilights.PiLights,
         extend: bool,
-        max_distance_limit: float | None = None,
     ):
         """
         Use Network Tables to Extend / Retract hopper.
 
         :param extend: Whether to extend or retract hopper
-        :param max_distance_limit: Forced stop distance, in motor revolutions.
         """
         super().__init__()
         self.hopper = hopper
         self.lights = lights
 
         self.extend = extend
-        self.max_distance_limit = max_distance_limit
         self.intiial_pos = self.hopper.get_extension_position()
 
         self.addRequirements(hopper)
@@ -35,12 +32,6 @@ class ManualExtendHopperCommand(Command):
             self.hopper.set_retraction_voltage_from_networktable()
 
     def isFinished(self) -> bool:
-        # Finish on distance travelled
-        if self.max_distance_limit is not None:
-            distance = self.hopper.get_extension_position() - self.intiial_pos
-            distance_magnitude = abs(distance)
-            if distance_magnitude > self.max_distance_limit:
-                return True
         # Finish on limit
         if (self.extend and self.hopper.forward_extended()) or (
             not self.extend and self.hopper.backward_extended()

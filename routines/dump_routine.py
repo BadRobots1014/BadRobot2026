@@ -1,4 +1,3 @@
-from commands.extend_hopper import ExtendHopperCommand
 from commands2 import (
     ParallelCommandGroup,
     RepeatCommand,
@@ -6,6 +5,7 @@ from commands2 import (
     WaitCommand,
 )
 
+from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from subsystems.hopper import HopperSubsystem
@@ -28,7 +28,7 @@ class DumpRoutine(SequentialCommandGroup):
     ):
         super().__init__()
         self.addCommands(
-            ExtendHopperCommand(hopper, lights, extend=True),
+            ManualExtendHopperCommand(hopper, lights, extend=True),
             ParallelCommandGroup(
                 RunIntakeCommand(intake, dump=True),
                 RepeatCommand(

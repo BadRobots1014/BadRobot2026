@@ -1,9 +1,8 @@
 from commands2 import ParallelCommandGroup
-from routines.time_jiggle import TimeJiggle
-from subsystems.talonFXIntake import TalonIntakeSubsystem
 
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from subsystems.estimate_rpm import EstimateRPM
+from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
@@ -12,7 +11,7 @@ from subsystems.shooter import ShooterSubsystem
 class ShootInPlace(ParallelCommandGroup):
     def __init__(
         self,
-        talon_intake: TalonIntakeSubsystem,
+        talon_intake: IntakeSubsystem,
         shooter: ShooterSubsystem,
         kicker: KickerSubsystem,
         lights: PiLights,
@@ -23,5 +22,4 @@ class ShootInPlace(ParallelCommandGroup):
             KickerShootWhenReadyCommand(
                 shooter, kicker, lights, estimate_rpm.calculate_rpm()
             ),
-            TimeJiggle(talon_intake, lights),
         )

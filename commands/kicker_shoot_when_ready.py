@@ -12,7 +12,7 @@ class KickerShootWhenReadyCommand(commands2.Command):
         shooter: ShooterSubsystem,
         kicker: KickerSubsystem,
         lights: pilights.PiLights,
-        rpm: int | None,
+        rpm: int | float | None,
     ) -> None:
         """
         Spin up shooter to desired `rpm`. Once reached, run kicker motor.

@@ -6,9 +6,6 @@ from subsystems.intake import IntakeSubsystem
 INTAKE_VOLTAGE = 4.5
 DUMP_VOLTAGE = -5
 
-# TODO: Find half of total encoder rotation
-HALF_OUT = 1
-
 
 class RunIntakeCommand(commands2.Command):
     def __init__(self, intake: IntakeSubsystem, dump: bool):
