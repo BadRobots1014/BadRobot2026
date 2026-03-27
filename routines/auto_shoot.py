@@ -8,7 +8,7 @@ from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
 
 
-class ShootInPlace(ParallelCommandGroup):
+class ShootInPlaceRoutine(ParallelCommandGroup):
     def __init__(
         self,
         talon_intake: IntakeSubsystem,
