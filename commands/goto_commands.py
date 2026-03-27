@@ -1,7 +1,8 @@
+from collections.abc import Callable
 import math
 
 from commands2 import Command
-from pathplannerlib.auto import AutoBuilder, PathConstraints
+from pathplannerlib.auto import AutoBuilder, PathConstraints, PathPlannerPath
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 
 from subsystems import pilights
@@ -9,6 +10,10 @@ from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 # TODO: arbitrary
 DESIRED_RADIUS_METER = 5
+
+MIDPOINT_Y = 4
+BLUE_TRENCH_X = 4.5
+RED_TRENCH_X = 11.9
 
 
 def goto_shoot_pos(
@@ -52,3 +57,23 @@ def goto_shoot_pos(
     command = AutoBuilder.pathfindToPose(goal_pos, path_constraints)
 
     return command
+
+
+def go_through_trench(
+    is_blue: bool,
+    robot_pose_supplier: Callable[[], Pose2d],
+    constraints: PathConstraints,
+) -> Command:
+    trench_x = BLUE_TRENCH_X if is_blue else RED_TRENCH_X
+    pose_left_of_midpoint = (robot_pose_supplier().Y() < MIDPOINT_Y) ^ is_blue
+    pose_in_neutral_zone = (robot_pose_supplier().X() < trench_x) ^ is_blue
+
+    if pose_in_neutral_zone:
+        path = PathPlannerPath.fromPathFile("Trench Left Out")
+    else:
+        path = PathPlannerPath.fromPathFile("Trench Left In")
+
+    if not pose_left_of_midpoint:
+        path = path.mirrorPath()
+
+    return AutoBuilder.pathfindThenFollowPath(path, constraints)

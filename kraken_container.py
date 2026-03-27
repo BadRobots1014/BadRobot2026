@@ -26,6 +26,7 @@ from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
 from commands.face_target import FaceTargetCommand
+from commands.goto_commands import go_through_trench
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.shoot_kicker import ShootKickerCommand
@@ -78,7 +79,7 @@ TRACKPAD = 14
 # drive speeds/limits
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
-MAX_ACCELERATION = 3  # m/s^2
+MAX_ACCELERATION = 15  # m/s^2
 NUDGE_SPEED = 0.4 * MAX_SPEED
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
@@ -257,6 +258,9 @@ class KrakenRobotContainer:
             CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
         )
 
+        # Run auto builder
+        self.drivetrain._configure_auto_builder()
+
         # Configure the button bindings
         self.configureButtonBindings()
 
@@ -293,9 +297,6 @@ class KrakenRobotContainer:
                 self._hopper, self._shooter, self._kicker, self._lights
             ),
         )
-
-        # Run auto builder
-        self.drivetrain._configure_auto_builder()
 
         # Configure commands used in auto that require AutoBuilder
         NamedCommands.registerCommand(
@@ -389,14 +390,6 @@ class KrakenRobotContainer:
         # PRIMARY CONTROLLER ---------------------------------------------------------------------------
 
         # Slow mode (hold)
-        # Test pathfinding
-        # self._primary_controller.button(1).onTrue(
-        #     AutoBuilder.pathfindToPose(
-        #         Pose2d(1, 1, Rotation2d.fromDegrees(180)),
-        #         PATHFINDING_CONSTRAINTS,
-        #         goal_end_vel=0,
-        #     )
-        # )
 
         # toggle slow mode
         self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
@@ -586,6 +579,19 @@ class KrakenRobotContainer:
             self._intake, self._hopper, self._kicker, self._lights
         )
         self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
+
+        # Pathfind through nearest trench
+        # TODO ask drivers what to bind to
+        def pose_supplier() -> Pose2d:
+            return self.drivetrain.get_state().pose
+
+        self._auxiliary_controller.button(PADDLE_LEFT).whileTrue(
+            commands2.DeferredCommand(
+                lambda: go_through_trench(
+                    self.is_blue, pose_supplier, PATHFINDING_CONSTRAINTS
+                )
+            )
+        )
 
         # Party Mode
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
