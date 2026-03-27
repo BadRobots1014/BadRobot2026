@@ -2,9 +2,9 @@
 
 from unittest.mock import MagicMock, patch
 
+from commands.extend_hopper import ExtendHopperCommand
 import pytest
 
-from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_intake import DUMP_VOLTAGE, HALF_OUT, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.shoot_kicker import KICKER_VOLTAGE, ShootKickerCommand

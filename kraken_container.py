@@ -24,7 +24,6 @@ import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
-from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.manual_extend_hopper import ManualExtendHopperCommand
 from commands.shoot_kicker import ShootKickerCommand
@@ -36,10 +35,10 @@ from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch
+import robot
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
-from routines.shoot_in_place import ShootInPlaceRoutine
 from subsystems import hopper, intake, kicker, pilights, shooter
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
@@ -265,10 +264,6 @@ class KrakenRobotContainer:
             ExtendAndIntakeRoutine(self._intake, self._hopper, self._lights),
         )
         NamedCommands.registerCommand(
-            "RetractHopper",
-            ExtendHopperCommand(self._hopper, self._lights, extend=False),
-        )
-        NamedCommands.registerCommand(
             "KickerShootWhenReady",
             KickerShootWhenReadyCommand(
                 self._shooter, self._kicker, self._lights, 3500
@@ -284,12 +279,6 @@ class KrakenRobotContainer:
                 self.drive_pid,
                 self.rotate_pid,
                 BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
-            ),
-        )
-        NamedCommands.registerCommand(
-            "jiggle shoot",
-            ShootInPlaceRoutine(
-                self._hopper, self._shooter, self._kicker, self._lights
             ),
         )
 
@@ -469,16 +458,6 @@ class KrakenRobotContainer:
             )
         )
 
-        # Extend hopper Triangle (HOLD)
-        self._primary_controller.create_button(
-            TRIANGLE_BUTTON, "Extend Hopper"
-        ).whileTrue(ExtendHopperCommand(self._hopper, self._lights, extend=True))
-
-        # Retract hopper Square (HOLD)
-        self._primary_controller.create_button(
-            SQUARE_BUTTON, "Retract Hopper"
-        ).whileTrue(ExtendHopperCommand(self._hopper, self._lights, extend=False))
-
         # Reset the field-centric heading on Options button press
         self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
@@ -501,10 +480,12 @@ class KrakenRobotContainer:
         self._auxiliary_controller.povUp().whileTrue(
             ManualExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
-        # manual retract
-        self._auxiliary_controller.povDown().whileTrue(
-            ManualExtendHopperCommand(self._hopper, self._lights, extend=False)
-        )
+
+        if robot.TEST_MODE_ENABLED:
+            # manual retract
+            self._auxiliary_controller.povDown().whileTrue(
+                ManualExtendHopperCommand(self._hopper, self._lights, extend=False)
+            )
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
@@ -535,29 +516,8 @@ class KrakenRobotContainer:
         #     "Run kicker wheel",
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
-        self._auxiliary_controller.create_button(
-            R1_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(
-            ShootInPlaceRoutine(self._hopper, self._shooter, self._kicker, self._lights)
-        )
-
-        # # Jiggle L1
-        # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
-        #     JiggleCommand(self._talonIntake, self._lights)
-        # )
-
         self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
             ShootKickerCommand(self._kicker, invert=False)
-        )
-
-        # Extend hopper Triangle (HOLD)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=True)
-        )
-
-        # Retract hopper Square (HOLD)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=False)
         )
 
         # Intake wheel in (TOGGLE)
@@ -632,8 +592,4 @@ class KrakenRobotContainer:
         :returns: the command to run in autonomous
         """
         command: commands2.Command = self._auto_chooser.getSelected()
-        return command.andThen(
-            ShootInPlaceRoutine(
-                self._hopper, self._shooter, self._kicker, self._lights
-            ).withTimeout(10)
-        )
+        return command

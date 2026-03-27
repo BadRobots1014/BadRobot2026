@@ -1,6 +1,6 @@
+from commands.extend_hopper import ExtendHopperCommand
 from commands2 import ParallelCommandGroup, SequentialCommandGroup
 
-from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem

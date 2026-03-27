@@ -1,3 +1,4 @@
+from commands.extend_hopper import ExtendHopperCommand
 from commands2 import (
     ParallelCommandGroup,
     RepeatCommand,
@@ -5,7 +6,6 @@ from commands2 import (
     WaitCommand,
 )
 
-from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from commands.shoot_kicker import ShootKickerCommand
 from subsystems.hopper import HopperSubsystem

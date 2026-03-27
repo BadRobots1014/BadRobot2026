@@ -1,9 +1,12 @@
-from sklearn.linear_model import LinearRegression
+from math import sqrt
+
 from commands2 import Subsystem
-from hardware.impl.limelight import Limelight
 from ntcore import NetworkTableInstance
 import numpy as np
-from math import sqrt
+from sklearn.linear_model import LinearRegression
+
+from hardware.impl.limelight import Limelight
+
 
 class EstimateRPM(Subsystem):
     def __init__(self, limelight: Limelight):
@@ -25,7 +28,7 @@ class EstimateRPM(Subsystem):
         self.distance_pub = self.distance_topic.publish()
         self.distance_pub.set(self.score_distance)
 
-    def calculate_rpm(self):
+    def calculate_rpm(self) -> float:
         target_pose = self.limelight.target_pose_sub.get()
         target_distance = sqrt(target_pose.x**2 + target_pose.y**2)
 
