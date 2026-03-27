@@ -3,7 +3,7 @@ from commands2 import (
     ParallelDeadlineGroup,
     SequentialCommandGroup,
 )
-from wpimath._controls._controls.controller import PIDController
+from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
