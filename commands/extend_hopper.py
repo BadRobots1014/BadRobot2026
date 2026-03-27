@@ -40,6 +40,7 @@ class ExtendHopperCommand(commands2.Command):
         SmartDashboard.putData("Hopper PID", self.pid)
 
     def execute(self) -> None:
+        # Test Mode Logic
         if not robot.TEST_MODE_ENABLED:
             if self.voltage is None:
                 output = self.pid.calculate(
@@ -72,8 +73,10 @@ class ExtendHopperCommand(commands2.Command):
                     if self.extend
                     else pilights.LEDState.HOPPER_RETRACT
                 )
+        # Normal Extend Logic
         elif self.extend:
             self.hopper.set_extension_voltage_from_networktable()
+        # Normal Retract Logic
         else:
             self.hopper.set_retraction_voltage_from_networktable()
 
@@ -81,7 +84,8 @@ class ExtendHopperCommand(commands2.Command):
         # Finish on distance travelled
         if self.distance_limit is not None:
             distance = self.hopper.get_extension_position() - self.intiial_pos
-            if distance * (-1 if not self.extend else 1) > self.distance_limit:
+            direction = 1 if self.extend else -1
+            if distance * direction > self.distance_limit:
                 return True
         # Finish on limit
         if (self.extend and self.hopper.forward_extended()) or (
