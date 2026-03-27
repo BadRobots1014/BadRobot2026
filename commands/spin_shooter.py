@@ -2,8 +2,6 @@ import commands2
 
 from subsystems.shooter import ShooterSubsystem
 
-SHOOT_VELOCITY = 4500
-
 
 class SpinShooterCommand(commands2.Command):
     shooter: ShooterSubsystem
