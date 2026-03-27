@@ -594,13 +594,6 @@ class KrakenRobotContainer:
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
 
-        # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
-        # )
-        # self._joystick.button(SQUARE_BUTTON).whileTrue(
-        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
-        # )
-
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
         # (self._joystick.button(8) & self._joystick.button(3)).whileTrue(
