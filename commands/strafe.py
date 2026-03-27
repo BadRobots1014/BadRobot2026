@@ -26,10 +26,12 @@ class Strafe(commands2.Command):
         rotate_pid: PIDController,
     ):
         super().__init__()
+
         self.addRequirements(swerve_subsystem)
-        # make sure to add requirements to parent subsystem here
+
         self.swerve_subsystem = swerve_subsystem
         self.shooter_subsystem = shooter
+        self.lights = lights
         self.clockwise = clockwise
         self.target_point = target_point
         self._drive = (
@@ -47,8 +49,6 @@ class Strafe(commands2.Command):
 
         wpilib.SmartDashboard.putData("Strafe rotate pid", self.rotate_pid)
         wpilib.SmartDashboard.putData("Strafe radical pid", self.drive_pid)
-
-        self.lights = lights
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
