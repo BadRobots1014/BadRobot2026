@@ -1,3 +1,5 @@
+import threading
+
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
@@ -69,6 +71,8 @@ class HopperSubsystem(Subsystem):
         self.extension_voltage_sub = self.extension_voltage_topic.subscribe(
             EXTENSION_VOLTAGE
         )
+
+        self.lock = threading.Lock()
 
         def _on_extension_voltage_changed(event: ntcore.Event) -> None:
             with self.lock:
