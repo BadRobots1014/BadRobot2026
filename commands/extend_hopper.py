@@ -18,14 +18,15 @@ class ExtendHopperCommand(commands2.Command):
         hopper: HopperSubsystem,
         lights: pilights.PiLights,
         extend: bool,
-        positive_voltage: float | None = None,
-        positive_distance_limit: float | None = None,
+        max_distance_limit: float | None = None,
+        extension_voltage: float | None = None,
     ):
         """
         Extends or Retracts the hopper until hardware limit / distance limit hit.
 
-        :param extend: whether to extend or retract hopper
-        :param positive_voltage:
+        :param extend: Whether to extend or retract hopper
+        :param max_distance_limit: Forced stop distance, in motor revolutions.
+        :param extension_voltage: TESTING ONLY; constant voltage to use during extension
         """
         super().__init__()
         self.hopper = hopper
@@ -33,20 +34,24 @@ class ExtendHopperCommand(commands2.Command):
 
         self.extend = extend
         self.pid = controller.PIDController(Kp, Ki, Kd)
-        self.voltage = positive_voltage
-        self.distance_limit = positive_distance_limit
+        self.voltage = extension_voltage
+        self.max_distance_limit = max_distance_limit
         self.intiial_pos = self.hopper.get_extension_position()
 
+        # Voltage must be positive
         if self.voltage is not None:
             assert self.voltage >= 0
 
-        self.addRequirements(hopper)
+        # PID tuning current in testing mode only
+        if not robot.TEST_MODE_ENABLED:
+            SmartDashboard.putData("Hopper PID", self.pid)
 
-        SmartDashboard.putData("Hopper PID", self.pid)
+        self.addRequirements(hopper)
 
     def execute(self) -> None:
         # Test Mode Logic
         if not robot.TEST_MODE_ENABLED:
+            # Use PID for setting voltage
             if self.voltage is None:
                 output = self.pid.calculate(
                     self.hopper.get_extension_position(),
@@ -69,28 +74,29 @@ class ExtendHopperCommand(commands2.Command):
                 SmartDashboard.putNumber(
                     "Position", self.hopper.get_extension_position()
                 )
+            # Use passed constant voltage
             else:
                 self.hopper.set_extension_voltage(
-                    self.voltage * (-1 if not self.extend else 1)
+                    self.voltage * (1 if self.extend else -1)
                 )
                 self.lights.set_state(
                     pilights.LEDState.HOPPER_EXTEND
                     if self.extend
                     else pilights.LEDState.HOPPER_RETRACT
                 )
-        # Normal Extend Logic
+        # Normal Extend Logic, use Network Tables
         elif self.extend:
             self.hopper.set_extension_voltage_from_networktable()
-        # Normal Retract Logic
+        # Normal Retract Logic, use Network Tables
         else:
             self.hopper.set_retraction_voltage_from_networktable()
 
     def isFinished(self) -> bool:
         # Finish on distance travelled
-        if self.distance_limit is not None:
+        if self.max_distance_limit is not None:
             distance = self.hopper.get_extension_position() - self.intiial_pos
             distance_magnitude = abs(distance)
-            if distance_magnitude > self.distance_limit:
+            if distance_magnitude > self.max_distance_limit:
                 return True
         # Finish on limit
         if (self.extend and self.hopper.forward_extended()) or (
