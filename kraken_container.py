@@ -35,7 +35,6 @@ from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch
-import robot
 from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
@@ -481,11 +480,10 @@ class KrakenRobotContainer:
             ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
-        if robot.TEST_MODE_ENABLED:
-            # manual retract
-            self._auxiliary_controller.povDown().whileTrue(
-                ExtendHopperCommand(self._hopper, self._lights, extend=False)
-            )
+        # manual retract
+        self._auxiliary_controller.povDown().whileTrue(
+            ExtendHopperCommand(self._hopper, self._lights, extend=False)
+        )
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
@@ -520,17 +518,17 @@ class KrakenRobotContainer:
             RunKickerCommand(self._kicker, invert=False)
         )
 
-        # Intake wheel in (TOGGLE)
+        # Intake wheel in (HOLD)
         intake_wheel_in = ExtendAndIntakeRoutine(
             self._intake, self._hopper, self._lights
         )
-        self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
+        self._auxiliary_controller.button(CROSS_BUTTON).whileTrue(intake_wheel_in)
 
-        # Intake wheel dump (TOGGLE)
+        # Intake wheel dump (HOLD)
         intake_wheel_out = DumpRoutine(
             self._intake, self._hopper, self._kicker, self._lights
         )
-        self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
+        self._auxiliary_controller.button(CIRCLE_BUTTON).whileTrue(intake_wheel_out)
 
         # Party Mode
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
