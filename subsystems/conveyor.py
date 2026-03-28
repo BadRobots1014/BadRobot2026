@@ -10,7 +10,7 @@ from phoenix6.hardware import TalonFX
 CONVEYOR_VOLTAGE = 4
 
 
-class Conveyor(Subsystem):
+class ConveyorSubsystem(Subsystem):
     def __init__(self, conveyor_motor: TalonFX):
         super().__init__()
         self.conveyor_motor = conveyor_motor
@@ -56,3 +56,6 @@ class Conveyor(Subsystem):
 
     def set_conveyor_dump_voltage_from_networktable(self) -> None:
         self.conveyor_motor.set_control(VoltageOut(-self.conveyor_voltage))
+
+    def set_conveyor_voltage(self, voltage: float) -> None:
+        self.conveyor_motor.set_control(VoltageOut(voltage))
