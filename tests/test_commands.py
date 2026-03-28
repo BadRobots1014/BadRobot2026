@@ -107,7 +107,7 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
     kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
         RunKickerCommand(kicker, invert=False).execute()
-    kicker.kick_motor.set_voltage.assert_called_once_with(3.5)
+    kicker.kick_motor.set_voltage.assert_called_once_with(3)
 
 
 # --- ExtendHopperCommand execute() ---

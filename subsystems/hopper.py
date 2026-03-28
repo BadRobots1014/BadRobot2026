@@ -29,7 +29,7 @@ class HopperSubsystem(Subsystem):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
-        inverted_value = phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        inverted_value = phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
 
         idle_mode = phoenix6.signals.NeutralModeValue.BRAKE
 
@@ -39,8 +39,14 @@ class HopperSubsystem(Subsystem):
             .with_neutral_mode(idle_mode)
         )
 
+        follow_inverted_value = (
+            phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+
         follower_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs().with_neutral_mode(idle_mode)
+            phoenix6.configs.MotorOutputConfigs()
+            .with_inverted(follow_inverted_value)
+            .with_neutral_mode(idle_mode)
         )
 
         self.left_motor.configurator.apply(config)
