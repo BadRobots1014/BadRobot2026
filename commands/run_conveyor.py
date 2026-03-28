@@ -15,3 +15,6 @@ class RunConveyor(Command):
             self.conveyor.set_conveyor_shoot_voltage_from_networktable()
         else:
             self.conveyor.set_conveyor_dump_voltage_from_networktable()
+
+    def end(self, interrupted: bool) -> None:
+        self.conveyor.set_conveyor_voltage(0)
