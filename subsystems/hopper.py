@@ -29,27 +29,26 @@ class HopperSubsystem(Subsystem):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
-        inverted_value = phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
+        counter_clockwise_positive = (
+            phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+        clockwise_positive = phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
 
         idle_mode = phoenix6.signals.NeutralModeValue.BRAKE
 
-        config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
+        shoot_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
             phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(inverted_value)
+            .with_inverted(counter_clockwise_positive)
             .with_neutral_mode(idle_mode)
-        )
-
-        follow_inverted_value = (
-            phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
 
         follower_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
             phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(follow_inverted_value)
+            .with_inverted(clockwise_positive)
             .with_neutral_mode(idle_mode)
         )
 
-        self.left_motor.configurator.apply(config)
+        self.left_motor.configurator.apply(shoot_config)
         self.right_motor.configurator.apply(follower_config)
 
         self.right_motor.set_control(
@@ -66,8 +65,9 @@ class HopperSubsystem(Subsystem):
         self.extension_voltage = EXTENSION_VOLTAGE
 
         self.nt_inst = NetworkTableInstance.getDefault()
-
         self.nt_table = self.nt_inst.getTable("intake")
+
+        self.lock = threading.Lock()
 
         self.extension_voltage_topic = self.nt_table.getDoubleTopic(
             "extension_motor_voltage"
@@ -77,8 +77,6 @@ class HopperSubsystem(Subsystem):
         self.extension_voltage_sub = self.extension_voltage_topic.subscribe(
             EXTENSION_VOLTAGE
         )
-
-        self.lock = threading.Lock()
 
         def _on_extension_voltage_changed(event: ntcore.Event) -> None:
             with self.lock:
