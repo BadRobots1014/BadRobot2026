@@ -26,6 +26,7 @@ from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
 from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
+from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
@@ -35,7 +36,6 @@ from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch
-from routines.dump_routine import DumpRoutine
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
 from subsystems import hopper, intake, kicker, pilights, shooter
@@ -519,16 +519,16 @@ class KrakenRobotContainer:
         )
 
         # Intake wheel in (HOLD)
-        intake_wheel_in = ExtendAndIntakeRoutine(
-            self._intake, self._hopper, self._lights
-        )
-        self._auxiliary_controller.button(CROSS_BUTTON).whileTrue(intake_wheel_in)
+        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+        self._auxiliary_controller.create_button(
+            CROSS_BUTTON, "Intake wheel in"
+        ).whileTrue(intake_wheel_in)
 
         # Intake wheel dump (HOLD)
-        intake_wheel_out = DumpRoutine(
-            self._intake, self._hopper, self._kicker, self._lights
-        )
-        self._auxiliary_controller.button(CIRCLE_BUTTON).whileTrue(intake_wheel_out)
+        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
+        self._auxiliary_controller.create_button(
+            CIRCLE_BUTTON, "Intake wheel dump"
+        ).whileTrue(intake_wheel_out)
 
         # Party Mode
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
