@@ -25,9 +25,8 @@ from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
+from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
-from commands.run_kicker import RunKickerCommand
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -38,7 +37,8 @@ from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
-from subsystems import hopper, intake, kicker, pilights, shooter
+from routines.shoot_when_ready import ShootWhenReady
+from subsystems import conveyor, hopper, intake, kicker, pilights, shooter
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -88,6 +88,7 @@ ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
 # joysticks
 DRIVER_PORT = 0
 AUXILIARY_PORT = 1
+TEST_PORT = 2
 JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
@@ -106,6 +107,9 @@ INTAKE_MOTOR_CAN_ID = 52
 # pinion can id
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
+
+# conveyor can id
+CONVEYOR_ID = 56
 
 # limit switch id
 FORWARD_LIMIT_ID = 18
@@ -164,6 +168,7 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self._primary_controller = CustomController(DRIVER_PORT)
         self._auxiliary_controller = CustomController(AUXILIARY_PORT)
+        self._test_controller = CustomController(TEST_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -209,6 +214,8 @@ class KrakenRobotContainer:
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
+        self.conveyor_motor = SparkFlexMotorController(CONVEYOR_ID)
+
         # shooter
         self._shooter = shooter.ShooterSubsystem(
             self.main_shoot_motor,
@@ -237,6 +244,8 @@ class KrakenRobotContainer:
             self.backward_limit_switch,
         )
 
+        self._conveyor = conveyor.ConveyorSubsystem(self.conveyor_motor)
+
         self.drivetrain = TunerConstants.create_drivetrain()
 
         # takes a while and sometimes causes tests to fail maybe?
@@ -263,18 +272,16 @@ class KrakenRobotContainer:
             ExtendAndIntakeRoutine(self._intake, self._hopper, self._lights),
         )
         NamedCommands.registerCommand(
-            "KickerShootWhenReady",
-            KickerShootWhenReadyCommand(
-                self._shooter, self._kicker, self._lights, 3500
-            ),
+            "ShootWhenReady",
+            ShootWhenReady(self._shooter, self._kicker, self._conveyor, 3500),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
             GotoAndShootRoutine(
                 self._shooter,
                 self._kicker,
+                self._conveyor,
                 self.drivetrain,
-                self._lights,
                 self.drive_pid,
                 self.rotate_pid,
                 BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
@@ -473,6 +480,13 @@ class KrakenRobotContainer:
             )
         )
 
+        self._primary_controller.create_button(
+            R2_BUTTON, "move conveyor shoot"
+        ).whileTrue(RunConveyor(self._conveyor, shoot_direction=True))
+        self._primary_controller.create_button(
+            L2_BUTTON, "move conveyor dump"
+        ).whileTrue(RunConveyor(self._conveyor, shoot_direction=False))
+
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
         # manual extend
@@ -487,9 +501,7 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
-            KickerShootWhenReadyCommand(
-                self._shooter, self._kicker, self._lights, rpm=3300
-            ),
+            ShootWhenReady(self._shooter, self._kicker, self._conveyor, rpm=3300),
         )
 
         # Run kicker wheel when ready R2
@@ -500,8 +512,8 @@ class KrakenRobotContainer:
             GotoAndShootRoutine(
                 self._shooter,
                 self._kicker,
+                self._conveyor,
                 self.drivetrain,
-                self._lights,
                 self.drive_pid,
                 self.rotate_pid,
                 BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
@@ -515,7 +527,7 @@ class KrakenRobotContainer:
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
-            RunKickerCommand(self._kicker, invert=False)
+            ShootWhenReady(self._shooter, self._kicker, self._conveyor, rpm=None)
         )
 
         # Intake wheel in (HOLD)
@@ -534,6 +546,8 @@ class KrakenRobotContainer:
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
         #    PartyModeCommand(self._lights, self.music)
         # )
+
+        # test controls -------------------------------------------------------
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
 

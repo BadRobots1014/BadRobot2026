@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from commands.extend_hopper import ExtendHopperCommand
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_intake import DUMP_VOLTAGE, INTAKE_VOLTAGE, RunIntakeCommand
 from commands.run_kicker import KICKER_VOLTAGE, RunKickerCommand
 from commands.run_shooter import RunShooterCommand
@@ -13,7 +12,7 @@ from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.pilights import PiLights
-from subsystems.shooter import SHOOTER_VELOCITY, ShooterSubsystem
+from subsystems.shooter import ShooterSubsystem
 
 
 @pytest.fixture
@@ -203,56 +202,3 @@ def test_run_dump_uses_nt_voltage_in_test_mode(intake: IntakeSubsystem) -> None:
 def test_run_intake_end_stops_motor(intake: IntakeSubsystem) -> None:
     RunIntakeCommand(intake, dump=False).end(interrupted=False)
     intake.intake_motor.set_voltage.assert_called_once_with(0)
-
-
-# --- KickerShootWhenReadyCommand ---
-
-
-def test_kicker_always_spins_shooter(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    shooter.shoot_encoder.get_velocity.return_value = 1000.0
-    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
-    shooter.shoot_motor.set_velocity.assert_called_once_with(SHOOTER_VELOCITY)
-
-
-def test_kicker_fires_when_above_target_velocity(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    kicker.kick_shoot_voltage = 4.0
-    shooter.shoot_encoder.get_velocity.return_value = 4600.0
-    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
-    kicker.kick_motor.set_voltage.assert_called_once_with(4.0)
-
-
-def test_kicker_does_not_fire_when_below_target_velocity(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    shooter.shoot_encoder.get_velocity.return_value = 4000.0
-    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
-    kicker.kick_motor.set_voltage.assert_not_called()
-
-
-def test_kicker_does_not_fire_at_exact_target_velocity(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    """Velocity gate is strict greater-than, so exact match does not fire."""
-    shooter.shoot_encoder.get_velocity.return_value = 4500.0
-    KickerShootWhenReadyCommand(shooter, kicker, lights, SHOOTER_VELOCITY).execute()
-    kicker.kick_motor.set_voltage.assert_not_called()
-
-
-def test_kicker_never_finishes(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    assert (
-        KickerShootWhenReadyCommand(shooter, kicker, lights, None).isFinished() is False
-    )
-
-
-def test_kicker_end_stops_both_motors(
-    shooter: ShooterSubsystem, kicker: KickerSubsystem, lights: PiLights
-) -> None:
-    KickerShootWhenReadyCommand(shooter, kicker, lights, None).end(interrupted=False)
-    kicker.kick_motor.set_voltage.assert_called_once_with(0)
-    shooter.shoot_motor.set_voltage.assert_called_once_with(0)

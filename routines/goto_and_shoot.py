@@ -7,9 +7,9 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
 from commands.run_shooter import RunShooterCommand
-from subsystems import pilights
+from routines.shoot_when_ready import ShootWhenReady
+from subsystems.conveyor import ConveyorSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
@@ -20,8 +20,8 @@ class GotoAndShootRoutine(SequentialCommandGroup):
         self,
         _shooter: ShooterSubsystem,
         _kicker: KickerSubsystem,
+        _conveyor: ConveyorSubsystem,
         drivetrain: CommandSwerveDrivetrain,
-        lights: pilights.PiLights,
         drive_pid: PIDController,
         rotate_pid: PIDController,
         hub: Translation2d,
@@ -45,6 +45,6 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                KickerShootWhenReadyCommand(_shooter, _kicker, lights, rpm=None),
+                ShootWhenReady(_shooter, _kicker, _conveyor, None),
             ),
         )

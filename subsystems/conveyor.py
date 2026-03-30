@@ -3,28 +3,20 @@ import threading
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
-import phoenix6
-from phoenix6.controls import VoltageOut
-from phoenix6.hardware import TalonFX
+
+from hardware.impl.motor_controller_config import MotorControllerConfig
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
 CONVEYOR_VOLTAGE = 4
 
 
 class ConveyorSubsystem(Subsystem):
-    def __init__(self, conveyor_motor: TalonFX):
+    def __init__(self, conveyor_motor: SparkFlexMotorController):
         super().__init__()
         self.conveyor_motor = conveyor_motor
 
-        clockwise_positive = phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
-        idle_mode = phoenix6.signals.NeutralModeValue.BRAKE
-
-        conveyor_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(clockwise_positive)
-            .with_neutral_mode(idle_mode)
-        )
-
-        self.conveyor_motor.configurator.apply(conveyor_config)
+        conveyor_config = MotorControllerConfig()
+        self.conveyor_motor.apply_configs(conveyor_config)
 
         self.conveyor_voltage = CONVEYOR_VOLTAGE
         self.nt_inst = NetworkTableInstance.getDefault()
@@ -52,10 +44,10 @@ class ConveyorSubsystem(Subsystem):
         )
 
     def set_conveyor_shoot_voltage_from_networktable(self) -> None:
-        self.conveyor_motor.set_control(VoltageOut(self.conveyor_voltage))
+        self.conveyor_motor.set_voltage(self.conveyor_voltage)
 
     def set_conveyor_dump_voltage_from_networktable(self) -> None:
-        self.conveyor_motor.set_control(VoltageOut(-self.conveyor_voltage))
+        self.conveyor_motor.set_voltage(-self.conveyor_voltage)
 
     def set_conveyor_voltage(self, voltage: float) -> None:
-        self.conveyor_motor.set_control(VoltageOut(voltage))
+        self.conveyor_motor.set_voltage(voltage)

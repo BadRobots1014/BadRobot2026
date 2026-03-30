@@ -173,11 +173,11 @@ class ShooterSubsystem(Subsystem):
     def set_shoot_velocity(self, velocity: float) -> None:
         self.shoot_motor.set_velocity(velocity)
 
-    def set_shoot_velocity_from_closest_pair(self) -> None:
-        self.shoot_motor.set_velocity(self.closest_pair[1])
+    def get_shoot_velocity_from_closest_pair(self) -> float:
+        return self.closest_pair[1]
 
-    def set_shoot_velocity_from_networktables(self) -> None:
-        self.set_shoot_velocity(self.shoot_velocity)
+    def get_shoot_velocity_from_networktables(self) -> float:
+        return self._shooter_motor_velocity_sub.get()
 
     def reset_shoot(self) -> None:
         self.shoot_encoder.set_position(0)
