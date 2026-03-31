@@ -109,13 +109,13 @@ class HopperSubsystem(Subsystem):
 
     def set_extension_voltage_from_networktable(self) -> None:
         if not self.forward_extended():
-            self.left_motor.set_control(VoltageOut(self.extension_voltage))
+            self.left_motor.set_control(VoltageOut(-self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))
 
     def set_retraction_voltage_from_networktable(self) -> None:
         if not self.backward_extended():
-            self.left_motor.set_control(VoltageOut(-self.extension_voltage))
+            self.left_motor.set_control(VoltageOut(self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))
 

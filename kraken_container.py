@@ -27,6 +27,9 @@ from wpimath.units import rotationsToRadians
 from commands.extend_hopper import ExtendHopperCommand
 from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
+from commands.run_kicker import RunKickerCommand
+from commands.run_shooter import RunShooterCommand
+from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -494,11 +497,6 @@ class KrakenRobotContainer:
             ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
-        # manual retract
-        self._auxiliary_controller.povDown().whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=False)
-        )
-
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
             ShootWhenReady(self._shooter, self._kicker, self._conveyor, rpm=3300),
@@ -548,6 +546,25 @@ class KrakenRobotContainer:
         # )
 
         # test controls -------------------------------------------------------
+
+        self._test_controller.create_button(R2_BUTTON, "shoot").whileTrue(
+            RunShooterCommand(self._shooter, rpm=3300)
+        )
+        self._test_controller.create_button(L2_BUTTON, "kicker").whileTrue(
+            RunKickerCommand(self._kicker, invert=False)
+        )
+        self._test_controller.create_button(L1_BUTTON, "conveyor").whileTrue(
+            RunConveyor(self._conveyor, shoot_direction=True)
+        )
+        self._test_controller.create_button(R1_BUTTON, "intake").whileTrue(
+            RunIntakeCommand(self._intake, dump=True)
+        )
+        self._test_controller.povUp().whileTrue(
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
+        )
+        self._test_controller.create_button(CROSS_BUTTON, "shimmy").whileTrue(
+            Shimmy(self.drivetrain)
+        )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
 
