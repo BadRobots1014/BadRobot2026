@@ -10,6 +10,7 @@ from commands.goto_shoot_radius import GotoShootRadius
 from commands.run_shooter import RunShooterCommand
 from routines.shoot_when_ready import ShootWhenReady
 from subsystems.conveyor import ConveyorSubsystem
+from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
@@ -21,6 +22,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
         _shooter: ShooterSubsystem,
         _kicker: KickerSubsystem,
         _conveyor: ConveyorSubsystem,
+        _intake: IntakeSubsystem,
         drivetrain: CommandSwerveDrivetrain,
         drive_pid: PIDController,
         rotate_pid: PIDController,
@@ -45,6 +47,6 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                ShootWhenReady(_shooter, _kicker, _conveyor, None),
+                ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
             ),
         )

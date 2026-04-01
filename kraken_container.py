@@ -276,7 +276,9 @@ class KrakenRobotContainer:
         )
         NamedCommands.registerCommand(
             "ShootWhenReady",
-            ShootWhenReady(self._shooter, self._kicker, self._conveyor, 3500),
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, 3500
+            ),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
@@ -284,6 +286,7 @@ class KrakenRobotContainer:
                 self._shooter,
                 self._kicker,
                 self._conveyor,
+                self._intake,
                 self.drivetrain,
                 self.drive_pid,
                 self.rotate_pid,
@@ -483,12 +486,9 @@ class KrakenRobotContainer:
             )
         )
 
-        self._primary_controller.create_button(
-            R2_BUTTON, "move conveyor shoot"
-        ).whileTrue(RunConveyor(self._conveyor, shoot_direction=True))
-        self._primary_controller.create_button(
-            L2_BUTTON, "move conveyor dump"
-        ).whileTrue(RunConveyor(self._conveyor, shoot_direction=False))
+        self._primary_controller.create_button(CROSS_BUTTON, "shimmy").whileTrue(
+            Shimmy(self.drivetrain)
+        )
 
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
@@ -499,7 +499,9 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
-            ShootWhenReady(self._shooter, self._kicker, self._conveyor, rpm=3300),
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
+            ),
         )
 
         # Run kicker wheel when ready R2
@@ -511,6 +513,7 @@ class KrakenRobotContainer:
                 self._shooter,
                 self._kicker,
                 self._conveyor,
+                self._intake,
                 self.drivetrain,
                 self.drive_pid,
                 self.rotate_pid,
@@ -525,7 +528,9 @@ class KrakenRobotContainer:
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
-            ShootWhenReady(self._shooter, self._kicker, self._conveyor, rpm=None)
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
+            )
         )
 
         # Intake wheel in (HOLD)
@@ -550,20 +555,26 @@ class KrakenRobotContainer:
         self._test_controller.create_button(R2_BUTTON, "shoot").whileTrue(
             RunShooterCommand(self._shooter, rpm=3300)
         )
-        self._test_controller.create_button(L2_BUTTON, "kicker").whileTrue(
-            RunKickerCommand(self._kicker, invert=False)
-        )
-        self._test_controller.create_button(L1_BUTTON, "conveyor").whileTrue(
-            RunConveyor(self._conveyor, shoot_direction=True)
-        )
-        self._test_controller.create_button(R1_BUTTON, "intake").whileTrue(
-            RunIntakeCommand(self._intake, dump=True)
-        )
-        self._test_controller.povUp().whileTrue(
+        self._test_controller.create_button(L2_BUTTON, "extend hopper test").whileTrue(
             ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
-        self._test_controller.create_button(CROSS_BUTTON, "shimmy").whileTrue(
-            Shimmy(self.drivetrain)
+        self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
+            RunKickerCommand(self._kicker, invert=False)
+        )
+        self._test_controller.create_button(R1_BUTTON, "kicker invert").whileTrue(
+            RunKickerCommand(self._kicker, invert=True)
+        )
+        self._test_controller.create_button(TRIANGLE_BUTTON, "conveyor").whileTrue(
+            RunConveyor(self._conveyor, shoot_direction=True)
+        )
+        self._test_controller.create_button(SQUARE_BUTTON, "conveyor invert").whileTrue(
+            RunConveyor(self._conveyor, shoot_direction=False)
+        )
+        self._test_controller.create_button(CROSS_BUTTON, "intake").whileTrue(
+            RunIntakeCommand(self._intake, dump=False)
+        )
+        self._test_controller.create_button(CIRCLE_BUTTON, "intake invert").whileTrue(
+            RunIntakeCommand(self._intake, dump=True)
         )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
