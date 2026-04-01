@@ -329,31 +329,27 @@ class KrakenRobotContainer:
 
     def getLeftX(self) -> float:
         raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
-        limiter = self.left_x_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getLeftY(self) -> float:
         raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
-        limiter = self.left_y_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getRightX(self) -> float:
         raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
-        limiter = self.right_x_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getRightY(self) -> float:
         raw = -(self._primary_controller.getRawAxis(RIGHT_Y_AXIS) ** 3)
-        limiter = self.right_y_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
