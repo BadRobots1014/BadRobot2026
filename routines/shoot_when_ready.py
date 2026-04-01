@@ -1,7 +1,6 @@
 from commands2 import ParallelCommandGroup, SequentialCommandGroup, WaitCommand
 
 from commands.run_conveyor import RunConveyor
-from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
 from commands.run_shooter import RunShooterCommand
 from commands.run_shooter_forever import RunShooterCommandForever
@@ -26,6 +25,5 @@ class ShootWhenReady(SequentialCommandGroup):
                 RunShooterCommandForever(shooter, rpm=rpm),
                 RunKickerCommand(kicker, invert=False),
                 WaitCommand(0.2).andThen(RunConveyor(conveyor, shoot_direction=True)),
-                WaitCommand(3).andThen(RunIntakeCommand(intake, dump=False)),
             ),
         )

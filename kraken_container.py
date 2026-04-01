@@ -6,6 +6,7 @@
 import math
 
 import commands2
+from commands2 import RepeatCommand
 from commands2.button import Trigger
 from cscore import CameraServer, HttpCamera
 import ntcore
@@ -41,7 +42,15 @@ from hardware.sim_hardware import DummyLED, DummyLimitSwitch
 from routines.extend_and_intake import ExtendAndIntakeRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
 from routines.shoot_when_ready import ShootWhenReady
-from subsystems import conveyor, hopper, intake, kicker, pilights, shooter
+from subsystems import (
+    conveyor,
+    custom_controller,
+    hopper,
+    intake,
+    kicker,
+    pilights,
+    shooter,
+)
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -85,8 +94,8 @@ MAX_ANGULAR_SPEED = rotationsToRadians(
 )  # 3/4 of a rotation per second max angular velocity
 
 MAX_ANGULAR_ACCELERATION = 10  # m/s^2
-DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
-ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
+DRIVE_DEADBAND = MAX_SPEED * 0.02  # Add a 10% deadband
+ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.02  # Add a 10% deadband
 
 # joysticks
 DRIVER_PORT = 0
@@ -395,10 +404,10 @@ class KrakenRobotContainer:
         # )
 
         # toggle slow mode
-        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
+        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onTrue(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
-        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onFalse(
+        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onFalse(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
 
@@ -431,7 +440,7 @@ class KrakenRobotContainer:
         ).whileTrue(strafe_r)
 
         # POV up - drive forward
-        self._primary_controller.povUp().whileTrue(
+        self._primary_controller.bind_pov_up("nudge forward").whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     NUDGE_SPEED
@@ -440,7 +449,7 @@ class KrakenRobotContainer:
         )
 
         # POV down - drive backward
-        self._primary_controller.povDown().whileTrue(
+        self._primary_controller.bind_pov_down("nudge backwards").whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     -NUDGE_SPEED
@@ -449,7 +458,7 @@ class KrakenRobotContainer:
         )
 
         # POV right - drive right
-        self._primary_controller.povRight().whileTrue(
+        self._primary_controller.bind_pov_right("nudge right").whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     -NUDGE_SPEED
@@ -458,7 +467,7 @@ class KrakenRobotContainer:
         )
 
         # POV left - drive left
-        self._primary_controller.povLeft().whileTrue(
+        self._primary_controller.bind_pov_left("nudge left").whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
                     NUDGE_SPEED
@@ -489,12 +498,14 @@ class KrakenRobotContainer:
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
         # manual extend
-        self._auxiliary_controller.povUp().whileTrue(
+        self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
             ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
         # Spin up shooter L2
-        self._auxiliary_controller.create_button(L2_BUTTON, "Run Shooter").whileTrue(
+        self._auxiliary_controller.create_button(
+            L2_BUTTON, "shoot when ready"
+        ).whileTrue(
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
             ),
@@ -503,7 +514,7 @@ class KrakenRobotContainer:
         # Run kicker wheel when ready R2
         self._auxiliary_controller.create_button(
             R2_BUTTON,
-            "Run kicker wheel when ready",
+            "goto and shoot when ready (dangerous)",
         ).whileTrue(
             GotoAndShootRoutine(
                 self._shooter,
@@ -523,7 +534,9 @@ class KrakenRobotContainer:
         #     "Run kicker wheel",
         #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
-        self._auxiliary_controller.create_button(L1_BUTTON, "kick manual").whileTrue(
+        self._auxiliary_controller.create_button(
+            L1_BUTTON, "shoot when ready (rpm=None)"
+        ).whileTrue(
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
             )
@@ -540,6 +553,17 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             CIRCLE_BUTTON, "Intake wheel dump"
         ).whileTrue(intake_wheel_out)
+
+        # Intake wheel down up
+        self._auxiliary_controller.create_button(
+            SQUARE_BUTTON, "intake down up"
+        ).whileTrue(
+            RepeatCommand(
+                RunIntakeCommand(self._intake, dump=True)
+                .withTimeout(0.05)
+                .andThen(RunIntakeCommand(self._intake, dump=False))
+            )
+        )
 
         # Party Mode
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
@@ -574,6 +598,7 @@ class KrakenRobotContainer:
         )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
+        custom_controller.write_binds()
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
