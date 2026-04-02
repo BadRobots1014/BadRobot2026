@@ -11,7 +11,7 @@ from phoenix6.signals import MotorAlignmentValue
 
 from hardware.base.switch import LimitSwitch
 
-EXTENSION_VOLTAGE = 2
+EXTENSION_VOLTAGE = 6
 
 MAX_ENCODER_ROTATIONS = 40
 
@@ -100,9 +100,7 @@ class HopperSubsystem(Subsystem):
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
 
     def set_extension_voltage(self, voltage: float) -> None:
-        if (voltage > 0 and self.forward_extended()) or (
-            voltage < 0 and self.backward_extended()
-        ):
+        if (self.forward_extended()) or (voltage < 0 and self.backward_extended()):
             self.left_motor.set_control(VoltageOut(0))
         else:
             self.left_motor.set_control(VoltageOut(voltage))
@@ -114,7 +112,7 @@ class HopperSubsystem(Subsystem):
             self.left_motor.set_control(VoltageOut(0))
 
     def set_retraction_voltage_from_networktable(self) -> None:
-        if not self.backward_extended():
+        if not self.backward_extended() and not self.forward_extended():
             self.left_motor.set_control(VoltageOut(self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))

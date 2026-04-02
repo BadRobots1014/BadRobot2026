@@ -63,16 +63,12 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 # --- ExtendHopperCommand ---
 
 
-def test_extend_finished_when_forward_limit_hit(
-    hopper: HopperSubsystem
-) -> None:
+def test_extend_finished_when_forward_limit_hit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
     assert ExtendHopperCommand(hopper, extend=True).isFinished() is True
 
 
-def test_extend_not_finished_without_forward_limit(
-    hopper: HopperSubsystem
-) -> None:
+def test_extend_not_finished_without_forward_limit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     assert ExtendHopperCommand(hopper, extend=True).isFinished() is False
 
@@ -94,6 +90,7 @@ def test_retract_not_finished_without_backward_limit(
 # --- ShootKickerCommand (test mode) ---
 
 
+# TODO ASK CHRIs
 def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
     kicker: KickerSubsystem,
 ) -> None:
@@ -129,7 +126,7 @@ def test_extend_hopper_execute_retracts_with_negative_voltage(
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
-    hopper: HopperSubsystem
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):

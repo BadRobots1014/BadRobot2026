@@ -1,19 +1,16 @@
 from commands2 import (
     ParallelCommandGroup,
-    RepeatCommand,
-    SequentialCommandGroup,
-    WaitCommand,
 )
 
-from commands.extend_hopper import ExtendHopperCommand
+from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
-from subsystems.hopper import HopperSubsystem
+from subsystems.conveyor import ConveyorSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 
 
-class DumpRoutine(SequentialCommandGroup):
+class DumpRoutine(ParallelCommandGroup):
     """
     Extends the hopper and runs the intake. Can be used to intake or dump depending on dump argument(False to intake, True to dump)
     """
@@ -21,21 +18,12 @@ class DumpRoutine(SequentialCommandGroup):
     def __init__(
         self,
         intake: IntakeSubsystem,
-        hopper: HopperSubsystem,
         kicker: KickerSubsystem,
+        conveyor: ConveyorSubsystem,
     ):
         super().__init__()
         self.addCommands(
-            ExtendHopperCommand(hopper, extend=True),
-            ParallelCommandGroup(
-                RunIntakeCommand(intake, dump=True),
-                RepeatCommand(
-                    SequentialCommandGroup(
-                        RunKickerCommand(kicker, invert=False).withTimeout(0.2),
-                        WaitCommand(0.2),
-                        RunKickerCommand(kicker, invert=True).withTimeout(0.2),
-                        WaitCommand(0.2),
-                    )
-                ),
-            ),
+            RunIntakeCommand(intake, dump=True),
+            RunKickerCommand(kicker, invert=True),
+            RunConveyor(conveyor, shoot_direction=False),
         )

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from commands2 import (
     ParallelCommandGroup,
     ParallelDeadlineGroup,
@@ -26,7 +28,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
         drivetrain: CommandSwerveDrivetrain,
         drive_pid: PIDController,
         rotate_pid: PIDController,
-        hub: Translation2d,
+        hub: Callable[[], Translation2d],
     ):
         super().__init__(
             ParallelDeadlineGroup(

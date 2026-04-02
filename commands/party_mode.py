@@ -18,7 +18,7 @@ class PartyModeCommand(commands2.Command):
 
     def initialize(self) -> None:
         print("PARTY MODE USED")
-        self.light_system.set_state(pilights.LEDState.PARTY_MODE)
+        # self.light_system.set_state(pilights.LEDState.PARTY_MODE)
         self.music_system.play_song()
 
     def end(self, interrupted: bool) -> None:

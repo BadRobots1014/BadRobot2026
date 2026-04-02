@@ -34,7 +34,9 @@ class NeoBotContainer:
         """
 
         self.controller.share().onTrue(
-            commands2.InstantCommand(lambda: self.lights.set_state(pilights.LEDState.PARTY_MODE), self.lights)
+            commands2.InstantCommand(
+                lambda: self.lights.set_state(pilights.LEDState.PARTY_MODE), self.lights
+            )
         )
 
         self.controller.options().onTrue(

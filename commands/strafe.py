@@ -8,7 +8,6 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container  # import file instead of class for constants
-from subsystems import pilights
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -19,7 +18,6 @@ class Strafe(commands2.Command):
         self,
         swerve_subsystem: CommandSwerveDrivetrain,
         shooter: ShooterSubsystem,
-        lights: pilights.PiLights,
         target_point: Callable[[], Translation2d],
         clockwise: bool,
         max_angular_rate: float,
@@ -32,7 +30,6 @@ class Strafe(commands2.Command):
 
         self.swerve_subsystem = swerve_subsystem
         self.shooter_subsystem = shooter
-        self.lights = lights
         self.clockwise = clockwise
         self.target_point = target_point
         self._drive = (
@@ -53,7 +50,7 @@ class Strafe(commands2.Command):
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
-        self.lights.set_state(pilights.LEDState.RADIUS)
+        # self.lights.set_state(pilights.LEDState.RADIUS)
 
         # gets current bot pos
         bot_pos = self.swerve_subsystem.get_state().pose

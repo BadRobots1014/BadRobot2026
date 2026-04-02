@@ -12,7 +12,9 @@ class ExtendAndIntakeRoutine(ParallelCommandGroup):
     """
 
     def __init__(
-        self, intake: IntakeSubsystem, hopper: HopperSubsystem,
+        self,
+        intake: IntakeSubsystem,
+        hopper: HopperSubsystem,
     ):
         super().__init__()
         self.addCommands(

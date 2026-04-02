@@ -6,7 +6,6 @@
 import math
 
 import commands2
-from commands2 import RepeatCommand
 from commands2.button import Trigger
 from cscore import CameraServer, HttpCamera
 import ntcore
@@ -39,7 +38,8 @@ from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLED, DummyLimitSwitch
-from routines.extend_and_intake import ExtendAndIntakeRoutine
+from routines.auto_shoot_with_intake import AutoShootWithIntake
+from routines.dump_routine import DumpRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
 from routines.shoot_when_ready import ShootWhenReady
 from subsystems import (
@@ -59,21 +59,20 @@ LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 # Controller axis mappings
 LEFT_X_AXIS = 0
 LEFT_Y_AXIS = 1
-RIGHT_X_AXIS = (
-    2 if wpilib.RobotBase.isReal() else 4
-)  # prevent robot from spinning in real life and in sim
+RIGHT_X_AXIS = 4
 RIGHT_Y_AXIS = 5
+AXIS_THRESHOLD_VALUE = 0.67
 
 # Controller button mappings
-CROSS_BUTTON = 2
-CIRCLE_BUTTON = 3
-SQUARE_BUTTON = 1
+CROSS_BUTTON = 1
+CIRCLE_BUTTON = 2
+SQUARE_BUTTON = 3
 TRIANGLE_BUTTON = 4
-SHARE_BUTTON = 9
+SHARE_BUTTON = 7
 L1_BUTTON = 5
 R1_BUTTON = 6
-L2_BUTTON = 7
-R2_BUTTON = 8
+L2_TRIGGER = 2
+R2_TRIGGER = 3
 POV_UP = 0
 POV_RIGHT = 90
 POV_LEFT = 270
@@ -280,14 +279,27 @@ class KrakenRobotContainer:
 
         # Configure commands used in auto
         NamedCommands.registerCommand(
-            "ExtendAndIntake",
-            ExtendAndIntakeRoutine(self._intake, self._hopper, self._lights),
+            "Extend",
+            ExtendHopperCommand(self._hopper, extend=True),
         )
+
         NamedCommands.registerCommand(
-            "ShootWhenReady",
+            "RunIntake",
+            RunIntakeCommand(self._intake, dump=False).withTimeout(6),
+        )
+
+        NamedCommands.registerCommand(
+            "ShootWhenReady 4 seconds",
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, 3500
-            ),
+            ).withTimeout(4),
+        )
+
+        NamedCommands.registerCommand(
+            "ShootWhenReady 10 seconds",
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, 3500
+            ).withTimeout(10),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
@@ -299,7 +311,7 @@ class KrakenRobotContainer:
                 self.drivetrain,
                 self.drive_pid,
                 self.rotate_pid,
-                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
+                self.get_hub,
             ),
         )
 
@@ -362,10 +374,8 @@ class KrakenRobotContainer:
 
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
-        if self.slow_mode:
-            self._lights.set_state(pilights.LEDState.SLOW_MODE)
 
-    def getHub(self) -> Translation2d:
+    def get_hub(self) -> Translation2d:
         if DriverStation.getAlliance() == DriverStation.Alliance.kBlue:
             return BLUE_HUB_TRANSLATION
         else:
@@ -410,18 +420,17 @@ class KrakenRobotContainer:
         # )
 
         # toggle slow mode
-        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onTrue(
-            commands2.cmd.runOnce(self.toggleSlowMode)
-        )
-        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onFalse(
-            commands2.cmd.runOnce(self.toggleSlowMode)
-        )
+        self._primary_controller.create_axis(
+            R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
+        ).onTrue(commands2.cmd.runOnce(self.toggleSlowMode))
+        self._primary_controller.create_axis(
+            R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
+        ).onFalse(commands2.cmd.runOnce(self.toggleSlowMode))
 
         strafe_l = Strafe(
             self.drivetrain,
             self._shooter,
-            self._lights,
-            BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
+            self.get_hub,
             clockwise=True,
             max_angular_rate=MAX_ANGULAR_SPEED,
             rotate_pid=self.rotate_pid,
@@ -430,8 +439,7 @@ class KrakenRobotContainer:
         strafe_r = Strafe(
             self.drivetrain,
             self._shooter,
-            self._lights,
-            BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
+            self.get_hub,
             clockwise=False,
             max_angular_rate=MAX_ANGULAR_SPEED,
             rotate_pid=self.rotate_pid,
@@ -505,12 +513,12 @@ class KrakenRobotContainer:
 
         # manual extend
         self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=True)
+            ExtendHopperCommand(self._hopper, extend=True)
         )
 
         # Spin up shooter L2
-        self._auxiliary_controller.create_button(
-            L2_BUTTON, "shoot when ready"
+        self._auxiliary_controller.create_axis(
+            L2_TRIGGER, "shoot when ready", AXIS_THRESHOLD_VALUE
         ).whileTrue(
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
@@ -518,9 +526,10 @@ class KrakenRobotContainer:
         )
 
         # Run kicker wheel when ready R2
-        self._auxiliary_controller.create_button(
-            R2_BUTTON,
+        self._auxiliary_controller.create_axis(
+            R2_TRIGGER,
             "goto and shoot when ready (dangerous)",
+            AXIS_THRESHOLD_VALUE,
         ).whileTrue(
             GotoAndShootRoutine(
                 self._shooter,
@@ -530,8 +539,9 @@ class KrakenRobotContainer:
                 self.drivetrain,
                 self.drive_pid,
                 self.rotate_pid,
-                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
+                self.get_hub,
             )
+            # goto_radius
         )
 
         # uncomment if you want to use the regular kicker command
@@ -555,21 +565,15 @@ class KrakenRobotContainer:
         ).whileTrue(intake_wheel_in)
 
         # Intake wheel dump (HOLD)
-        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
+        intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
         self._auxiliary_controller.create_button(
             CIRCLE_BUTTON, "Intake wheel dump"
         ).whileTrue(intake_wheel_out)
 
         # Intake wheel down up
         self._auxiliary_controller.create_button(
-            SQUARE_BUTTON, "intake down up"
-        ).whileTrue(
-            RepeatCommand(
-                RunIntakeCommand(self._intake, dump=True)
-                .withTimeout(0.05)
-                .andThen(RunIntakeCommand(self._intake, dump=False))
-            )
-        )
+            SQUARE_BUTTON, "intake pulse"
+        ).whileTrue(AutoShootWithIntake(self._intake))
 
         # Party Mode
         # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
@@ -578,12 +582,12 @@ class KrakenRobotContainer:
 
         # test controls -------------------------------------------------------
 
-        self._test_controller.create_button(R2_BUTTON, "shoot").whileTrue(
-            RunShooterCommand(self._shooter, rpm=3300)
-        )
-        self._test_controller.create_button(L2_BUTTON, "extend hopper test").whileTrue(
-            ExtendHopperCommand(self._hopper, self._lights, extend=True)
-        )
+        self._test_controller.create_axis(
+            R2_TRIGGER, "shoot", AXIS_THRESHOLD_VALUE
+        ).whileTrue(RunShooterCommand(self._shooter, rpm=3300))
+        self._test_controller.create_axis(
+            L2_TRIGGER, "extend hopper test", AXIS_THRESHOLD_VALUE
+        ).whileTrue(ExtendHopperCommand(self._hopper, extend=True))
         self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
             RunKickerCommand(self._kicker, invert=False)
         )

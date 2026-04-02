@@ -10,9 +10,9 @@ import wpilib
 
 button_to_string: dict[int, str] = {
     0: "UNDEFINED",
-    1: "SQUARE",
-    2: "CROSS",
-    3: "CIRCLE",
+    1: "CROSS",
+    2: "CIRCLE",
+    3: "SQUARE",
     4: "TRIANGLE",
     5: "L1",
     6: "R1",
@@ -24,6 +24,11 @@ button_to_string: dict[int, str] = {
     12: "R3",
     13: "HOME",
     14: "TRACKPAD",
+}
+
+axis_to_string: dict[int, str] = {
+    2: "L2",
+    3: "R2",
 }
 
 # Where bindings are written so generate_controller_map.py can read them
@@ -68,6 +73,10 @@ class CustomController(CommandGenericHID):
     def create_button(self, button: int, command_name: str) -> Trigger:
         self.add_pub(button_to_string[button], command_name)
         return self.button(button)
+
+    def create_axis(self, axis: int, command_name: str, threshold: float) -> Trigger:
+        self.add_pub(axis_to_string[axis], command_name)
+        return self.axisGreaterThan(axis, threshold)
 
     def bind_pov_up(self, name: str) -> Trigger:
         self.add_pub("POVUP", name)

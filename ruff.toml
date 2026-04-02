@@ -51,7 +51,10 @@ ignore = [
   "FBT002",  # positional boolean
   "TRY002",  # require custom exception
   "SIM103",  # allow inline conditional
-  "PLW0603" # i want static variable
+  "PLW0603", # i want static variable
+  "PLR2004", # lights
+  "PLR0911", # dumb
+  "PLR0912" # dumber
 ]
 
 [lint.per-file-ignores]
