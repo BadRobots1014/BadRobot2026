@@ -5,31 +5,20 @@ import ntcore
 from ntcore import NetworkTableInstance
 
 from hardware.base.motorcontroller import MotorController
-from hardware.base.switch import LimitSwitch
-from hardware.impl import talonfx
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
 
 # Dumping velocity should be 1500
-INTAKE_VOLTAGE = 4.5
-DUMP_VOLTAGE = -5
-
-EXTENSION_VOLTAGE = 3
-
-ENCODER_ROTATIONS = 0
+INTAKE_VOLTAGE = 9
+DUMP_VOLTAGE = -5.0
 
 
 class IntakeSubsystem(Subsystem):
     def __init__(
         self,
         intake: MotorController,
-        left: MotorController,
-        right: MotorController,
-        forward: LimitSwitch,
-        backward: LimitSwitch,
-        camera_name: str = "limelight",
     ) -> None:
         super().__init__()
         self.intake_motor = intake
@@ -39,42 +28,11 @@ class IntakeSubsystem(Subsystem):
         )
         self.intake_motor.apply_configs(intake_config)
 
-        self.left = left
-        self.right = right
-
-        left_config = MotorControllerConfig(
-            inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
-        )
-        right_config = MotorControllerConfig(
-            inverted=True, idle_mode=MotorControllerIdleMode.BRAKE, leader=self.left
-        )
-
-        self.left.apply_configs(left_config)
-        self.right.apply_configs(right_config)
-
-        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
-            self.right, talonfx.TalonFXMotorController
-        ):
-            self.left.get_motor_controller().get_motor_voltage().set_update_frequency(
-                100
-            )
-
-        self.forward = forward
-        self.backward = backward
-
         self.intake_voltage = INTAKE_VOLTAGE
         self.dump_voltage = DUMP_VOLTAGE
-        self.extension_voltage = EXTENSION_VOLTAGE
 
         # setup network tables
         self.nt_inst = NetworkTableInstance.getDefault()
-        self.nt_ll_table = self.nt_inst.getTable(camera_name)
-        self.pose_publisher = self.nt_ll_table.getDoubleArrayTopic(
-            "camerapose_robotspace"
-        ).publish()
-        self.pos_subscriber = self.nt_ll_table.getDoubleArrayTopic(
-            "camerapose_robotspace"
-        ).subscribe([0, 0, 0, 0, 0, 0])
 
         self.nt_table = self.nt_inst.getTable("intake")
 
@@ -87,15 +45,6 @@ class IntakeSubsystem(Subsystem):
         self.dump_voltage_pub = self.dump_voltage_topic.publish()
         self.dump_voltage_pub.set(DUMP_VOLTAGE)
         self.dump_voltage_sub = self.dump_voltage_topic.subscribe(DUMP_VOLTAGE)
-
-        self.extension_voltage_topic = self.nt_table.getDoubleTopic(
-            "extension_motor_voltage"
-        )
-        self.extension_voltage_pub = self.extension_voltage_topic.publish()
-        self.extension_voltage_pub.set(EXTENSION_VOLTAGE)
-        self.extension_voltage_sub = self.extension_voltage_topic.subscribe(
-            EXTENSION_VOLTAGE
-        )
 
         self.lock = threading.Lock()
 
@@ -119,36 +68,8 @@ class IntakeSubsystem(Subsystem):
             self.dump_voltage_sub, ntcore.EventFlags.kValueAll, _on_dump_voltage_changed
         )
 
-        def _on_extension_voltage_changed(event: ntcore.Event) -> None:
-            with self.lock:
-                self.extension_voltage = event.data.value.getDouble()
-                print(self.extension_voltage)
-
-        self.extension_changed_handle = self.nt_inst.addListener(
-            self.extension_voltage_sub,
-            ntcore.EventFlags.kValueAll,
-            _on_extension_voltage_changed,
-        )
-
     def periodic(self) -> None:
-        if self.backward_extended():
-            self.zero_rotations()
-
-        if isinstance(self.left, talonfx.TalonFXMotorController) and isinstance(
-            self.right, talonfx.TalonFXMotorController
-        ):
-            self.nt_table.putString(
-                "Left control mode",
-                str(self.left.get_motor_controller().get_control_mode()),
-            )
-            self.nt_table.putString(
-                "Right control mode",
-                str(self.right.get_motor_controller().get_control_mode()),
-            )
-
-    def test_run(self, voltage: int) -> None:
-        self.left.set_voltage(voltage)
-        self.right.set_voltage(voltage)
+        pass
 
     def set_intake_voltage_from_networktable(self) -> None:
         self.intake_motor.set_voltage(self.intake_voltage)
@@ -161,36 +82,3 @@ class IntakeSubsystem(Subsystem):
 
     def set_intake_velocity(self, rpm: float) -> None:
         self.intake_motor.set_velocity(rpm)
-
-    def set_extension_voltage(self, voltage: float) -> None:
-        if (voltage > 0 and self.forward_extended()) or (
-            voltage < 0 and self.backward_extended()
-        ):
-            self.left.set_voltage(0)
-        else:
-            self.left.set_voltage(voltage)
-
-    def set_extension_voltage_from_networktable(self) -> None:
-        if not self.forward_extended():
-            self.left.set_voltage(self.extension_voltage)
-        else:
-            self.left.set_voltage(0)
-
-    def set_retraction_voltage_from_networktable(self) -> None:
-        if not self.backward_extended():
-            self.left.set_voltage(-self.extension_voltage)
-        else:
-            self.left.set_voltage(0)
-
-    def forward_extended(self) -> bool:
-        return self.forward.get_state()
-
-    def backward_extended(self) -> bool:
-        return self.backward.get_state()
-
-    def zero_rotations(self) -> None:
-        self.left.zero_relative_encoder()
-        self.right.zero_relative_encoder()
-
-    def get_extension_position(self) -> float:
-        return self.left.get_encoder_position()

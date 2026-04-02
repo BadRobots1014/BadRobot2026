@@ -5,8 +5,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from subsystems.shooter import (
-    KICKER_DUMP_VOLTAGE,
-    KICKER_SHOOT_VOLTAGE,
     SHOOTER_VELOCITY,
     ShooterSubsystem,
 )
@@ -14,21 +12,11 @@ from subsystems.shooter import (
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(
-        MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
-    )
+    return ShooterSubsystem(MagicMock(), MagicMock(), MagicMock())
 
 
 def test_default_shoot_velocity(shooter: ShooterSubsystem) -> None:
     assert shooter.shoot_velocity == SHOOTER_VELOCITY
-
-
-def test_default_kick_shoot_voltage(shooter: ShooterSubsystem) -> None:
-    assert shooter.kick_shoot_voltage == KICKER_SHOOT_VOLTAGE
-
-
-def test_default_kick_dump_voltage(shooter: ShooterSubsystem) -> None:
-    assert shooter.kick_dump_voltage == KICKER_DUMP_VOLTAGE
 
 
 def test_set_shoot_voltage(shooter: ShooterSubsystem) -> None:
@@ -41,27 +29,6 @@ def test_set_shoot_velocity(shooter: ShooterSubsystem) -> None:
     shooter.shoot_motor.set_velocity.assert_called_once_with(3000.0)
 
 
-def test_set_kick_voltage(shooter: ShooterSubsystem) -> None:
-    shooter.set_kick_voltage(3.0)
-    shooter.kick_motor.set_voltage.assert_called_once_with(3.0)
-
-
-def test_set_kick_shoot_voltage_from_nt(shooter: ShooterSubsystem) -> None:
-    shooter.kick_shoot_voltage = 5.0
-    shooter.set_kick_shoot_voltage_from_networktables()
-    shooter.kick_motor.set_voltage.assert_called_once_with(5.0)
-
-
-def test_set_kick_dump_voltage_from_nt_uses_dump_not_shoot(
-    shooter: ShooterSubsystem,
-) -> None:
-    """Regression: was using kick_shoot_voltage instead of kick_dump_voltage."""
-    shooter.kick_shoot_voltage = 5.0
-    shooter.kick_dump_voltage = 2.0
-    shooter.set_kick_dump_voltage_from_networktables()
-    shooter.kick_motor.set_voltage.assert_called_once_with(2.0)
-
-
 def test_get_shoot_velocity_reads_encoder(shooter: ShooterSubsystem) -> None:
     shooter.shoot_encoder.get_velocity.return_value = 4200.0
     assert shooter.get_shoot_velocity() == 4200.0
@@ -70,8 +37,3 @@ def test_get_shoot_velocity_reads_encoder(shooter: ShooterSubsystem) -> None:
 def test_shoot_distance_reads_encoder(shooter: ShooterSubsystem) -> None:
     shooter.shoot_encoder.get_position.return_value = 10.5
     assert shooter.shoot_distance == 10.5
-
-
-def test_kick_distance_reads_encoder(shooter: ShooterSubsystem) -> None:
-    shooter.kick_encoder.get_position.return_value = 3.2
-    assert shooter.kick_distance == 3.2

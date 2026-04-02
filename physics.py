@@ -31,7 +31,5 @@ class PhysicsEngine:
             "Sim must run on KrakenBot"
         )
 
-        # Patch Hardware to only use drivetrain (TEMP)
-
     def update_sim(self, now: float, tm_diff: float) -> None:
         pass

@@ -100,4 +100,9 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().cancelAll()
 
         self.container.driveInit()
-        self.TEST_MODE_ENABLED = True
+        global TEST_MODE_ENABLED
+        TEST_MODE_ENABLED = True
+
+    def testExit(self) -> None:
+        global TEST_MODE_ENABLED
+        TEST_MODE_ENABLED = False

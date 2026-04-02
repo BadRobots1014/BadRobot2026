@@ -37,6 +37,10 @@ class Limelight:
         # tv = target valid
         self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
 
+        self.target_pose_sub = self.nt_table.getDoubleArrayTopic(
+            "targetpose_robotspace"
+        ).subscribe([0] * 7)
+
         # Setters
 
         # Used in robot_orientation_set

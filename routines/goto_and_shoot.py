@@ -3,23 +3,27 @@ from commands2 import (
     ParallelDeadlineGroup,
     SequentialCommandGroup,
 )
-from wpimath._controls._controls.controller import PIDController
+from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.spin_shooter import SpinShooterCommand
-from subsystems import pilights
+from commands.run_shooter import RunShooterCommand
+from routines.shoot_when_ready import ShootWhenReady
+from subsystems.conveyor import ConveyorSubsystem
+from subsystems.intake import IntakeSubsystem
+from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
-class GotoAndShoot(SequentialCommandGroup):
+class GotoAndShootRoutine(SequentialCommandGroup):
     def __init__(
         self,
         _shooter: ShooterSubsystem,
+        _kicker: KickerSubsystem,
+        _conveyor: ConveyorSubsystem,
+        _intake: IntakeSubsystem,
         drivetrain: CommandSwerveDrivetrain,
-        lights: pilights.PiLights,
         drive_pid: PIDController,
         rotate_pid: PIDController,
         hub: Translation2d,
@@ -33,7 +37,7 @@ class GotoAndShoot(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                SpinShooterCommand(_shooter, rpm=None),
+                RunShooterCommand(_shooter, rpm=None),
             ),
             ParallelCommandGroup(
                 GotoShootRadius(
@@ -43,6 +47,6 @@ class GotoAndShoot(SequentialCommandGroup):
                     drive_pid,
                     rotate_pid,
                 ),
-                KickerShootWhenReadyCommand(_shooter, lights, rpm=None),
+                ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
             ),
         )

@@ -6,6 +6,7 @@
 import math
 
 import commands2
+from commands2 import RepeatCommand
 from commands2.button import Trigger
 from cscore import CameraServer, HttpCamera
 import ntcore
@@ -16,7 +17,7 @@ from pathplannerlib.auto import (
     PathPlannerPath,
 )
 from pathplannerlib.path import Translation2d
-from phoenix6 import swerve
+from phoenix6 import SignalLogger, swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
 from wpimath.controller import PIDController
@@ -25,11 +26,11 @@ from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.units import rotationsToRadians
 
 from commands.extend_hopper import ExtendHopperCommand
-from commands.face_target import FaceTargetCommand
-from commands.kicker_shoot_when_ready import KickerShootWhenReadyCommand
-from commands.manual_extend_hopper import ManualExtendHopperCommand
-from commands.party_mode import PartyModeCommand
-from commands.shoot_kicker import ShootKickerCommand
+from commands.run_conveyor import RunConveyor
+from commands.run_intake import RunIntakeCommand
+from commands.run_kicker import RunKickerCommand
+from commands.run_shooter import RunShooterCommand
+from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -37,12 +38,19 @@ from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
-from hardware.sim_hardware import DummyLED, DummyLimitSwitch, patch_limelight
-from routines.dump_routine import DumpRoutine
+from hardware.sim_hardware import DummyLED, DummyLimitSwitch
 from routines.extend_and_intake import ExtendAndIntakeRoutine
-from routines.goto_and_shoot import GotoAndShoot
-from routines.shoot_in_place import ShootInPlace
-from subsystems import music, pilights, shooter, talonFXIntake
+from routines.goto_and_shoot import GotoAndShootRoutine
+from routines.shoot_when_ready import ShootWhenReady
+from subsystems import (
+    conveyor,
+    custom_controller,
+    hopper,
+    intake,
+    kicker,
+    pilights,
+    shooter,
+)
 from subsystems.custom_controller import CustomController
 from telemetry import Telemetry
 
@@ -86,12 +94,13 @@ MAX_ANGULAR_SPEED = rotationsToRadians(
 )  # 3/4 of a rotation per second max angular velocity
 
 MAX_ANGULAR_ACCELERATION = 10  # m/s^2
-DRIVE_DEADBAND = MAX_SPEED * 0.1  # Add a 10% deadband
-ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.1  # Add a 10% deadband
+DRIVE_DEADBAND = MAX_SPEED * 0.02  # Add a 10% deadband
+ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.02  # Add a 10% deadband
 
 # joysticks
 DRIVER_PORT = 0
 AUXILIARY_PORT = 1
+TEST_PORT = 2
 JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
@@ -110,6 +119,9 @@ INTAKE_MOTOR_CAN_ID = 52
 # pinion can id
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
+
+# conveyor can id
+CONVEYOR_ID = 56
 
 # limit switch id
 FORWARD_LIMIT_ID = 18
@@ -144,6 +156,9 @@ class KrakenRobotContainer:
         self.is_real_bot = wpilib.RobotBase.isReal()
         self.is_blue = DriverStation.getAlliance() == DriverStation.Alliance.kBlue
 
+        if not self.is_real_bot:
+            SignalLogger.stop()
+
         self.slow_mode = False
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
@@ -165,6 +180,7 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self._primary_controller = CustomController(DRIVER_PORT)
         self._auxiliary_controller = CustomController(AUXILIARY_PORT)
+        self._test_controller = CustomController(TEST_PORT)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -182,8 +198,6 @@ class KrakenRobotContainer:
         self.led_controller = PWMLED(0, 60) if self.is_real_bot else DummyLED(0, 60)
         self._lights = pilights.PiLights()
 
-        # TODO: conditional to disable limelight in sim!!
-        #
         # Initialize limelight
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
         self.camera_ll2 = Limelight()
@@ -191,12 +205,8 @@ class KrakenRobotContainer:
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.ll_table = self.nt_instance.getTable("limelight")
 
-        self.rejected_sub = self.nt_instance.getBooleanTopic("rejected")
+        self.rejected_sub = self.ll_table.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
-
-        if not self.is_real_bot:
-            patch_limelight("limelight-four")
-            patch_limelight("limelight")
 
         # limit switches
         self.forward_limit_switch = (
@@ -216,11 +226,17 @@ class KrakenRobotContainer:
         self.shoot_encoder = self.main_shoot_motor.get_encoder()
         self.kick_encoder = self.kick_motor.get_encoder()
 
+        self.conveyor_motor = SparkFlexMotorController(CONVEYOR_ID)
+
         # shooter
         self._shooter = shooter.ShooterSubsystem(
             self.main_shoot_motor,
             self.follower_shoot_motor,
             self.shoot_encoder,
+        )
+
+        # kicker
+        self._kicker = kicker.KickerSubsystem(
             self.kick_motor,
             self.kick_encoder,
         )
@@ -229,17 +245,23 @@ class KrakenRobotContainer:
         self.left_pinion = TalonFXMotorController(LEFT_PINION_ID)
         self.right_pinion = TalonFXMotorController(RIGHT_PINION_ID)
 
-        self._talonIntake = talonFXIntake.TalonIntakeSubsystem(
+        self._intake = intake.IntakeSubsystem(
             self.intakeMotor,
+        )
+
+        self._hopper = hopper.HopperSubsystem(
             self.left_pinion.get_motor_controller(),
             self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
             self.backward_limit_switch,
         )
 
+        self._conveyor = conveyor.ConveyorSubsystem(self.conveyor_motor)
+
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        self.music = music.MusicSubsystem(self.drivetrain)
+        # takes a while and sometimes causes tests to fail maybe?
+        # self.music = music.MusicSubsystem(self.drivetrain)
 
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
@@ -259,31 +281,26 @@ class KrakenRobotContainer:
         # Configure commands used in auto
         NamedCommands.registerCommand(
             "ExtendAndIntake",
-            ExtendAndIntakeRoutine(self._talonIntake, self._lights),
+            ExtendAndIntakeRoutine(self._intake, self._hopper, self._lights),
         )
         NamedCommands.registerCommand(
-            "RetractHopper",
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False),
-        )
-        NamedCommands.registerCommand(
-            "KickerShootWhenReady",
-            KickerShootWhenReadyCommand(self._shooter, self._lights, 3300).withTimeout(
-                10
+            "ShootWhenReady",
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, 3500
             ),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
-            GotoAndShoot(
+            GotoAndShootRoutine(
                 self._shooter,
+                self._kicker,
+                self._conveyor,
+                self._intake,
                 self.drivetrain,
-                self._lights,
                 self.drive_pid,
                 self.rotate_pid,
                 BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
             ),
-        )
-        NamedCommands.registerCommand(
-            "jiggle shoot", ShootInPlace(self._talonIntake, self._shooter, self._lights)
         )
 
         # Run auto builder
@@ -312,44 +329,36 @@ class KrakenRobotContainer:
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
-        SmartDashboard.putData("Pigeon", self.drivetrain.pigeon2)
-        SmartDashboard.putData(
-            "Command Scheduler", commands2.CommandScheduler.getInstance()
-        )
 
         # TODO: move publishing stream url to limelight
-        self.camera = HttpCamera("Limelight-stream", "http://limelight.local:5800")
+        self.camera = HttpCamera("LimelightPublisher", "http://10.10.14.12:5801")
         CameraServer.addCamera(self.camera)
 
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self) -> float:
         raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
-        limiter = self.left_x_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getLeftY(self) -> float:
         raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
-        limiter = self.left_y_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getRightX(self) -> float:
         raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
-        limiter = self.right_x_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def getRightY(self) -> float:
         raw = -(self._primary_controller.getRawAxis(RIGHT_Y_AXIS) ** 3)
-        limiter = self.right_y_speed_limiter.calculate(raw)
         if self.slow_mode:
-            limiter *= SLOW_SPEED_JOYSTICK_MODIFIER
-        return limiter
+            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+        return raw
 
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
@@ -395,10 +404,10 @@ class KrakenRobotContainer:
         # )
 
         # toggle slow mode
-        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onTrue(
+        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onTrue(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
-        self._primary_controller.create_button(R2_BUTTON, "Toggle Slow Mode").onFalse(
+        self._primary_controller.create_button(R2_BUTTON, "Slow Mode (hold)").onFalse(
             commands2.cmd.runOnce(self.toggleSlowMode)
         )
 
@@ -423,8 +432,55 @@ class KrakenRobotContainer:
             drive_pid=self.drive_pid,
         )
 
-        self._primary_controller.button(L1_BUTTON).whileTrue(strafe_l)
-        self._primary_controller.button(R1_BUTTON).whileTrue(strafe_r)
+        self._primary_controller.create_button(
+            L1_BUTTON, "Strafe Left Around Tower"
+        ).whileTrue(strafe_l)
+        self._primary_controller.create_button(
+            R1_BUTTON, "Strafe Right Around Tower"
+        ).whileTrue(strafe_r)
+
+        # POV up - drive forward
+        self._primary_controller.bind_pov_up("nudge forward").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(
+                    NUDGE_SPEED
+                ).with_velocity_y(0)
+            )
+        )
+
+        # POV down - drive backward
+        self._primary_controller.bind_pov_down("nudge backwards").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(
+                    -NUDGE_SPEED
+                ).with_velocity_y(0)
+            )
+        )
+
+        # POV right - drive right
+        self._primary_controller.bind_pov_right("nudge right").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    -NUDGE_SPEED
+                )
+            )
+        )
+
+        # POV left - drive left
+        self._primary_controller.bind_pov_left("nudge left").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    NUDGE_SPEED
+                )
+            )
+        )
+
+        # Reset the field-centric heading on Options button press
+        self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
+            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
+                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
+            )
+        )
 
         # Idle while the robot is disabled. This ensures the configured
         # neutral mode is applied to the drive motors while disabled.
@@ -435,98 +491,37 @@ class KrakenRobotContainer:
             )
         )
 
-        # Face target
-        self._primary_controller.create_button(L2_BUTTON, "Face Target").whileTrue(
-            FaceTargetCommand(
-                self.drivetrain,
-                BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
-                self._drive,
-                self._primary_controller,
-                MAX_SPEED,
-                MAX_ANGULAR_SPEED,
-                LEFT_Y_AXIS,
-                LEFT_X_AXIS,
-            )
-        )
-
-        # POV up - drive forward
-        self._primary_controller.povUp().whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(
-                    NUDGE_SPEED
-                ).with_velocity_y(0)
-            )
-        )
-
-        # POV down - drive backward
-        self._primary_controller.povDown().whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(
-                    -NUDGE_SPEED
-                ).with_velocity_y(0)
-            )
-        )
-
-        # POV right - drive right
-        self._primary_controller.povRight().whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    -NUDGE_SPEED
-                )
-            )
-        )
-
-        # POV left - drive left
-        self._primary_controller.povLeft().whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    NUDGE_SPEED
-                )
-            )
-        )
-
-        # Extend hopper Triangle (HOLD)
-        self._primary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
-        )
-
-        # Retract hopper Square (HOLD)
-        self._primary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
-        )
-
-        # Reset the field-centric heading on Options button press
-        self._primary_controller.button(OPTIONS_BUTTON).onTrue(
-            self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
-                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
-            )
+        self._primary_controller.create_button(CROSS_BUTTON, "shimmy").whileTrue(
+            Shimmy(self.drivetrain)
         )
 
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
         # manual extend
-        self._auxiliary_controller.povUp().whileTrue(
-            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=True)
-        )
-        # manual retract
-        self._auxiliary_controller.povDown().whileTrue(
-            ManualExtendHopperCommand(self._talonIntake, self._lights, extend=False)
+        self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
         )
 
         # Spin up shooter L2
-        self._auxiliary_controller.create_button(L2_BUTTON, "Run main wheel").whileTrue(
-            KickerShootWhenReadyCommand(self._shooter, self._lights, rpm=3300),
+        self._auxiliary_controller.create_button(
+            L2_BUTTON, "shoot when ready"
+        ).whileTrue(
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
+            ),
         )
 
         # Run kicker wheel when ready R2
         self._auxiliary_controller.create_button(
             R2_BUTTON,
-            "Run kicker wheel when ready",
+            "goto and shoot when ready (dangerous)",
         ).whileTrue(
-            GotoAndShoot(
+            GotoAndShootRoutine(
                 self._shooter,
+                self._kicker,
+                self._conveyor,
+                self._intake,
                 self.drivetrain,
-                self._lights,
                 self.drive_pid,
                 self.rotate_pid,
                 BLUE_HUB_TRANSLATION if self.is_blue else RED_HUB_TRANSLATION,
@@ -537,52 +532,73 @@ class KrakenRobotContainer:
         # self._auxiliary_controller.create_button(
         #     R1_BUTTON,
         #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._shooter, invert=False))
+        #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
 
         self._auxiliary_controller.create_button(
-            R1_BUTTON, "Run kicker wheel inverted"
-        ).whileTrue(ShootInPlace(self._talonIntake, self._shooter, self._lights))
-
-        # # Jiggle L1
-        # self._auxiliary_controller.create_button(L1_BUTTON, "Jiggle").whileTrue(
-        #     JiggleCommand(self._talonIntake, self._lights)
-        # )
-
-        self._auxiliary_controller.create_button(L1_BUTTON, "kick maual").whileTrue(
-            ShootKickerCommand(self._shooter, invert=False)
+            L1_BUTTON, "shoot when ready (rpm=None)"
+        ).whileTrue(
+            ShootWhenReady(
+                self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
+            )
         )
 
-        # Extend hopper Triangle (HOLD)
-        self._auxiliary_controller.button(TRIANGLE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=True)
+        # Intake wheel in (HOLD)
+        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+        self._auxiliary_controller.create_button(
+            CROSS_BUTTON, "Intake wheel in"
+        ).whileTrue(intake_wheel_in)
+
+        # Intake wheel dump (HOLD)
+        intake_wheel_out = RunIntakeCommand(self._intake, dump=True)
+        self._auxiliary_controller.create_button(
+            CIRCLE_BUTTON, "Intake wheel dump"
+        ).whileTrue(intake_wheel_out)
+
+        # Intake wheel down up
+        self._auxiliary_controller.create_button(
+            SQUARE_BUTTON, "intake down up"
+        ).whileTrue(
+            RepeatCommand(
+                RunIntakeCommand(self._intake, dump=True)
+                .withTimeout(0.05)
+                .andThen(RunIntakeCommand(self._intake, dump=False))
+            )
         )
-
-        # Retract hopper Square (HOLD)
-        self._auxiliary_controller.button(SQUARE_BUTTON).whileTrue(
-            ExtendHopperCommand(self._talonIntake, self._lights, extend=False)
-        )
-
-        # Intake wheel in (TOGGLE)
-        intake_wheel_in = ExtendAndIntakeRoutine(self._talonIntake, self._lights)
-        self._auxiliary_controller.button(CROSS_BUTTON).toggleOnTrue(intake_wheel_in)
-
-        # Intake wheel dump (TOGGLE)
-        intake_wheel_out = DumpRoutine(self._talonIntake, self._shooter, self._lights)
-        self._auxiliary_controller.button(CIRCLE_BUTTON).toggleOnTrue(intake_wheel_out)
 
         # Party Mode
-        self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-            PartyModeCommand(self._lights, self.music)
+        # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
+        #    PartyModeCommand(self._lights, self.music)
+        # )
+
+        # test controls -------------------------------------------------------
+
+        self._test_controller.create_button(R2_BUTTON, "shoot").whileTrue(
+            RunShooterCommand(self._shooter, rpm=3300)
+        )
+        self._test_controller.create_button(L2_BUTTON, "extend hopper test").whileTrue(
+            ExtendHopperCommand(self._hopper, self._lights, extend=True)
+        )
+        self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
+            RunKickerCommand(self._kicker, invert=False)
+        )
+        self._test_controller.create_button(R1_BUTTON, "kicker invert").whileTrue(
+            RunKickerCommand(self._kicker, invert=True)
+        )
+        self._test_controller.create_button(TRIANGLE_BUTTON, "conveyor").whileTrue(
+            RunConveyor(self._conveyor, shoot_direction=True)
+        )
+        self._test_controller.create_button(SQUARE_BUTTON, "conveyor invert").whileTrue(
+            RunConveyor(self._conveyor, shoot_direction=False)
+        )
+        self._test_controller.create_button(CROSS_BUTTON, "intake").whileTrue(
+            RunIntakeCommand(self._intake, dump=False)
+        )
+        self._test_controller.create_button(CIRCLE_BUTTON, "intake invert").whileTrue(
+            RunIntakeCommand(self._intake, dump=True)
         )
 
         self.drivetrain.register_telemetry(self._logger.telemeterize)
-
-        # self._joystick.button(TRIANGLE_BUTTON).whileTrue(
-        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, True)
-        # )
-        # self._joystick.button(SQUARE_BUTTON).whileTrue(
-        #    IntakeDemoCommand(self.left_pinion, self.right_pinion, False)
-        # )
+        custom_controller.write_binds()
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
@@ -615,21 +631,16 @@ class KrakenRobotContainer:
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
-        # self.camera_ll2.robot_orientation_set(robot_yaw)
 
         # Add vision
         cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
         reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
-
-        # cam_measurement_ll2 = self.camera_ll2.get_vision_measurement()
-        # reject_pose_ll2 = self.camera_ll2.tv_sub.get() < 1
 
         reject_pose_ll4 |= (
             # OR with tv rejection
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         )
-        # reject_pose_ll2 = False
 
         self.rejected_pub.set(reject_pose_ll4)
 
@@ -640,11 +651,6 @@ class KrakenRobotContainer:
 
         return None
 
-        # if not reject_pose_ll2:
-        #    self.drivetrain.add_vision_measurement(
-        #        cam_measurement_ll2[0], cam_measurement_ll2[1], cam_measurement_ll2[2]
-        #    )
-
     def getAutonomousCommand(self) -> commands2.Command:
         """
         Use this to pass the autonomous command to the main {@link Robot} class.
@@ -652,6 +658,4 @@ class KrakenRobotContainer:
         :returns: the command to run in autonomous
         """
         command: commands2.Command = self._auto_chooser.getSelected()
-        return command.andThen(
-            ShootInPlace(self._talonIntake, self._shooter, self._lights).withTimeout(10)
-        )
+        return command
