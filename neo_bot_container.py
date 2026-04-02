@@ -11,7 +11,7 @@ import wpimath.controller
 import wpimath.filter
 
 from hardware.impl.pwmled import PWMLED
-from subsystems import drivetrain_neo, lights
+from subsystems import drivetrain_neo, pilights
 
 
 class NeoBotContainer:
@@ -24,7 +24,7 @@ class NeoBotContainer:
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
         self.led_controller = PWMLED(8, 108)
-        self.lights = lights.LightSubsystem(self.led_controller)
+        self.lights = pilights.PiLights()
 
         self.configureButtonBindings()
 
@@ -34,10 +34,8 @@ class NeoBotContainer:
         """
 
         self.controller.share().onTrue(
-            commands2.cmd.runOnce(
-                lambda: self.lights.set_rainbow(255, 150, 2), self.lights
-            )
-        ).onFalse(commands2.cmd.runOnce(self.lights.set_default, self.lights))
+            commands2.InstantCommand(lambda: self.lights.set_state(pilights.LEDState.PARTY_MODE), self.lights)
+        )
 
         self.controller.options().onTrue(
             commands2.cmd.runOnce(self.drivetrain.resetgyro)
@@ -71,7 +69,7 @@ class NeoBotContainer:
         pass
 
     def robotPeriodic(self) -> None:
-        pass
+        self.lights.set_state(pilights.LEDState.PARTY_MODE)
 
     def getAutonomousCommand(self) -> commands2.Command:
         return commands2.WaitCommand(0)

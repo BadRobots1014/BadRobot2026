@@ -11,7 +11,6 @@ from commands.run_shooter import RunShooterCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
-from subsystems.pilights import PiLights
 from subsystems.shooter import ShooterSubsystem
 
 
@@ -33,11 +32,6 @@ def intake() -> IntakeSubsystem:
 @pytest.fixture
 def hopper() -> HopperSubsystem:
     return HopperSubsystem(MagicMock(), MagicMock(), MagicMock(), MagicMock())
-
-
-@pytest.fixture
-def lights() -> PiLights:
-    return MagicMock()
 
 
 # --- ShootCommand ---
@@ -70,31 +64,31 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 
 
 def test_extend_finished_when_forward_limit_hit(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
-    assert ExtendHopperCommand(hopper, lights, extend=True).isFinished() is True
+    assert ExtendHopperCommand(hopper, extend=True).isFinished() is True
 
 
 def test_extend_not_finished_without_forward_limit(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
-    assert ExtendHopperCommand(hopper, lights, extend=True).isFinished() is False
+    assert ExtendHopperCommand(hopper, extend=True).isFinished() is False
 
 
 def test_retract_finished_when_backward_limit_hit(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.backward_limit_switch.get_state.return_value = True
-    assert ExtendHopperCommand(hopper, lights, extend=False).isFinished() is True
+    assert ExtendHopperCommand(hopper, extend=False).isFinished() is True
 
 
 def test_retract_not_finished_without_backward_limit(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.backward_limit_switch.get_state.return_value = False
-    assert ExtendHopperCommand(hopper, lights, extend=False).isFinished() is False
+    assert ExtendHopperCommand(hopper, extend=False).isFinished() is False
 
 
 # --- ShootKickerCommand (test mode) ---
@@ -113,44 +107,44 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
 
 
 def test_extend_hopper_execute_extends_with_positive_voltage(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, lights, extend=True).execute()
+        ExtendHopperCommand(hopper, extend=True).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output > 0
 
 
 def test_extend_hopper_execute_retracts_with_negative_voltage(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, lights, extend=False).execute()
+        ExtendHopperCommand(hopper, extend=False).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output < 0
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(hopper, lights, extend=True).execute()
+        ExtendHopperCommand(hopper, extend=True).execute()
     # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == hopper.extension_voltage
 
 
 def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(hopper, lights, extend=False).execute()
+        ExtendHopperCommand(hopper, extend=False).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == -hopper.extension_voltage
 
@@ -159,9 +153,9 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
 
 
 def test_extend_hopper_end_stops_motor(
-    hopper: HopperSubsystem, lights: PiLights
+    hopper: HopperSubsystem,
 ) -> None:
-    ExtendHopperCommand(hopper, lights, extend=True).end(interrupted=False)
+    ExtendHopperCommand(hopper, extend=True).end(interrupted=False)
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == 0
 

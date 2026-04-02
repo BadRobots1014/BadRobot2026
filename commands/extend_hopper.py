@@ -1,6 +1,5 @@
 from commands2 import Command
 
-from subsystems import pilights
 from subsystems.hopper import HopperSubsystem
 
 
@@ -8,7 +7,6 @@ class ExtendHopperCommand(Command):
     def __init__(
         self,
         hopper: HopperSubsystem,
-        lights: pilights.PiLights,
         extend: bool,
     ):
         """
@@ -18,7 +16,6 @@ class ExtendHopperCommand(Command):
         """
         super().__init__()
         self.hopper = hopper
-        self.lights = lights
 
         self.extend = extend
         self.intiial_pos = self.hopper.get_extension_position()
@@ -36,11 +33,6 @@ class ExtendHopperCommand(Command):
         if (self.extend and self.hopper.forward_extended()) or (
             not self.extend and self.hopper.backward_extended()
         ):
-            self.lights.set_state(
-                pilights.LEDState.HOPPER_EXTENDED
-                if self.extend
-                else pilights.LEDState.HOPPER_RETRACTED
-            )
             return True
         return False
 

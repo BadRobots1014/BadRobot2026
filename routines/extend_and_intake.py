@@ -4,7 +4,6 @@ from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
-from subsystems.pilights import PiLights
 
 
 class ExtendAndIntakeRoutine(ParallelCommandGroup):
@@ -13,12 +12,12 @@ class ExtendAndIntakeRoutine(ParallelCommandGroup):
     """
 
     def __init__(
-        self, intake: IntakeSubsystem, hopper: HopperSubsystem, lights: PiLights
+        self, intake: IntakeSubsystem, hopper: HopperSubsystem,
     ):
         super().__init__()
         self.addCommands(
             SequentialCommandGroup(
-                ExtendHopperCommand(hopper, lights, extend=True),
+                ExtendHopperCommand(hopper, extend=True),
                 RunIntakeCommand(intake, dump=False),
             )
         )

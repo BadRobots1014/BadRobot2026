@@ -11,7 +11,6 @@ from commands.run_kicker import RunKickerCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
-from subsystems.pilights import PiLights
 
 
 class DumpRoutine(SequentialCommandGroup):
@@ -24,11 +23,10 @@ class DumpRoutine(SequentialCommandGroup):
         intake: IntakeSubsystem,
         hopper: HopperSubsystem,
         kicker: KickerSubsystem,
-        lights: PiLights,
     ):
         super().__init__()
         self.addCommands(
-            ExtendHopperCommand(hopper, lights, extend=True),
+            ExtendHopperCommand(hopper, extend=True),
             ParallelCommandGroup(
                 RunIntakeCommand(intake, dump=True),
                 RepeatCommand(
