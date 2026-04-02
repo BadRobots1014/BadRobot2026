@@ -40,6 +40,9 @@ class GotoShootRadius(Command):
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
+            .with_forward_perspective(
+                swerve.requests.ForwardPerspectiveValue.BLUE_ALLIANCE
+            )
         )
 
         self.r_dist = 0
@@ -60,7 +63,7 @@ class GotoShootRadius(Command):
         self.r_dist = math.hypot(x_dist, y_dist)
 
         self.radius = self.shooter.set_radius_pair(self.r_dist)
-        r_output = self.drive_pid.calculate(self.r_dist, self.radius)
+        r_output = self.drive_pid.calculate(self.radius, self.r_dist)
 
         ux = x_dist / self.r_dist
         uy = y_dist / self.r_dist
@@ -82,8 +85,8 @@ class GotoShootRadius(Command):
         )
 
     def isFinished(self) -> bool:
-        print(str(self.r_dist) + " " + str(self.radius + THRESHOLD))
-        if math.fabs(self.r_dist - self.radius) < THRESHOLD:
+        # print("Threshold "+str(self.r_dist) + " " + str(self.radius + THRESHOLD))
+        if abs(self.r_dist - self.radius) < THRESHOLD:
             return True
         else:
             return False
