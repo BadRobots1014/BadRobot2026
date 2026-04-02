@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import math
 
 from commands2 import Command
@@ -17,7 +18,7 @@ class GotoShootRadius(Command):
         self,
         swerve_subsystem: CommandSwerveDrivetrain,
         shooter: ShooterSubsystem,
-        target_point: Translation2d,
+        target_point: Callable[[], Translation2d],
         drive_pid: PIDController,
         rotate_pid: PIDController,
     ) -> None:
@@ -51,8 +52,8 @@ class GotoShootRadius(Command):
 
     def execute(self) -> None:
         bot_pos = self.swerve_subsystem.get_state().pose
-        x_dist = self.target_point.x - bot_pos.x
-        y_dist = self.target_point.y - bot_pos.y
+        x_dist = self.target_point().x - bot_pos.x
+        y_dist = self.target_point().y - bot_pos.y
 
         theta = math.atan2(y_dist, x_dist)
 

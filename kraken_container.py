@@ -365,6 +365,12 @@ class KrakenRobotContainer:
         if self.slow_mode:
             self._lights.set_state(pilights.LEDState.SLOW_MODE)
 
+    def getHub(self) -> Translation2d:
+        if DriverStation.getAlliance() == DriverStation.Alliance.kBlue:
+            return BLUE_HUB_TRANSLATION
+        else:
+            return RED_HUB_TRANSLATION
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by

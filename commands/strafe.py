@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import math
 
 import commands2
@@ -19,7 +20,7 @@ class Strafe(commands2.Command):
         swerve_subsystem: CommandSwerveDrivetrain,
         shooter: ShooterSubsystem,
         lights: pilights.PiLights,
-        target_point: Translation2d,
+        target_point: Callable[[], Translation2d],
         clockwise: bool,
         max_angular_rate: float,
         drive_pid: PIDController,
@@ -57,8 +58,8 @@ class Strafe(commands2.Command):
         # gets current bot pos
         bot_pos = self.swerve_subsystem.get_state().pose
 
-        x_dist = self.target_point.x - bot_pos.x
-        y_dist = self.target_point.y - bot_pos.y
+        x_dist = self.target_point().x - bot_pos.x
+        y_dist = self.target_point().y - bot_pos.y
 
         theta = math.atan2(y_dist, x_dist)
 
