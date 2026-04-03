@@ -51,7 +51,7 @@ class PiLights(Subsystem):
                 red_inactive_first = False
             case _:
                 # No or invalid game data, assume hub is active.
-                return True
+                return False
 
         # Shift 1 is active for blue if red won auto, or red if blue won auto.
         shift1_active = (
@@ -91,8 +91,9 @@ class PiLights(Subsystem):
 
         match_time = DriverStation.getMatchTime()
 
-        print(f"The Time is: {match_time}")
-        if DriverStation.isAutonomousEnabled():
+        if match_time == -1:
+            self.set_state(LEDState.CURRENT_INACTIVE)
+        elif DriverStation.isAutonomousEnabled():
             if match_time > GameStates.AUTO_ENDING.value:
                 self.set_state(LEDState.AUTO_ACTIVE)
             else:

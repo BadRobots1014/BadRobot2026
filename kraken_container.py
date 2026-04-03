@@ -6,6 +6,7 @@
 import math
 
 import commands2
+from commands2 import ParallelCommandGroup
 from commands2.button import Trigger
 from cscore import CameraServer, HttpCamera
 import ntcore
@@ -280,7 +281,11 @@ class KrakenRobotContainer:
         # Configure commands used in auto
         NamedCommands.registerCommand(
             "Extend",
-            ExtendHopperCommand(self._hopper, extend=True),
+            ExtendHopperCommand(self._hopper, extend=True).withTimeout(1),
+        )
+
+        NamedCommands.registerCommand(
+            "AutoIntakeShoot", AutoShootWithIntake(self._intake)
         )
 
         NamedCommands.registerCommand(
@@ -296,10 +301,13 @@ class KrakenRobotContainer:
         )
 
         NamedCommands.registerCommand(
-            "ShootWhenReady 10 seconds",
-            ShootWhenReady(
-                self._shooter, self._kicker, self._conveyor, self._intake, 3500
-            ).withTimeout(10),
+            "EmptyHopper",
+            ParallelCommandGroup(
+                ShootWhenReady(
+                    self._shooter, self._kicker, self._conveyor, self._intake, 3500
+                ),
+                AutoShootWithIntake(self._intake),
+            ).withTimeout(5),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
@@ -313,6 +321,10 @@ class KrakenRobotContainer:
                 self.rotate_pid,
                 self.get_hub,
             ),
+        )
+
+        NamedCommands.registerCommand(
+            "ResetHeading", self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
         # Run auto builder

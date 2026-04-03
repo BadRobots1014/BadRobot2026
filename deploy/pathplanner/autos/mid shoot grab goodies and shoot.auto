@@ -1,0 +1,55 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Shoot Mid"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Extend"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootWhenReady 4 seconds"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "grab stash"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "RunIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "from stash to shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootWhenReady 10 seconds"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

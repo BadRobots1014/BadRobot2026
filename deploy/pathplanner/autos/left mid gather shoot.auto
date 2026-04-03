@@ -1,0 +1,62 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "intake mid from left"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Extend"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "shoot from mid left"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "EmptyHopper"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left go back mid after shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left leave mid after picking up more"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "EmptyHopper"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
