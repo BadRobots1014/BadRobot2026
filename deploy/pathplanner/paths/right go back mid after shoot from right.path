@@ -71,7 +71,12 @@
       "name": "RunIntake",
       "waypointRelativePos": 0.7400405131667782,
       "endWaypointRelativePos": 2.0,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "RunIntake"
+        }
+      }
     }
   ],
   "globalConstraints": {

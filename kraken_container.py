@@ -488,22 +488,22 @@ class KrakenRobotContainer:
         )
 
         # POV right - drive right
-        # self._primary_controller.bind_pov_right("nudge right").whileTrue(
-        #     self.drivetrain.apply_request(
-        #         lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-        #             -NUDGE_SPEED
-        #         )
-        #     )
-        # )
-        #
-        # # POV left - drive left
-        # self._primary_controller.bind_pov_left("nudge left").whileTrue(
-        #     self.drivetrain.apply_request(
-        #         lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-        #             NUDGE_SPEED
-        #         )
-        #     )
-        # )
+        self._primary_controller.bind_pov_right("nudge right").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    -NUDGE_SPEED
+                )
+            )
+        )
+
+        # POV left - drive left
+        self._primary_controller.bind_pov_left("nudge left").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    NUDGE_SPEED
+                )
+            )
+        )
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
