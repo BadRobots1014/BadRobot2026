@@ -432,12 +432,12 @@ class KrakenRobotContainer:
         # )
 
         # toggle slow mode
-        self._primary_controller.create_axis(
-            R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
-        ).onTrue(commands2.cmd.runOnce(self.toggleSlowMode))
-        self._primary_controller.create_axis(
-            R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
-        ).onFalse(commands2.cmd.runOnce(self.toggleSlowMode))
+        # self._primary_controller.create_axis(
+        #     R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
+        # ).onTrue(commands2.cmd.runOnce(self.toggleSlowMode))
+        # self._primary_controller.create_axis(
+        #     R2_TRIGGER, "Slow Mode (hold)", AXIS_THRESHOLD_VALUE
+        # ).onFalse(commands2.cmd.runOnce(self.toggleSlowMode))
 
         strafe_l = Strafe(
             self.drivetrain,
@@ -466,7 +466,9 @@ class KrakenRobotContainer:
         ).whileTrue(strafe_r)
 
         # POV up - drive forward
-        self._primary_controller.bind_pov_up("nudge forward").whileTrue(
+        self._primary_controller.create_axis(
+            R2_TRIGGER, "nudge backwards", AXIS_THRESHOLD_VALUE
+        ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     NUDGE_SPEED
@@ -475,7 +477,9 @@ class KrakenRobotContainer:
         )
 
         # POV down - drive backward
-        self._primary_controller.bind_pov_down("nudge backwards").whileTrue(
+        self._primary_controller.create_axis(
+            L2_TRIGGER, "nudge backwards", AXIS_THRESHOLD_VALUE
+        ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
                     -NUDGE_SPEED
@@ -484,22 +488,22 @@ class KrakenRobotContainer:
         )
 
         # POV right - drive right
-        self._primary_controller.bind_pov_right("nudge right").whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    -NUDGE_SPEED
-                )
-            )
-        )
-
-        # POV left - drive left
-        self._primary_controller.bind_pov_left("nudge left").whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    NUDGE_SPEED
-                )
-            )
-        )
+        # self._primary_controller.bind_pov_right("nudge right").whileTrue(
+        #     self.drivetrain.apply_request(
+        #         lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+        #             -NUDGE_SPEED
+        #         )
+        #     )
+        # )
+        #
+        # # POV left - drive left
+        # self._primary_controller.bind_pov_left("nudge left").whileTrue(
+        #     self.drivetrain.apply_request(
+        #         lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+        #             NUDGE_SPEED
+        #         )
+        #     )
+        # )
 
         # Reset the field-centric heading on Options button press
         self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
