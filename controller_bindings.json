@@ -1,10 +1,9 @@
 {
   "0": {
-    "R2": "Slow Mode (hold)",
     "L1": "Strafe Left Around Tower",
     "R1": "Strafe Right Around Tower",
-    "POVUP": "nudge forward",
-    "POVDOWN": "nudge backwards",
+    "R2": "nudge backwards",
+    "L2": "nudge backwards",
     "POVRIGHT": "nudge right",
     "POVLEFT": "nudge left",
     "OPTION": "Reset Heading",
@@ -17,6 +16,6 @@
     "L1": "shoot when ready (rpm=None)",
     "CROSS": "Intake wheel in",
     "CIRCLE": "Intake wheel dump",
-    "SQUARE": "intake down up"
+    "SQUARE": "intake pulse"
   }
 }

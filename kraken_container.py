@@ -285,6 +285,10 @@ class KrakenRobotContainer:
         )
 
         NamedCommands.registerCommand(
+            "Slight Dump", RunIntakeCommand(self._intake, dump=True).withTimeout(0.1)
+        )
+
+        NamedCommands.registerCommand(
             "AutoIntakeShoot", AutoShootWithIntake(self._intake)
         )
 
@@ -307,7 +311,7 @@ class KrakenRobotContainer:
                     self._shooter, self._kicker, self._conveyor, self._intake, 3500
                 ),
                 AutoShootWithIntake(self._intake),
-            ).withTimeout(5),
+            ).withTimeout(4),
         )
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",

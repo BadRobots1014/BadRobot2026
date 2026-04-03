@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
@@ -15,9 +15,28 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Extend"
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Extend"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Slight Dump"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "RunIntake"
+                      }
+                    }
+                  ]
                 }
               }
             ]
