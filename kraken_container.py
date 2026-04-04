@@ -267,6 +267,7 @@ class KrakenRobotContainer:
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
         self.camera_ll4.set_imu_mode(1)
+        self.camera_ll4.set_fiducial_id_filters()
 
         self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
         self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
@@ -671,6 +672,18 @@ class KrakenRobotContainer:
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         )
+
+        llx = cam_measurement_ll4[0].x
+        lly = cam_measurement_ll4[0].y
+
+        posex = self.drivetrain.get_state().pose.x
+        posey = self.drivetrain.get_state().pose.y
+
+        x = posex - llx
+        y = posey - lly
+
+        if math.hypot(x, y) > 1:
+            reject_pose_ll4 = True
 
         self.rejected_pub.set(reject_pose_ll4)
 

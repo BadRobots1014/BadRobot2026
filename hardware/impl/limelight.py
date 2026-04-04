@@ -97,3 +97,34 @@ class Limelight:
         Recommended: 50-200 while disabled, 0 during active play.
         """
         self.throttle_set_pub.set(n)
+
+    def set_fiducial_id_filters(self) -> None:
+        ids = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            18,
+            19,
+            20,
+            21,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+        ]
+        # ignore inner trench and climb tags
+        self.nt_table.putNumberArray("fiducial_id_filters_set", ids)
