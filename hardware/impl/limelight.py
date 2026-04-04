@@ -98,7 +98,7 @@ class Limelight:
         """
         self.throttle_set_pub.set(n)
 
-    def set_fiducial_id_filters(self) -> None:
+    def set_auto_fiducial_id_filters(self) -> None:
         ids = [
             1,
             2,
@@ -126,5 +126,10 @@ class Limelight:
             29,
             30,
         ]
+        # ignore inner trench and climb tags
+        self.nt_table.putNumberArray("fiducial_id_filters_set", ids)
+
+    def set_teleop_fiducial_id_filters(self) -> None:
+        ids = list(range(1, 33))
         # ignore inner trench and climb tags
         self.nt_table.putNumberArray("fiducial_id_filters_set", ids)

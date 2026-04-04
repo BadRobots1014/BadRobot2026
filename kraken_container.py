@@ -267,7 +267,7 @@ class KrakenRobotContainer:
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
         self.camera_ll4.robot_orientation_set(robot_yaw)
         self.camera_ll4.set_imu_mode(1)
-        self.camera_ll4.set_fiducial_id_filters()
+        self.camera_ll4.set_auto_fiducial_id_filters()
 
         self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
         self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
@@ -653,6 +653,14 @@ class KrakenRobotContainer:
     def driveInit(self) -> None:
         self.camera_ll4.set_throttle(0)  # Process all frames
         self.camera_ll4.set_imu_mode(4)
+
+    def teleop_init(self) -> None:
+        self.camera_ll4.set_teleop_fiducial_id_filters()
+        self.driveInit()
+
+    def auto_init(self) -> None:
+        self.camera_ll4.set_auto_fiducial_id_filters()
+        self.driveInit()
 
     def robotPeriodic(self) -> None:
         # All code below is limelight, so skip adding it if in sim
