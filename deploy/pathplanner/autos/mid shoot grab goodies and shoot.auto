@@ -19,7 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootWhenReady 4 seconds"
+            "name": "ShootStarting8"
           }
         },
         {
@@ -43,7 +43,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootWhenReady 10 seconds"
+            "name": "EmptyHopper"
           }
         }
       ]

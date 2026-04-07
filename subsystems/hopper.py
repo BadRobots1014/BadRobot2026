@@ -34,22 +34,43 @@ class HopperSubsystem(Subsystem):
         )
         clockwise_positive = phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
 
-        idle_mode = phoenix6.signals.NeutralModeValue.BRAKE
+        brake = phoenix6.signals.NeutralModeValue.BRAKE
+        coast = phoenix6.signals.NeutralModeValue.COAST
 
-        shoot_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(counter_clockwise_positive)
-            .with_neutral_mode(idle_mode)
+        self.leader_brake_config = (
+            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+                phoenix6.configs.MotorOutputConfigs()
+                .with_inverted(counter_clockwise_positive)
+                .with_neutral_mode(brake)
+            )
         )
 
-        follower_config = phoenix6.configs.TalonFXConfiguration().with_motor_output(
-            phoenix6.configs.MotorOutputConfigs()
-            .with_inverted(clockwise_positive)
-            .with_neutral_mode(idle_mode)
+        self.follower_brake_config = (
+            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+                phoenix6.configs.MotorOutputConfigs()
+                .with_inverted(clockwise_positive)
+                .with_neutral_mode(brake)
+            )
         )
 
-        self.left_motor.configurator.apply(shoot_config)
-        self.right_motor.configurator.apply(follower_config)
+        self.leader_coast_config = (
+            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+                phoenix6.configs.MotorOutputConfigs()
+                .with_inverted(counter_clockwise_positive)
+                .with_neutral_mode(coast)
+            )
+        )
+
+        self.follower_coast_config = (
+            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+                phoenix6.configs.MotorOutputConfigs()
+                .with_inverted(clockwise_positive)
+                .with_neutral_mode(coast)
+            )
+        )
+
+        self.left_motor.configurator.apply(self.leader_brake_config)
+        self.right_motor.configurator.apply(self.follower_brake_config)
 
         self.right_motor.set_control(
             Follower(
@@ -131,3 +152,13 @@ class HopperSubsystem(Subsystem):
 
     def get_max_extension_value(self) -> float:
         return MAX_ENCODER_ROTATIONS
+
+    def set_coast(self) -> None:
+        self.left_motor.configurator.apply(self.leader_coast_config)
+        self.right_motor.configurator.apply(self.follower_coast_config)
+        print("applied coast to hopper")
+
+    def set_brake(self) -> None:
+        self.left_motor.configurator.apply(self.leader_brake_config)
+        self.right_motor.configurator.apply(self.follower_brake_config)
+        print("applied brake to hopper")

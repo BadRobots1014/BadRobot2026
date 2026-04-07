@@ -14,12 +14,12 @@ from pathplannerlib.auto import (
     AutoBuilder,
     NamedCommands,
     PathConstraints,
-    PathPlannerPath,
 )
 from pathplannerlib.path import Translation2d
 from phoenix6 import SignalLogger, swerve
 import wpilib
 from wpilib import DriverStation, SmartDashboard
+from wpilib.interfaces import GenericHID
 from wpimath.controller import PIDController
 import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
@@ -181,6 +181,7 @@ class KrakenRobotContainer:
         self._primary_controller = CustomController(DRIVER_PORT)
         self._auxiliary_controller = CustomController(AUXILIARY_PORT)
         self._test_controller = CustomController(TEST_PORT)
+        self._flight_stick = GenericHID(3)
 
         self.left_x_speed_limiter = wpimath.filter.SlewRateLimiter(
             JOYSTICK_SLEW_RATE, -JOYSTICK_SLEW_RATE
@@ -299,10 +300,10 @@ class KrakenRobotContainer:
         )
 
         NamedCommands.registerCommand(
-            "ShootWhenReady 4 seconds",
+            "ShootStarting8",
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, 3500
-            ).withTimeout(4),
+            ).withTimeout(3),
         )
 
         NamedCommands.registerCommand(
@@ -340,18 +341,6 @@ class KrakenRobotContainer:
             "GotoHumanFeed",
             AutoBuilder.pathfindToPose(
                 Pose2d(0.6, 0.65, Rotation2d.fromDegrees(0)), PATHFINDING_CONSTRAINTS
-            ),
-        )
-        NamedCommands.registerCommand(
-            "GotoLeftAndPickup",
-            AutoBuilder.pathfindThenFollowPath(
-                PathPlannerPath.fromPathFile("Pickup Left"), PATHFINDING_CONSTRAINTS
-            ),
-        )
-        NamedCommands.registerCommand(
-            "GotoRightAndPickup",
-            AutoBuilder.pathfindThenFollowPath(
-                PathPlannerPath.fromPathFile("Pickup Right"), PATHFINDING_CONSTRAINTS
             ),
         )
 
@@ -583,7 +572,9 @@ class KrakenRobotContainer:
         intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
         self._auxiliary_controller.create_button(
             CROSS_BUTTON, "Intake wheel in"
-        ).whileTrue(intake_wheel_in)
+        ).whileTrue(
+            ExtendHopperCommand(self._hopper, extend=True).andThen(intake_wheel_in)
+        )
 
         # Intake wheel dump (HOLD)
         intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
@@ -646,13 +637,19 @@ class KrakenRobotContainer:
         #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         # )
 
+    hopper_brake_mode = True
+
     def disabledInit(self) -> None:
         # Process fewer frames while disabled to reduce heat
         self.camera_ll4.set_throttle(99)  # 99 equals 1% (process 1, skip 99)
+        self._hopper.set_coast()
+        self.hopper_brake_mode = False
 
     def driveInit(self) -> None:
         self.camera_ll4.set_throttle(0)  # Process all frames
         self.camera_ll4.set_imu_mode(4)
+        self._hopper.set_brake()
+        self.hopper_brake_mode = True
 
     def teleop_init(self) -> None:
         self.camera_ll4.set_teleop_fiducial_id_filters()
@@ -666,6 +663,7 @@ class KrakenRobotContainer:
         # All code below is limelight, so skip adding it if in sim
         if not self.is_real_bot:
             return None
+        SmartDashboard.putBoolean("Hopper Idle Mode", self.hopper_brake_mode)
 
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
