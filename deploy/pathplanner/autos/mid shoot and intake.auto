@@ -1,0 +1,31 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "mid drop back shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootStarting8"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "mid from drop back to mid intake"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
