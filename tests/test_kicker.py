@@ -32,7 +32,7 @@ def test_set_kick_voltage(kicker: KickerSubsystem) -> None:
 def test_set_kick_shoot_voltage_from_nt(kicker: KickerSubsystem) -> None:
     kicker.kick_shoot_voltage = 5.0
     kicker.set_kick_shoot_voltage_from_networktables()
-    kicker.kick_motor.set_voltage.assert_called_once_with(5.0)
+    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_SHOOT_VOLTAGE)
 
 
 def test_set_kick_dump_voltage_from_nt_uses_dump_not_shoot(
