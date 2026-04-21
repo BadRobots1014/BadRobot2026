@@ -54,7 +54,7 @@ ignore = [
   "PLW0603", # i want static variable
   "PLR2004", # lights
   "PLR0911", # dumb
-  "PLR0912" # dumber
+  "PLR0912", # dumber
 ]
 
 [lint.per-file-ignores]
@@ -62,6 +62,7 @@ ignore = [
 "commands/*" = ["ARG002"] # unused args; needed to meet commands2 abstractions
 "routines/*" = ["ARG002"] # unused args; needed to meet commands2 abstractions
 "physics.py" = ["ARG002"] # unused args; needed to meet sim abstractions
+"limelightlib/limelight.py" = [  "ANN401"] # requests are weird
 
 [lint.isort]
 force-sort-within-sections = true
