@@ -106,6 +106,7 @@ class KickerSubsystem(Subsystem):
         self.kick_motor.set_velocity(velocity)
 
     def set_kick_shoot_voltage_from_networktables(self) -> None:
+        self.kick_shoot_voltage = self._kicker_shoot_motor_voltage_sub.get()
         self.set_kick_voltage(self.kick_shoot_voltage)
 
     def set_kick_dump_voltage_from_networktables(self) -> None:
