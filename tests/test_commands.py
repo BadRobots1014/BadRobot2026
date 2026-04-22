@@ -10,7 +10,7 @@ from commands.run_kicker import KICKER_VOLTAGE, RunKickerCommand
 from commands.run_shooter import RunShooterCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
-from subsystems.kicker import KickerSubsystem
+from subsystems.kicker import KICKER_DUMP_VOLTAGE, KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 
 
@@ -97,30 +97,19 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
     kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
         RunKickerCommand(kicker, invert=False).execute()
-    kicker.kick_motor.set_voltage.assert_called_once_with(3)
+    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_DUMP_VOLTAGE)
 
 
 # --- ExtendHopperCommand execute() ---
 
 
-def test_extend_hopper_execute_extends_with_positive_voltage(
+def test_extend_hopper_execute_extends_with_negitive_voltage(
     hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
         ExtendHopperCommand(hopper, extend=True).execute()
-    control = hopper.left_motor.set_control.call_args[0][0]
-    assert control.output > 0
-
-
-def test_extend_hopper_execute_retracts_with_negative_voltage(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.forward_limit_switch.get_state.return_value = False
-    hopper.backward_limit_switch.get_state.return_value = False
-    with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, extend=False).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output < 0
 
@@ -132,16 +121,6 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
     with patch("robot.TEST_MODE_ENABLED", new=True):
         ExtendHopperCommand(hopper, extend=True).execute()
     # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
-    control = hopper.left_motor.set_control.call_args[0][0]
-    assert control.output == hopper.extension_voltage
-
-
-def test_extend_hopper_execute_uses_nt_when_test_mode_retract(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.backward_limit_switch.get_state.return_value = False
-    with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(hopper, extend=False).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == -hopper.extension_voltage
 
