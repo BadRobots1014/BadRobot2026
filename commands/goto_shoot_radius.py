@@ -10,7 +10,8 @@ import kraken_container
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
-THRESHOLD = 0.15  # distance in meters away from r
+TRANSLATION_THRESHOLD = 0.15  # distance in meters away from r
+ROTATION_THRESHOLD = 0.1  # radians away from target_theta
 
 
 class GotoShootRadius(Command):
@@ -58,7 +59,8 @@ class GotoShootRadius(Command):
         x_dist = self.target_point().x - bot_pos.x
         y_dist = self.target_point().y - bot_pos.y
 
-        theta = math.atan2(y_dist, x_dist)
+        self.target_theta = math.atan2(y_dist, x_dist)
+        self.current_theta = self.swerve_subsystem.get_state().pose.rotation().radians()
 
         self.r_dist = math.hypot(x_dist, y_dist)
 
@@ -72,9 +74,7 @@ class GotoShootRadius(Command):
         vy_radical = r_output * uy
 
         rotational_rate = (
-            self.rotate_pid.calculate(
-                self.swerve_subsystem.get_state().pose.rotation().radians(), theta
-            )
+            self.rotate_pid.calculate(self.current_theta, self.target_theta)
             * kraken_container.MAX_ANGULAR_SPEED
         )
 
@@ -85,8 +85,10 @@ class GotoShootRadius(Command):
         )
 
     def isFinished(self) -> bool:
-        # print("Threshold "+str(self.r_dist) + " " + str(self.radius + THRESHOLD))
-        if abs(self.r_dist - self.radius) < THRESHOLD:
+        if (
+            abs(self.r_dist - self.radius) < TRANSLATION_THRESHOLD
+            and abs(self.current_theta - self.target_theta) < ROTATION_THRESHOLD
+        ):
             return True
         else:
             return False

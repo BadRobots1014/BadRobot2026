@@ -6,8 +6,9 @@
 import math
 
 import commands2
-from commands2 import ParallelCommandGroup
+from commands2 import ConditionalCommand, ParallelCommandGroup
 from commands2.button import Trigger
+from commands2.sysid import SysIdRoutine
 from cscore import CameraServer, HttpCamera
 import ntcore
 from pathplannerlib.auto import (
@@ -30,7 +31,6 @@ from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
 from commands.run_shooter import RunShooterCommand
-from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -62,6 +62,24 @@ LEFT_X_AXIS = 0
 LEFT_Y_AXIS = 1
 RIGHT_X_AXIS = 4
 RIGHT_Y_AXIS = 5
+L2_TRIGGER_AXIS = 2
+R2_TRIGGER_AXIS = 3
+
+FLIGHT_STICK_POV_VECTORS = {
+    0: (1, 0),
+    45: (1, 0),
+    90: (0, -1),
+    135: (-1, 0),
+    180: (-1, 0),
+    225: (-1, 0),
+    270: (0, 1),
+    315: (1, 0),
+}
+
+FLIGHT_STICK_X_AXIS = 0
+FLIGHT_STICK_Y_AXIS = 1
+FLIGHT_STICK_YAW_AXIS = 2
+
 AXIS_THRESHOLD_VALUE = 0.67
 
 # Controller button mappings
@@ -69,20 +87,18 @@ CROSS_BUTTON = 1
 CIRCLE_BUTTON = 2
 SQUARE_BUTTON = 3
 TRIANGLE_BUTTON = 4
-SHARE_BUTTON = 7
 L1_BUTTON = 5
 R1_BUTTON = 6
-L2_TRIGGER = 2
-R2_TRIGGER = 3
+SHARE_BUTTON = 7
+OPTIONS_BUTTON = 8
+L3_BUTTON = 9
+R3_BUTTON = 10
+
 POV_UP = 0
 POV_RIGHT = 90
 POV_LEFT = 270
 POV_DOWN = 180
-OPTIONS_BUTTON = 10
-PADDLE_LEFT = 11
-PADDLE_RIGHT = 12
-HOME_BUTTON = 13
-TRACKPAD = 14
+
 
 # drive speeds/limits
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
@@ -96,11 +112,15 @@ MAX_ANGULAR_SPEED = rotationsToRadians(
 MAX_ANGULAR_ACCELERATION = 10  # m/s^2
 DRIVE_DEADBAND = MAX_SPEED * 0.02  # Add a 10% deadband
 ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.02  # Add a 10% deadband
+TURN_TO_THETA_DEADBAND = 0.5
 
 # joysticks
 DRIVER_PORT = 0
 AUXILIARY_PORT = 1
 TEST_PORT = 2
+FLIGHT_STICK_PORT = 3
+TURN_TO_THETA_PORT = 4
+
 JOYSTICK_SLEW_RATE = 3
 
 # point towards locations
@@ -169,6 +189,14 @@ class KrakenRobotContainer:
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
         )
+        self._turn_to_theta_drive = (
+            swerve.requests.FieldCentricFacingAngle()
+            .with_deadband(DRIVE_DEADBAND)
+            .with_rotational_deadband(ANGULAR_DEADBAND)
+            .with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )  # Use open-loop control for drive motors
+        )
         self._brake = swerve.requests.SwerveDriveBrake()
         self._point = swerve.requests.PointWheelsAt()
         self._forward_straight = swerve.requests.RobotCentric().with_drive_request_type(
@@ -208,6 +236,12 @@ class KrakenRobotContainer:
 
         self.rejected_sub = self.ll_table.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
+
+        self.turn_to_theta_topic = self.nt_instance.getTable(
+            "SmartDashboard"
+        ).getBooleanTopic("turn_to_theta")
+        self.turn_to_theta_pub = self.turn_to_theta_topic.publish()
+        self.turn_to_theta_sub = self.turn_to_theta_topic.subscribe(defaultValue=False)
 
         # limit switches
         self.forward_limit_switch = (
@@ -352,22 +386,33 @@ class KrakenRobotContainer:
         self.camera = HttpCamera("LimelightPublisher", "http://10.10.14.12:5801")
         CameraServer.addCamera(self.camera)
 
+        self.last_angle = Rotation2d.fromRotations(0)
+
     # Joysticks need to be inverted or drive won't work properly
 
     def getLeftX(self) -> float:
-        raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
+        if DriverStation.isJoystickConnected(FLIGHT_STICK_PORT):
+            raw = -(self._flight_stick.getRawAxis(FLIGHT_STICK_X_AXIS) ** 3)
+        else:
+            raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
         if self.slow_mode:
             raw *= SLOW_SPEED_JOYSTICK_MODIFIER
         return raw
 
     def getLeftY(self) -> float:
-        raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
+        if DriverStation.isJoystickConnected(FLIGHT_STICK_PORT):
+            raw = -(self._flight_stick.getRawAxis(FLIGHT_STICK_Y_AXIS) ** 3)
+        else:
+            raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
         if self.slow_mode:
             raw *= SLOW_SPEED_JOYSTICK_MODIFIER
         return raw
 
     def getRightX(self) -> float:
-        raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
+        if DriverStation.isJoystickConnected(FLIGHT_STICK_PORT):
+            raw = -(self._flight_stick.getRawAxis(FLIGHT_STICK_YAW_AXIS) ** 3)
+        else:
+            raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
         if self.slow_mode:
             raw *= SLOW_SPEED_JOYSTICK_MODIFIER
         return raw
@@ -377,6 +422,17 @@ class KrakenRobotContainer:
         if self.slow_mode:
             raw *= SLOW_SPEED_JOYSTICK_MODIFIER
         return raw
+
+    def getTargetAngle(self) -> Rotation2d:
+        x = self.getRightX()
+        y = self.getRightY()
+        print(self.last_angle)
+        if math.sqrt(x * x + y * y) > TURN_TO_THETA_DEADBAND:
+            self.last_angle = Rotation2d.fromRotations(math.atan2(x, y) / (2 * math.pi))
+        return self.last_angle
+
+    def getFlightStickNudgeVector(self) -> tuple[int, int]:
+        return FLIGHT_STICK_POV_VECTORS[self._flight_stick.getPOV()]
 
     def toggleSlowMode(self) -> None:
         self.slow_mode = not self.slow_mode
@@ -397,19 +453,45 @@ class KrakenRobotContainer:
         # Note that X is defined as forward according to WPILib convention,
         # and Y is defined as to the left according to WPILib convention.
         self.drivetrain.setDefaultCommand(
-            # Drivetrain will execute this command periodically
+            ConditionalCommand(
+                self.drivetrain.apply_request(
+                    lambda: (
+                        self._turn_to_theta_drive.with_velocity_x(
+                            self.getLeftY() * MAX_SPEED
+                        )  # Drive forward with negative Y (forward)
+                        .with_velocity_y(
+                            self.getLeftX() * MAX_SPEED
+                        )  # Drive left with negative X (left)
+                        .with_target_direction(
+                            self.getTargetAngle()
+                        )  # Drive counterclockwise with negative X (left)
+                        .with_heading_pid(10, 0, 0)
+                    )
+                ),
+                self.drivetrain.apply_request(
+                    lambda: (
+                        self._drive.with_velocity_x(
+                            self.getLeftY() * MAX_SPEED
+                        )  # Drive forward with negative Y (forward)
+                        .with_velocity_y(
+                            self.getLeftX() * MAX_SPEED
+                        )  # Drive left with negative X (left)
+                        .with_rotational_rate(
+                            self.getRightX() * MAX_ANGULAR_SPEED
+                        )  # Drive counterclockwise with negative X (left)
+                    )
+                ),
+                self.turn_to_theta_sub.get,
+            )
+        )
+
+        Trigger(lambda: self._flight_stick.getPOV() != -1).whileTrue(
             self.drivetrain.apply_request(
-                lambda: (
-                    self._drive.with_velocity_x(
-                        self.getLeftY() * MAX_SPEED
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        self.getLeftX() * MAX_SPEED
-                    )  # Drive left with negative X (left)
-                    .with_rotational_rate(
-                        self.getRightX() * MAX_SPEED
-                    )  # Drive counterclockwise with negative X (left)
-                )
+                lambda: self._forward_straight.with_velocity_x(
+                    self.getFlightStickNudgeVector()[0] * MAX_SPEED
+                ).with_velocity_y(  # Positive X to go forward
+                    self.getFlightStickNudgeVector()[1] * MAX_SPEED
+                )  # Positive Y to go left
             )
         )
 
@@ -461,7 +543,7 @@ class KrakenRobotContainer:
 
         # POV up - drive forward
         self._primary_controller.create_axis(
-            R2_TRIGGER, "nudge backwards", AXIS_THRESHOLD_VALUE
+            R2_TRIGGER_AXIS, "nudge backwards", AXIS_THRESHOLD_VALUE
         ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
@@ -472,7 +554,7 @@ class KrakenRobotContainer:
 
         # POV down - drive backward
         self._primary_controller.create_axis(
-            L2_TRIGGER, "nudge backwards", AXIS_THRESHOLD_VALUE
+            L2_TRIGGER_AXIS, "nudge backwards", AXIS_THRESHOLD_VALUE
         ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
@@ -499,6 +581,78 @@ class KrakenRobotContainer:
             )
         )
 
+        self._primary_controller.create_button(
+            TRIANGLE_BUTTON, "point forward"
+        ).whileTrue(
+            self.drivetrain.apply_request(
+                lambda: (
+                    self._turn_to_theta_drive.with_velocity_x(
+                        self.getLeftY() * MAX_SPEED
+                    )  # Drive forward with negative Y (forward)
+                    .with_velocity_y(
+                        self.getLeftX() * MAX_SPEED
+                    )  # Drive left with negative X (left)
+                    .with_target_direction(
+                        Rotation2d.fromDegrees(0)
+                    )  # Drive counterclockwise with negative X (left)
+                    .with_heading_pid(10, 0, 0)
+                )
+            ),
+        )
+
+        self._primary_controller.create_button(CIRCLE_BUTTON, "point right").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: (
+                    self._turn_to_theta_drive.with_velocity_x(
+                        self.getLeftY() * MAX_SPEED
+                    )  # Drive forward with negative Y (forward)
+                    .with_velocity_y(
+                        self.getLeftX() * MAX_SPEED
+                    )  # Drive left with negative X (left)
+                    .with_target_direction(
+                        Rotation2d.fromDegrees(270)
+                    )  # Drive counterclockwise with negative X (left)
+                    .with_heading_pid(10, 0, 0)
+                )
+            ),
+        )
+
+        self._primary_controller.create_button(
+            CROSS_BUTTON, "point backwards"
+        ).whileTrue(
+            self.drivetrain.apply_request(
+                lambda: (
+                    self._turn_to_theta_drive.with_velocity_x(
+                        self.getLeftY() * MAX_SPEED
+                    )  # Drive forward with negative Y (forward)
+                    .with_velocity_y(
+                        self.getLeftX() * MAX_SPEED
+                    )  # Drive left with negative X (left)
+                    .with_target_direction(
+                        Rotation2d.fromDegrees(180)
+                    )  # Drive counterclockwise with negative X (left)
+                    .with_heading_pid(10, 0, 0)
+                )
+            ),
+        )
+
+        self._primary_controller.create_button(SQUARE_BUTTON, "point left").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: (
+                    self._turn_to_theta_drive.with_velocity_x(
+                        self.getLeftY() * MAX_SPEED
+                    )  # Drive forward with negative Y (forward)
+                    .with_velocity_y(
+                        self.getLeftX() * MAX_SPEED
+                    )  # Drive left with negative X (left)
+                    .with_target_direction(
+                        Rotation2d.fromDegrees(90)
+                    )  # Drive counterclockwise with negative X (left)
+                    .with_heading_pid(10, 0, 0)
+                )
+            ),
+        )
+
         # Reset the field-centric heading on Options button press
         self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
@@ -515,10 +669,6 @@ class KrakenRobotContainer:
             )
         )
 
-        self._primary_controller.create_button(CROSS_BUTTON, "shimmy").whileTrue(
-            Shimmy(self.drivetrain)
-        )
-
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
         # manual extend
@@ -528,7 +678,7 @@ class KrakenRobotContainer:
 
         # Spin up shooter L2
         self._auxiliary_controller.create_axis(
-            L2_TRIGGER, "shoot when ready", AXIS_THRESHOLD_VALUE
+            L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
         ).whileTrue(
             ShootWhenReady(
                 self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
@@ -537,7 +687,7 @@ class KrakenRobotContainer:
 
         # Run kicker wheel when ready R2
         self._auxiliary_controller.create_axis(
-            R2_TRIGGER,
+            R2_TRIGGER_AXIS,
             "goto and shoot when ready (dangerous)",
             AXIS_THRESHOLD_VALUE,
         ).whileTrue(
@@ -595,10 +745,10 @@ class KrakenRobotContainer:
         # test controls -------------------------------------------------------
 
         self._test_controller.create_axis(
-            R2_TRIGGER, "shoot", AXIS_THRESHOLD_VALUE
+            R2_TRIGGER_AXIS, "shoot", AXIS_THRESHOLD_VALUE
         ).whileTrue(RunShooterCommand(self._shooter, rpm=3300))
         self._test_controller.create_axis(
-            L2_TRIGGER, "extend hopper test", AXIS_THRESHOLD_VALUE
+            L2_TRIGGER_AXIS, "extend hopper test", AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self._hopper, extend=True))
         self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
             RunKickerCommand(self._kicker, invert=False)
@@ -624,18 +774,18 @@ class KrakenRobotContainer:
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
-        # (self._joystick.button(8) & self._joystick.button(3)).whileTrue(
-        #     self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-        # )
-        # (self._joystick.button(8) & self._joystick.button(0)).whileTrue(
-        #     self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-        # )
-        # (self._joystick.button(9) & self._joystick.button(3)).whileTrue(
-        #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-        # )
-        # (self._joystick.button(9) & self._joystick.button(0)).whileTrue(
-        #     self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-        # )
+        (self._test_controller.button(SHARE_BUTTON)).whileTrue(
+            self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
+        )
+        (self._test_controller.button(OPTIONS_BUTTON)).whileTrue(
+            self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
+        )
+        (self._test_controller.button(L3_BUTTON)).whileTrue(
+            self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
+        )
+        (self._test_controller.button(R3_BUTTON)).whileTrue(
+            self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
+        )
 
     hopper_brake_mode = True
 
