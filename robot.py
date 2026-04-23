@@ -8,6 +8,7 @@
 
 import commands2
 import wpilib
+from wpilib import DriverStation
 
 from kraken_container import KrakenRobotContainer
 from neo_bot_container import NeoBotContainer
@@ -31,6 +32,8 @@ class MyRobot(commands2.TimedCommandRobot):
         This function is run when the robot is first started up and should be used for any
         initialization code.
         """
+
+        DriverStation.silenceJoystickConnectionWarning(silence=True)
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
