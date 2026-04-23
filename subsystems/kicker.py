@@ -14,6 +14,8 @@ from hardware.impl.motor_controller_config import (
 KICKER_SHOOT_VOLTAGE = 6.0
 KICKER_DUMP_VOLTAGE = 6.0
 
+# TODO: increase kicker voltage to take load off shooter
+
 KICKER_P = 0.001
 KICKER_I = 0
 KICKER_D = 0

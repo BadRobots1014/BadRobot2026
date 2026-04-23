@@ -34,7 +34,6 @@ from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
-from hardware.impl.limelight import Limelight
 from hardware.impl.pwmled import PWMLED
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 from hardware.impl.talonfx import TalonFXMotorController
@@ -53,6 +52,7 @@ from subsystems import (
     shooter,
 )
 from subsystems.custom_controller import CustomController
+from subsystems.limelight import LimelightSubsystem
 from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -200,8 +200,7 @@ class KrakenRobotContainer:
         self._lights = pilights.PiLights()
 
         # Initialize limelight
-        self.camera_ll4 = Limelight("limelight-four", enabled=True)
-        self.camera_ll2 = Limelight()
+        self._limelight = LimelightSubsystem()
 
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.ll_table = self.nt_instance.getTable("limelight")
@@ -266,9 +265,8 @@ class KrakenRobotContainer:
 
         # Configures limelight IMU
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
-        self.camera_ll4.robot_orientation_set(robot_yaw)
-        self.camera_ll4.set_imu_mode(1)
-        self.camera_ll4.set_auto_fiducial_id_filters()
+        self._limelight.set_robot_orientation(robot_yaw)
+        self._limelight.set_imumode(1)
 
         self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
         self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
@@ -502,7 +500,7 @@ class KrakenRobotContainer:
         # Reset the field-centric heading on Options button press
         self._primary_controller.create_button(OPTIONS_BUTTON, "Reset Heading").onTrue(
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric).andThen(
-                commands2.InstantCommand(self.camera_ll4.set_imu_mode(1))
+                commands2.InstantCommand(self._limelight.set_imumode(1))
             )
         )
 
@@ -641,22 +639,22 @@ class KrakenRobotContainer:
 
     def disabledInit(self) -> None:
         # Process fewer frames while disabled to reduce heat
-        self.camera_ll4.set_throttle(99)  # 99 equals 1% (process 1, skip 99)
+        self._limelight.disabled_throttle()  # 99 equals 1% (process 1, skip 99)
         self._hopper.set_coast()
         self.hopper_brake_mode = False
 
     def driveInit(self) -> None:
-        self.camera_ll4.set_throttle(0)  # Process all frames
-        self.camera_ll4.set_imu_mode(4)
+        self._limelight.teleop_throttle()  # Process all frames
+        self._limelight.set_imumode(4)
         self._hopper.set_brake()
         self.hopper_brake_mode = True
 
     def teleop_init(self) -> None:
-        self.camera_ll4.set_teleop_fiducial_id_filters()
+        self._limelight.set_teleop_id_filters()
         self.driveInit()
 
     def auto_init(self) -> None:
-        self.camera_ll4.set_auto_fiducial_id_filters()
+        self._limelight.set_auto_id_filters()
         self.driveInit()
 
     def robotPeriodic(self) -> None:
@@ -667,11 +665,11 @@ class KrakenRobotContainer:
 
         # Push gyro data to limelight (set to external IMU)
         robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
-        self.camera_ll4.robot_orientation_set(robot_yaw)
+        self._limelight.set_robot_orientation(robot_yaw)
 
         # Add vision
-        cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
-        reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
+        cam_measurement_ll4 = self._limelight.get_vision_measurement()
+        reject_pose_ll4 = self._limelight.ll_tag.tv_sub < 1
 
         reject_pose_ll4 |= (
             # OR with tv rejection

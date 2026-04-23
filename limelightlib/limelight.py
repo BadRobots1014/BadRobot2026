@@ -6,8 +6,10 @@ import threading
 from typing import Any
 
 import ifaddr
+from ntcore import NetworkTableInstance
 import requests
 import websocket
+import wpilib
 
 REQUEST_TIMEOUT: float = 2.0
 
@@ -80,21 +82,56 @@ class Limelight:
         self.ws: websocket.WebSocketApp | None = None
         self.ws_thread: threading.Thread | None = None
 
+        # use network tables instead of rest for mt2 and orientation because its faster and harder to get a timestamp
+        # on rest api
+
+        self.nt_inst = NetworkTableInstance.getDefault()
+        self.nt_table = self.nt_inst.getTable("limelight " + address)
+
+        self.robot_pose_mt2_topic = self.nt_table.getDoubleArrayTopic(
+            "botpose_orb_wpiblue"
+        )
+        self.robot_pose_mt2_sub = self.robot_pose_mt2_topic.subscribe([])
+
+        self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
+            [0] * 12
+        )
+
+        self.tv_sub = self.nt_table.getIntegerTopic("tv").subscribe(0)
+
+        self.orientation_set_pub = self.nt_table.getDoubleArrayTopic(
+            "robot_orientation_set"
+        ).publish()
+
     # ---- internal helpers ----
     def _get(self, endpoint: str, **kwargs: Any) -> requests.Response:
-        return requests.get(
-            f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
-        )
+        try:
+            return requests.get(
+                f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
+            )
+        except requests.exceptions.Timeout:
+            print(f"Timeout on get {endpoint}")
+            return requests.Response()
 
     def _post(self, endpoint: str, **kwargs: Any) -> requests.Response:
-        return requests.post(
-            f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
-        )
+        if not wpilib.RobotBase.isReal():
+            return requests.Response()
+        try:
+            return requests.post(
+                f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
+            )
+        except requests.exceptions.Timeout:
+            print(f"Timeout on post {endpoint}")
+            return requests.Response()
 
     def _delete(self, endpoint: str, **kwargs: Any) -> requests.Response:
-        return requests.delete(
-            f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
-        )
+        try:
+            return requests.delete(
+                f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT, **kwargs
+            )
+        except requests.exceptions.Timeout:
+            print(f"Timeout on delete {endpoint}")
+            return requests.Response()
 
     # ---- basic endpoints ----
     def get_results(self) -> dict[str, Any]:
@@ -176,14 +213,12 @@ class Limelight:
             data=json.dumps(inputs),
         )
 
-    def update_robot_orientation(
-        self, orientation_data: dict[str, Any]
-    ) -> requests.Response:
-        return self._post(
-            "/update-robotorientation",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(orientation_data),
-        )
+    # Set Robot Orientation and angular velocities in degrees and degrees per second
+    def robot_orientation_set(
+        self,
+        yaw: float,
+    ) -> None:
+        self.orientation_set_pub.set([yaw, 0, 0, 0, 0, 0])
 
     def update_throttle(self, skip_frames: int) -> requests.Response:
         return self._post(
