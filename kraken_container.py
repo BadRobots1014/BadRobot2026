@@ -739,7 +739,7 @@ class KrakenRobotContainer:
             R2_TRIGGER_AXIS, "shoot", AXIS_THRESHOLD_VALUE
         ).whileTrue(RunShooterCommand(self._shooter, rpm=3300))
         self._test_controller.create_axis(
-            L2_TRIGGER, "extend hopper test", AXIS_THRESHOLD_VALUE
+            L2_TRIGGER_AXIS, "extend hopper test", AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self._hopper))
         self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
             RunKickerCommand(self._kicker, invert=False)
