@@ -22,7 +22,6 @@ class HopperSubsystem(Subsystem):
         left_motor: TalonFX,
         right_motor: TalonFX,
         forward_limit_switch: LimitSwitch,
-        backward_limit_switch: LimitSwitch,
     ):
         super().__init__()
 
@@ -81,7 +80,6 @@ class HopperSubsystem(Subsystem):
         self.left_motor.get_motor_voltage().set_update_frequency(100)
 
         self.forward_limit_switch = forward_limit_switch
-        self.backward_limit_switch = backward_limit_switch
 
         self.extension_voltage = EXTENSION_VOLTAGE
 
@@ -111,13 +109,10 @@ class HopperSubsystem(Subsystem):
         )
 
     def periodic(self) -> None:
-        if self.backward_extended():
-            self.set_rotations(0)
-        elif self.forward_extended():
+        if self.forward_extended():
             self.set_rotations(MAX_ENCODER_ROTATIONS)
 
         self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
-        self.nt_table.putBoolean("Backward limit: ", self.backward_extended())
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
 
     def set_extension_voltage(self, voltage: float) -> None:
@@ -140,9 +135,6 @@ class HopperSubsystem(Subsystem):
 
     def forward_extended(self) -> bool:
         return self.forward_limit_switch.get_state()
-
-    def backward_extended(self) -> bool:
-        return self.backward_limit_switch.get_state()
 
     def set_rotations(self, rotations: float = 0) -> None:
         self.left_motor.set_position(rotations)

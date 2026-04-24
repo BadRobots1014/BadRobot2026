@@ -31,7 +31,7 @@ def intake() -> IntakeSubsystem:
 
 @pytest.fixture
 def hopper() -> HopperSubsystem:
-    return HopperSubsystem(MagicMock(), MagicMock(), MagicMock(), MagicMock())
+    return HopperSubsystem(MagicMock(), MagicMock(), MagicMock())
 
 
 # --- ShootCommand ---
@@ -73,20 +73,6 @@ def test_extend_not_finished_without_forward_limit(hopper: HopperSubsystem) -> N
     assert ExtendHopperCommand(hopper, extend=True).isFinished() is False
 
 
-def test_retract_finished_when_backward_limit_hit(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.backward_limit_switch.get_state.return_value = True
-    assert ExtendHopperCommand(hopper, extend=False).isFinished() is True
-
-
-def test_retract_not_finished_without_backward_limit(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.backward_limit_switch.get_state.return_value = False
-    assert ExtendHopperCommand(hopper, extend=False).isFinished() is False
-
-
 # --- ShootKickerCommand (test mode) ---
 
 
@@ -107,7 +93,6 @@ def test_extend_hopper_execute_extends_with_negitive_voltage(
     hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
-    hopper.backward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
         ExtendHopperCommand(hopper, extend=True).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
