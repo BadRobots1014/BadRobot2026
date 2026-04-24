@@ -3,7 +3,7 @@ import commands2
 import robot
 from subsystems.kicker import KickerSubsystem
 
-KICKER_VOLTAGE = 3
+KICKER_VOLTAGE = 6
 
 
 class RunKickerCommand(commands2.Command):

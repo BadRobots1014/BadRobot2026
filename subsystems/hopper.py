@@ -4,7 +4,8 @@ from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
 import phoenix6
-from phoenix6.controls import Follower
+from phoenix6 import configs
+from phoenix6.controls import Follower, PositionVoltage
 from phoenix6.controls.voltage_out import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import MotorAlignmentValue
@@ -13,7 +14,7 @@ from hardware.base.switch import LimitSwitch
 
 EXTENSION_VOLTAGE = 6
 
-MAX_ENCODER_ROTATIONS = 40
+MAX_ENCODER_ROTATIONS = 10
 
 
 class HopperSubsystem(Subsystem):
@@ -36,36 +37,54 @@ class HopperSubsystem(Subsystem):
         brake = phoenix6.signals.NeutralModeValue.BRAKE
         coast = phoenix6.signals.NeutralModeValue.COAST
 
+        # in init function, set slot 0 gains
+        slot0_configs = configs.Slot0Configs()
+        slot0_configs.k_s = 0.25  # Add 0.25 V output to overcome static friction
+        slot0_configs.k_v = 0.12  # A velocity target of 1 rps results in 0.12 V output
+        slot0_configs.k_p = (
+            4.8  # A position error of 2.5 rotations results in 12 V output
+        )
+        slot0_configs.k_i = 0  # no output for integrated error
+        slot0_configs.k_d = 0.1  # A velocity error of 1 rps results in 0.1 V output
+
         self.leader_brake_config = (
-            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
                 phoenix6.configs.MotorOutputConfigs()
                 .with_inverted(counter_clockwise_positive)
                 .with_neutral_mode(brake)
             )
+            .with_slot0(slot0_configs)
         )
 
         self.follower_brake_config = (
-            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
                 phoenix6.configs.MotorOutputConfigs()
                 .with_inverted(clockwise_positive)
                 .with_neutral_mode(brake)
             )
+            .with_slot0(slot0_configs)
         )
 
         self.leader_coast_config = (
-            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
                 phoenix6.configs.MotorOutputConfigs()
                 .with_inverted(counter_clockwise_positive)
                 .with_neutral_mode(coast)
             )
+            .with_slot0(slot0_configs)
         )
 
         self.follower_coast_config = (
-            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
                 phoenix6.configs.MotorOutputConfigs()
                 .with_inverted(clockwise_positive)
                 .with_neutral_mode(coast)
             )
+            .with_slot0(slot0_configs)
         )
 
         self.left_motor.configurator.apply(self.leader_brake_config)
@@ -132,6 +151,9 @@ class HopperSubsystem(Subsystem):
             self.left_motor.set_control(VoltageOut(self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))
+
+    def set_extension_position_and_velocity(self, request: PositionVoltage) -> None:
+        self.left_motor.set_control(request)
 
     def forward_extended(self) -> bool:
         return self.forward_limit_switch.get_state()
