@@ -2,12 +2,14 @@
   "0": {
     "L1": "Strafe Left Around Tower",
     "R1": "Strafe Right Around Tower",
-    "R2": "nudge backwards",
+    "R2": "Reset Heading",
     "L2": "nudge backwards",
     "POVRIGHT": "nudge right",
     "POVLEFT": "nudge left",
-    "OPTION": "Reset Heading",
-    "CROSS": "shimmy"
+    "TRIANGLE": "point forward",
+    "CIRCLE": "point right",
+    "CROSS": "point backwards",
+    "SQUARE": "point left"
   },
   "1": {
     "POVUP": "Manual extend hopper",
