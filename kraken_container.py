@@ -419,7 +419,6 @@ class KrakenRobotContainer:
     def getTargetAngle(self) -> Rotation2d:
         x = self.getRightX()
         y = self.getRightY()
-        print(self.last_angle)
         if math.sqrt(x * x + y * y) > TURN_TO_THETA_DEADBAND:
             self.last_angle = Rotation2d.fromRotations(math.atan2(x, y) / (2 * math.pi))
         return self.last_angle
