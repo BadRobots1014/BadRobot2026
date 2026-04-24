@@ -24,10 +24,7 @@ def hopper() -> HopperSubsystem:
     left_motor.device_id = 1  # Follower requires an integer device_id
     right_motor = MagicMock()
     forward_limit_switch = MagicMock()
-    backward_limit_switch = MagicMock()
-    subsystem = HopperSubsystem(
-        right_motor, left_motor, forward_limit_switch, backward_limit_switch
-    )
+    subsystem = HopperSubsystem(right_motor, left_motor, forward_limit_switch)
     subsystem.left_motor.reset_mock()
     return subsystem
 
@@ -43,30 +40,12 @@ def test_forward_extended_delegates_to_switch(
     assert hopper.forward_extended() is True
 
 
-def test_backward_extended_delegates_to_switch(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.backward_limit_switch.get_state.return_value = False
-    assert hopper.backward_extended() is False
-
-
 def test_extension_voltage_blocked_at_forward_limit(
     hopper: HopperSubsystem,
 ) -> None:
     """Positive voltage must be zeroed when forward limit is triggered."""
     hopper.forward_limit_switch.get_state.return_value = True
-    hopper.backward_limit_switch.get_state.return_value = False
     hopper.set_extension_voltage(3.0)
-    assert _controlled_voltage(hopper.left_motor) == 0
-
-
-def test_extension_voltage_blocked_at_backward_limit(
-    hopper: HopperSubsystem,
-) -> None:
-    """Negative voltage must be zeroed when backward limit is triggered."""
-    hopper.forward_limit_switch.get_state.return_value = False
-    hopper.backward_limit_switch.get_state.return_value = True
-    hopper.set_extension_voltage(-3.0)
     assert _controlled_voltage(hopper.left_motor) == 0
 
 
@@ -74,7 +53,6 @@ def test_extension_voltage_runs_with_no_limit(
     hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
-    hopper.backward_limit_switch.get_state.return_value = False
     hopper.set_extension_voltage(3.0)
     assert _controlled_voltage(hopper.left_motor) == 3.0
 
@@ -84,19 +62,8 @@ def test_retraction_not_allowed_when_only_forward_limit_hit(
 ) -> None:
     """Forward limit must not prevent retraction."""
     hopper.forward_limit_switch.get_state.return_value = True
-    hopper.backward_limit_switch.get_state.return_value = False
     hopper.set_extension_voltage(-3.0)
     assert _controlled_voltage(hopper.left_motor) == 0
-
-
-def test_extension_allowed_when_only_backward_limit_hit(
-    hopper: HopperSubsystem,
-) -> None:
-    """Backward limit must not prevent extension."""
-    hopper.forward_limit_switch.get_state.return_value = False
-    hopper.backward_limit_switch.get_state.return_value = True
-    hopper.set_extension_voltage(3.0)
-    assert _controlled_voltage(hopper.left_motor) == 3.0
 
 
 def test_extension_from_nt_runs_when_not_at_forward_limit(
@@ -114,13 +81,4 @@ def test_extension_from_nt_stops_when_forward_limit(
     hopper.extension_voltage = 3.0
     hopper.forward_limit_switch.get_state.return_value = True
     hopper.set_extension_voltage_from_networktable()
-    assert _controlled_voltage(hopper.left_motor) == 0
-
-
-def test_retraction_from_nt_stops_when_backward_limit(
-    hopper: HopperSubsystem,
-) -> None:
-    hopper.extension_voltage = 3.0
-    hopper.backward_limit_switch.get_state.return_value = True
-    hopper.set_retraction_voltage_from_networktable()
     assert _controlled_voltage(hopper.left_motor) == 0

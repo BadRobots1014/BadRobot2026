@@ -145,7 +145,6 @@ CONVEYOR_ID = 56
 
 # limit switch id
 FORWARD_LIMIT_ID = 18
-BACKWARD_LIMIT_ID = 19
 
 # Constraints for pathfinding
 PATHFINDING_CONSTRAINTS = PathConstraints(
@@ -249,11 +248,6 @@ class KrakenRobotContainer:
             if self.is_real_bot
             else DummyLimitSwitch(default_state=False)
         )
-        self.backward_limit_switch = (
-            AndymarkMagnetic(BACKWARD_LIMIT_ID)
-            if self.is_real_bot
-            else DummyLimitSwitch(default_state=True)
-        )
 
         self.main_shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
         self.follower_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
@@ -288,7 +282,6 @@ class KrakenRobotContainer:
             self.left_pinion.get_motor_controller(),
             self.right_pinion.get_motor_controller(),
             self.forward_limit_switch,
-            self.backward_limit_switch,
         )
 
         self._conveyor = conveyor.ConveyorSubsystem(self.conveyor_motor)
