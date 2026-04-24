@@ -65,12 +65,12 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 
 def test_extend_finished_when_forward_limit_hit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
-    assert ExtendHopperCommand(hopper, extend=True).isFinished() is True
+    assert ExtendHopperCommand(hopper).isFinished() is True
 
 
 def test_extend_not_finished_without_forward_limit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
-    assert ExtendHopperCommand(hopper, extend=True).isFinished() is False
+    assert ExtendHopperCommand(hopper).isFinished() is False
 
 
 # --- ShootKickerCommand (test mode) ---
@@ -94,7 +94,7 @@ def test_extend_hopper_execute_extends_with_negitive_voltage(
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=False):
-        ExtendHopperCommand(hopper, extend=True).execute()
+        ExtendHopperCommand(hopper).execute()
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output < 0
 
@@ -104,7 +104,7 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = False
     with patch("robot.TEST_MODE_ENABLED", new=True):
-        ExtendHopperCommand(hopper, extend=True).execute()
+        ExtendHopperCommand(hopper).execute()
     # set_extension_voltage_from_networktable calls left.set_voltage(extension_voltage)
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == -hopper.extension_voltage
@@ -116,7 +116,7 @@ def test_extend_hopper_execute_uses_nt_when_test_mode_extend(
 def test_extend_hopper_end_stops_motor(
     hopper: HopperSubsystem,
 ) -> None:
-    ExtendHopperCommand(hopper, extend=True).end(interrupted=False)
+    ExtendHopperCommand(hopper).end(interrupted=False)
     control = hopper.left_motor.set_control.call_args[0][0]
     assert control.output == 0
 

@@ -35,10 +35,10 @@ class ExtendHopperCommand(Command):
     def execute(self) -> None:
         self.setpoint = self.profile.calculate(0.02, self.setpoint, self.goal)
 
-        self.request.position = self.setpoint.position
-        self.request.velocity = self.setpoint.velocity
-        self.hopper.set_extension_position_and_velocity(self.request)
-        # self.hopper.set_extension_voltage_from_networktable()
+        # self.request.position = self.setpoint.position
+        # self.request.velocity = self.setpoint.velocity
+        # self.hopper.set_extension_position_and_velocity(self.request)
+        self.hopper.set_extension_voltage_from_networktable()
 
     def isFinished(self) -> bool:
         # Finish on limit

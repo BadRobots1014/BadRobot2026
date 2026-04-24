@@ -3,7 +3,7 @@ import commands2
 import robot
 from subsystems.intake import IntakeSubsystem
 
-INTAKE_VOLTAGE = 4.5
+INTAKE_VOLTAGE = 9
 DUMP_VOLTAGE = -5
 
 

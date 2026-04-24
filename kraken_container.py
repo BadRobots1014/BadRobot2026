@@ -310,7 +310,7 @@ class KrakenRobotContainer:
         # Configure commands used in auto
         NamedCommands.registerCommand(
             "Extend",
-            ExtendHopperCommand(self._hopper, extend=True).withTimeout(1),
+            ExtendHopperCommand(self._hopper).withTimeout(1),
         )
 
         NamedCommands.registerCommand(
@@ -666,7 +666,7 @@ class KrakenRobotContainer:
 
         # manual extend
         self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
-            ExtendHopperCommand(self._hopper, extend=True)
+            ExtendHopperCommand(self._hopper)
         )
 
         # Spin up shooter L2
@@ -715,9 +715,7 @@ class KrakenRobotContainer:
         intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
         self._auxiliary_controller.create_button(
             CROSS_BUTTON, "Intake wheel in"
-        ).whileTrue(
-            ExtendHopperCommand(self._hopper, extend=True).andThen(intake_wheel_in)
-        )
+        ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
 
         # Intake wheel dump (HOLD)
         intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
@@ -741,8 +739,8 @@ class KrakenRobotContainer:
             R2_TRIGGER_AXIS, "shoot", AXIS_THRESHOLD_VALUE
         ).whileTrue(RunShooterCommand(self._shooter, rpm=3300))
         self._test_controller.create_axis(
-            L2_TRIGGER_AXIS, "extend hopper test", AXIS_THRESHOLD_VALUE
-        ).whileTrue(ExtendHopperCommand(self._hopper, extend=True))
+            L2_TRIGGER, "extend hopper test", AXIS_THRESHOLD_VALUE
+        ).whileTrue(ExtendHopperCommand(self._hopper))
         self._test_controller.create_button(L1_BUTTON, "kicker").whileTrue(
             RunKickerCommand(self._kicker, invert=False)
         )
