@@ -7,6 +7,7 @@ from wpimath.geometry import Pose2d, Rotation2d
 from generated import limelight_pipelines
 from generated.limelight_pipelines import APRILTAG_PIPELINE
 from limelightlib.limelight import Limelight
+from limelightlib.limelightresults import GeneralResult, parse_results
 
 
 class LimelightSubsystem(commands2.Subsystem):
@@ -28,6 +29,8 @@ class LimelightSubsystem(commands2.Subsystem):
         )  # persist
         # default tag pipeline will contain the modified tag list for auto
         print("limelight pipelines pushed")
+
+        self.ll_fuel.enable_websocket()
 
     def set_teleop_id_filters(self) -> None:
         self.apriltag_pipeline["fiducial_idfilters"] = ""
@@ -74,6 +77,9 @@ class LimelightSubsystem(commands2.Subsystem):
 
     def set_robot_orientation(self, yaw: float) -> None:
         self.ll_tag.robot_orientation_set(yaw)
+
+    def get_results(self) -> GeneralResult | None:
+        return parse_results(self.ll_fuel.get_latest_results())
 
     def periodic(self) -> None:
         pass
