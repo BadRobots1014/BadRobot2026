@@ -305,6 +305,9 @@ class KrakenRobotContainer:
             CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
         )
 
+        SmartDashboard.putData("drive pid", self.drive_pid)
+        SmartDashboard.putData("turn pid", self.rotate_pid)
+
         # Configure the button bindings
         self.configureButtonBindings()
 
