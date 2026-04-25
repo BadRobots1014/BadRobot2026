@@ -592,7 +592,7 @@ class KrakenRobotContainer:
                     .with_target_direction(
                         Rotation2d.fromDegrees(0)
                     )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(10, 0, 0)
+                    .with_heading_pid(6, 0, 0)
                 )
             ),
         )
@@ -609,7 +609,7 @@ class KrakenRobotContainer:
                     .with_target_direction(
                         Rotation2d.fromDegrees(270)
                     )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(10, 0, 0)
+                    .with_heading_pid(6, 0, 0)
                 )
             ),
         )
@@ -628,7 +628,7 @@ class KrakenRobotContainer:
                     .with_target_direction(
                         Rotation2d.fromDegrees(180)
                     )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(10, 0, 0)
+                    .with_heading_pid(6, 0, 0)
                 )
             ),
         )
@@ -645,7 +645,7 @@ class KrakenRobotContainer:
                     .with_target_direction(
                         Rotation2d.fromDegrees(90)
                     )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(10, 0, 0)
+                    .with_heading_pid(6, 0, 0)
                 )
             ),
         )
