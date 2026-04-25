@@ -19,7 +19,7 @@ class RunShooterCommand(commands2.Command):
                 self.shooter.shoot_velocity = self.rpm
             else:
                 self.shooter.shoot_velocity = (
-                    self.shooter.get_shoot_velocity_from_closest_pair()
+                    self.shooter.get_shoot_velocity_from_networktables()
                 )
         else:
             self.shooter.shoot_velocity = (
