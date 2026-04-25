@@ -12,7 +12,7 @@ from phoenix6.signals import MotorAlignmentValue
 
 from hardware.base.switch import LimitSwitch
 
-EXTENSION_VOLTAGE = 4.5
+EXTENSION_VOLTAGE = 3
 
 MAX_ENCODER_ROTATIONS = 10
 
