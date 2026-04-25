@@ -31,6 +31,7 @@ from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
 from commands.run_shooter import RunShooterCommand
+from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from generated.tuner_constants import TunerConstants
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
@@ -661,6 +662,10 @@ class KrakenRobotContainer:
             )
         )
 
+        self._primary_controller.bind_pov_down("waggle").whileTrue(
+            Shimmy(self.drivetrain)
+        )
+
         # AUX CONTROLLER -------------------------------------------------------------------------------
 
         # manual extend
@@ -736,7 +741,7 @@ class KrakenRobotContainer:
 
         self._test_controller.create_axis(
             R2_TRIGGER_AXIS, "shoot", AXIS_THRESHOLD_VALUE
-        ).whileTrue(RunShooterCommand(self._shooter, rpm=3300))
+        ).whileTrue(RunShooterCommand(self._shooter, rpm=None))
         self._test_controller.create_axis(
             L2_TRIGGER_AXIS, "extend hopper test", AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self._hopper))
