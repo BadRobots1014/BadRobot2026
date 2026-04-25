@@ -1,7 +1,11 @@
 from math import cos, sin, tan
+from wpimath.controller import PIDController
 
 import commands2
 import numpy as np
+
+from phoenix6 import swerve
+import kraken_container
 
 from subsystems.limelight import LimelightSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
@@ -25,15 +29,15 @@ cam_y_to_bot = 0
 # limelight_width_px = 1280
 
 
-def calculate(limelight: LimelightSubsystem, swerve_subsystem: CommandSwerveDrivetrain):
+def calculate(limelight: LimelightSubsystem, swerve_subsystem: CommandSwerveDrivetrain) -> float:
     results = limelight.get_results()
     if not results:
-        return
+        return 0.0
     positions: list[tuple[float, float]] = []
     for result in results.detectorResults:
         angle_to_goal = (result.target_y_degrees + limelight_angle) * radians
         if angle_to_goal == 0:
-            return  # TODO redo calc at next tick
+            return 0.0
         radius = (fuel_height - limelight_height) / tan(angle_to_goal)
         x = radius * cos(result.target_x_degrees * radians)
         y = radius * sin(result.target_x_degrees * radians)
@@ -92,44 +96,38 @@ def calculate(limelight: LimelightSubsystem, swerve_subsystem: CommandSwerveDriv
             )
 
     biggest_group = max(groups, key=len)
-    group_center_bot_relative = (
-        (biggest_group[1][0] - biggest_group[0][0]) * 39.37
-        - cam_x_to_bot,  # to meters from inches
-        (biggest_group[1][1] - biggest_group[0][1]) * 39.37 - cam_y_to_bot,
-    )
-    bot_pos = swerve_subsystem.get_state().pose
-    rotation = swerve_subsystem.get_state().pose.rotation().radians()
-    # Do not really trust this math. Do testing to see what goes wrong with values
-    group_center = (
-        bot_pos.x
-        + (
-            group_center_bot_relative[0] * cos(rotation)
-            - group_center_bot_relative[1] * sin(rotation)
-        ),
-        bot_pos.y
-        + (
-            group_center_bot_relative[0] * sin(rotation)
-            + group_center_bot_relative[1] * cos(rotation)
-        ),
-    )
-    # TODO move to pose logic
+    x = np.array(biggest_group[2])[:, 0]
+    y = np.array(biggest_group[2])[:, 1]
 
+    robot_pose = swerve_subsystem.get_state().pose
 
-class ExampleCommand(commands2.Command):
-    # pass in parent subsystem
-    def __init__(self, limelight: LimelightSubsystem):
-        super().__init__()
-        self.addRequirements(limelight)
-        # make sure to add requirements to parent subsystem here
+    group_center_robot_relative = (np.mean(x, axis=0) / 39.37, np.mean(y, axis=0) / 39.37)
 
-    # runs every scheduled tick (think of it as a while true)
-    def execute(self) -> None:
-        pass
+    robot_relative_angle = (np.atan2(group_center_robot_relative[0], group_center_robot_relative[1]) * 180) / np.pi
+    field_relative_angle = robot_relative_angle + robot_pose.rotation().degrees()
 
-    # boolean condition to check if the command is finished (needed for running commands in series)
-    def isFinished(self) -> bool:
-        return False
+    return field_relative_angle
 
-    # code that runs after the command is finished
-    def end(self, interrupted: bool) -> None:
-        pass
+class AutoGatherRotate(commands2.PIDCommand):
+    def __init__(self, limelight: LimelightSubsystem, drive_train: CommandSwerveDrivetrain):
+        self.pid = PIDController(1, 0, 0)
+        self.pid.setTolerance(10)
+        self._drive = (
+            swerve.requests.FieldCentric()
+            .with_deadband(kraken_container.DRIVE_DEADBAND)
+            .with_rotational_deadband(kraken_container.ANGULAR_DEADBAND)
+            .with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
+        )
+        super().__init__(
+            self.pid,
+            lambda: drive_train.get_state().pose.rotation().degrees(),
+            calculate(limelight, drive_train),
+            lambda output: drive_train.set_control(self._drive.with_rotational_rate(output))
+            [limelight, drive_train]
+        )
+        self.addRequirements(limelight, drive_train)
+
+        def isFinished(self) -> bool:
+            return self.pid.atSetpoint()

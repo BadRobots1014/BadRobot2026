@@ -42,6 +42,7 @@ from routines.auto_shoot_with_intake import AutoShootWithIntake
 from routines.dump_routine import DumpRoutine
 from routines.goto_and_shoot import GotoAndShootRoutine
 from routines.shoot_when_ready import ShootWhenReady
+from routines.auto_gather import AutoGather
 from subsystems import (
     conveyor,
     custom_controller,
@@ -313,6 +314,7 @@ class KrakenRobotContainer:
                 AutoShootWithIntake(self._intake),
             ).withTimeout(4),
         )
+
         NamedCommands.registerCommand(
             "GotoTowerAndShoot",
             GotoAndShootRoutine(
@@ -456,6 +458,10 @@ class KrakenRobotContainer:
         self._primary_controller.create_button(
             R1_BUTTON, "Strafe Right Around Tower"
         ).whileTrue(strafe_r)
+
+        self._primary_controller.create_button(
+            CROSS_BUTTON, "Auto Gather Fuel"
+        ).whileTrue(AutoGather(self.drivetrain, self._limelight))
 
         # POV up - drive forward
         self._primary_controller.create_axis(
