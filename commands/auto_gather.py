@@ -1,11 +1,10 @@
 from math import cos, sin, tan
 
 import commands2
-from numpy.polynomial import Polynomial
+import numpy as np
 
 from subsystems.limelight import LimelightSubsystem
-import numpy as np
-from sklearn.linear_model import LinearRegression
+from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 limelight_angle = -10.0
 limelight_height = 0  # TODO (in)
@@ -18,12 +17,15 @@ intake_length = 24
 
 box_size = 5
 
+cam_x_to_bot = 0
+cam_y_to_bot = 0
+
 
 # limelight_fov = 62.5 * (3.14159 / 180)
 # limelight_width_px = 1280
 
 
-def calculate(limelight: LimelightSubsystem):
+def calculate(limelight: LimelightSubsystem, swerve_subsystem: CommandSwerveDrivetrain):
     results = limelight.get_results()
     if not results:
         return
@@ -37,21 +39,18 @@ def calculate(limelight: LimelightSubsystem):
         y = radius * sin(result.target_x_degrees * radians)
         positions.append((x, y))
 
-    groups: list[tuple[tuple[float, float], tuple[float, float], list[tuple[float, float]]]] = []
+    groups: list[
+        tuple[tuple[float, float], tuple[float, float], list[tuple[float, float]]]
+    ] = []
 
     for position in positions:
-        if not groups:
-            groups.append(
-                (
-                    (position[0] - group_limit, position[1] - group_limit), # Make group limit large enough so you only have to check with the center and not another box
-                    (position[0] + group_limit, position[1] + group_limit),
-                    [(position[0], position[1])],
-                )
-            )
-            continue
-
+        added_to_group = False
         for i, group in enumerate(groups):
-            if group[0][0] <= position[0] <group[1][0] and group[0][1] <= position[1] < group[1][1]:
+            if (
+                group[0][0] <= position[0] < group[1][0]
+                and group[0][1] <= position[1] < group[1][1]
+            ):
+                added_to_group = True
                 group[2].append((position[0], position[1]))
 
                 if position[0] - 12 < group[0][0]:
@@ -80,29 +79,40 @@ def calculate(limelight: LimelightSubsystem):
                         group[2],
                     )
 
-    np_groups = np.array(groups)
-    best_group = ()
+        if not added_to_group:
+            groups.append(
+                (
+                    (
+                        position[0] - group_limit,
+                        position[1] - group_limit,
+                    ),  # Make group limit large enough so you only have to check with the center and not another box
+                    (position[0] + group_limit, position[1] + group_limit),
+                    [(position[0], position[1])],
+                )
+            )
 
-    for group in np_groups:
-        x = group[2][:, 0]
-        y = group[2][:, 1]
-
-        model = LinearRegression()
-        model.fit([[i] for i in x], y)
-
-        distances = np.abs(model.coef_ * x - y + model.intercept_) / np.sqrt(model.coef_ ** 2 + 1)
-
-        num_collected = len(np.where(distances < intake_length)[0])
-
-        if num_collected > best_group[0]:
-            best_group = (group, model)
-
-    max_point_x = max(best_group[0][2], key=lambda point: point[0])
-
-    best_model = best_group[1]
-    goto_position = (max_point_x, best_model.predict([max_point_x]))
-
-    return goto_position
+    biggest_group = max(groups, key=len)
+    group_center_bot_relative = (
+        (biggest_group[1][0] - biggest_group[0][0]) * 39.37
+        - cam_x_to_bot,  # to meters from inches
+        (biggest_group[1][1] - biggest_group[0][1]) * 39.37 - cam_y_to_bot,
+    )
+    bot_pos = swerve_subsystem.get_state().pose
+    rotation = swerve_subsystem.get_state().pose.rotation().radians()
+    # Do not really trust this math. Do testing to see what goes wrong with values
+    group_center = (
+        bot_pos.x
+        + (
+            group_center_bot_relative[0] * cos(rotation)
+            - group_center_bot_relative[1] * sin(rotation)
+        ),
+        bot_pos.y
+        + (
+            group_center_bot_relative[0] * sin(rotation)
+            + group_center_bot_relative[1] * cos(rotation)
+        ),
+    )
+    # TODO move to pose logic
 
 
 class ExampleCommand(commands2.Command):
