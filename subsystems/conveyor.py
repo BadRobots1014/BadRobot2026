@@ -7,7 +7,7 @@ from ntcore import NetworkTableInstance
 from hardware.impl.motor_controller_config import MotorControllerConfig
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
-CONVEYOR_VOLTAGE = 6
+CONVEYOR_VOLTAGE = 12
 
 
 class ConveyorSubsystem(Subsystem):

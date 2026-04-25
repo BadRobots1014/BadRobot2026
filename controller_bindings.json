@@ -9,7 +9,8 @@
     "TRIANGLE": "point forward",
     "CIRCLE": "point right",
     "CROSS": "point backwards",
-    "SQUARE": "point left"
+    "SQUARE": "point left",
+    "POVDOWN": "waggle"
   },
   "1": {
     "POVUP": "Manual extend hopper",
