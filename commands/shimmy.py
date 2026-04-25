@@ -40,7 +40,9 @@ class Shimmy(Command):
         )
 
     def execute(self) -> None:
-        set_point = math.sin((Timer.getFPGATimestamp() - self.start_time) * 16)
+        set_point = self.angle - math.sin(
+            (Timer.getFPGATimestamp() - self.start_time) * 16
+        )
         vr = self.shimmy_pid.calculate(
             self.drive.get_state().pose.rotation().radians(), set_point
         )
