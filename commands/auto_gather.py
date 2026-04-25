@@ -4,6 +4,8 @@ import commands2
 from numpy.polynomial import Polynomial
 
 from subsystems.limelight import LimelightSubsystem
+import numpy as np
+from sklearn.linear_model import LinearRegression
 
 limelight_angle = -10.0
 limelight_height = 0  # TODO (in)
@@ -13,6 +15,8 @@ radians = 3.14159 / 180
 
 group_limit = 12
 intake_length = 24
+
+box_size = 5
 
 
 # limelight_fov = 62.5 * (3.14159 / 180)
@@ -33,63 +37,72 @@ def calculate(limelight: LimelightSubsystem):
         y = radius * sin(result.target_x_degrees * radians)
         positions.append((x, y))
 
-    groups: list[
-        tuple[tuple[float, float], tuple[float, float], list[tuple[float, float]]]
-    ] = []
-    for position in positions:
-        for i, group in enumerate(groups):
-            group_x_limits = group[0]
-            group_y_limits = group[1]
-            if (
-                position[0] > group_x_limits[0]
-                and position[0] < group_x_limits[1]
-                and position[1] > group_y_limits[0]
-                and position[1] < group_y_limits[1]
-            ):
-                group[2].append((position[0], position[1]))
-                if position[0] - 12 < group_x_limits[0]:
-                    groups[i] = (
-                        (position[0] - 12, group_x_limits[1]),
-                        groups[i][1],
-                        groups[i][2],
-                    )
-                elif position[0] + 12 > group_x_limits[1]:
-                    groups[i] = (
-                        (group_x_limits[0], position[0] + 12),
-                        groups[i][1],
-                        groups[i][2],
-                    )
-                elif position[1] - 12 < group_y_limits[0]:
-                    groups[i] = (
-                        groups[i][0],
-                        (position[1] - 12, group_y_limits[1]),
-                        groups[i][2],
-                    )
-                elif position[1] + 12 > group_y_limits[1]:
-                    groups[i] = (
-                        groups[i][0],
-                        (group_y_limits[0], position[1] + 12),
-                        groups[i][2],
-                    )
-                break
-        groups.append(
-            (
-                (position[0] - group_limit, position[0] + group_limit),
-                (position[1] - group_limit, position[1] + group_limit),
-                [(position[0], position[1])],
-            )
-        )
+    groups: list[tuple[tuple[float, float], tuple[float, float], list[tuple[float, float]]]] = []
 
-    best_group = (0, ())
-    for group in groups:
-        m, b = Polynomial.fit(group[2][0], group[2][1], 1).convert().coef
-        points = [(group[2][0][i], group[2][1][i]) for i in range(len(group[2][0]))]
-        balls_collected = 0
-        for point in points:
-            if abs(point[1] - (m * point[0] + b)) > intake_length:
-                balls_collected += 1
-        if balls_collected > best_group[0]:
-            best_group = (balls_collected, group)
+    for position in positions:
+        if not groups:
+            groups.append(
+                (
+                    (position[0] - group_limit, position[1] - group_limit), # Make group limit large enough so you only have to check with the center and not another box
+                    (position[0] + group_limit, position[1] + group_limit),
+                    [(position[0], position[1])],
+                )
+            )
+            continue
+
+        for i, group in enumerate(groups):
+            if group[0][0] <= position[0] <group[1][0] and group[0][1] <= position[1] < group[1][1]:
+                group[2].append((position[0], position[1]))
+
+                if position[0] - 12 < group[0][0]:
+                    groups[i] = (
+                        (position[0] - 12, group[0][1]),
+                        group[1],
+                        group[2],
+                    )
+                elif position[0] + 12 > group[1][0]:
+                    groups[i] = (
+                        group[0],
+                        (position[1] + 12, group[1][1]),
+                        group[2],
+                    )
+
+                if position[1] - 12 < group[0][0]:
+                    groups[i] = (
+                        (group[0][0], position[1] - 12),
+                        group[1],
+                        group[2],
+                    )
+                elif position[1] + 12 > group[1][0]:
+                    groups[i] = (
+                        group[0],
+                        (group[1][0], position[1] + 12),
+                        group[2],
+                    )
+
+    np_groups = np.array(groups)
+    best_group = ()
+
+    for group in np_groups:
+        x = group[2][:, 0]
+        y = group[2][:, 1]
+
+        model = LinearRegression()
+        model.fit([[i] for i in x], y)
+
+        distances = np.abs(model.coef_ * x - y + model.intercept_) / np.sqrt(model.coef_ ** 2 + 1)
+
+        num_collected = len(np.where(distances < intake_length)[0])
+
+        if num_collected > best_group[0]:
+            best_group = (group, model)
+
+    max_point_x = max(best_group[0][2], key=lambda point: point[0])
+
+    best_model = best_group[1]
+    goto_position = (max_point_x, best_model.predict([max_point_x]))
+
+    return goto_position
 
 
 class ExampleCommand(commands2.Command):
