@@ -10,7 +10,7 @@ from commands.run_kicker import KICKER_VOLTAGE, RunKickerCommand
 from commands.run_shooter import RunShooterCommand
 from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
-from subsystems.kicker import KICKER_DUMP_VOLTAGE, KickerSubsystem
+from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 
 
@@ -83,7 +83,7 @@ def test_shoot_kicker_uses_nt_voltage_when_test_mode_and_not_inverted(
     kicker.kick_shoot_voltage = 3.5
     with patch("robot.TEST_MODE_ENABLED", new=True):
         RunKickerCommand(kicker, invert=False).execute()
-    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_DUMP_VOLTAGE)
+    kicker.kick_motor.set_voltage.assert_called_once_with(KICKER_VOLTAGE)
 
 
 # --- ExtendHopperCommand execute() ---
