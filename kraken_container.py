@@ -353,6 +353,7 @@ class KrakenRobotContainer:
                 self.drive_pid,
                 self.rotate_pid,
                 self.get_hub,
+                self.is_blue,
             ),
         )
 
@@ -692,6 +693,7 @@ class KrakenRobotContainer:
                 self.drive_pid,
                 self.rotate_pid,
                 self.get_hub,
+                self.is_blue,
             )
             # goto_radius
         )

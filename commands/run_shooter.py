@@ -16,13 +16,15 @@ class RunShooterCommand(commands2.Command):
     def execute(self) -> None:
         if not robot.TEST_MODE_ENABLED:
             if self.rpm is not None:
-                self.shooter.shoot_velocity = self.rpm
+                self.shooter.set_shoot_velocity(self.rpm)
             else:
-                self.shooter.shoot_velocity = (
+                self.shooter.set_shoot_velocity(
                     self.shooter.get_shoot_velocity_from_closest_pair()
                 )
+
+                print(self.shooter.get_shoot_velocity_from_closest_pair())
         else:
-            self.shooter.shoot_velocity = (
+            self.shooter.set_shoot_velocity(
                 self.shooter.get_shoot_velocity_from_networktables()
             )
         self.shooter.shoot_motor.set_velocity(self.shooter.shoot_velocity)

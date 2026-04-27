@@ -29,6 +29,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
         drive_pid: PIDController,
         rotate_pid: PIDController,
         hub: Callable[[], Translation2d],
+        blue_alliance: bool,
     ):
         super().__init__(
             ParallelDeadlineGroup(
@@ -36,6 +37,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     drivetrain,
                     _shooter,
                     hub,
+                    blue_alliance,
                     drive_pid,
                     rotate_pid,
                 ),
@@ -46,6 +48,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     drivetrain,
                     _shooter,
                     hub,
+                    blue_alliance,
                     drive_pid,
                     rotate_pid,
                 ),

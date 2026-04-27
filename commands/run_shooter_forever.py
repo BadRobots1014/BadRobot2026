@@ -3,7 +3,7 @@ from subsystems.shooter import ShooterSubsystem
 
 
 class RunShooterCommandForever(RunShooterCommand):
-    def __init__(self, shooter: ShooterSubsystem, rpm: int):
+    def __init__(self, shooter: ShooterSubsystem, rpm: int | None):
         super().__init__(shooter, rpm)
 
     def isFinished(self) -> bool:
