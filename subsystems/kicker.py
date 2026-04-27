@@ -11,7 +11,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerIdleMode,
 )
 
-KICKER_SHOOT_VOLTAGE = 6.0
+KICKER_SHOOT_VOLTAGE = 10.0
 KICKER_DUMP_VOLTAGE = 6.0
 
 KICKER_P = 0.001
