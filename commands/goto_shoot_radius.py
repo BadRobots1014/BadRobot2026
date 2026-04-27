@@ -10,8 +10,8 @@ import kraken_container
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
-TRANSLATION_THRESHOLD = 0.15  # distance in meters away from r
-ROTATION_THRESHOLD = 0.1  # radians away from target_theta
+TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
+ROTATION_THRESHOLD = 0  # .1  # radians away from target_theta
 
 
 class GotoShootRadius(Command):
@@ -20,6 +20,7 @@ class GotoShootRadius(Command):
         swerve_subsystem: CommandSwerveDrivetrain,
         shooter: ShooterSubsystem,
         target_point: Callable[[], Translation2d],
+        blue_alliance: bool,
         drive_pid: PIDController,
         rotate_pid: PIDController,
     ) -> None:
@@ -31,6 +32,7 @@ class GotoShootRadius(Command):
         self.swerve_subsystem = swerve_subsystem
         self.shooter = shooter
         self.target_point = target_point
+        self.blue_alliance = blue_alliance
         self.drive_pid = drive_pid
         self.rotate_pid = rotate_pid
 
@@ -45,9 +47,6 @@ class GotoShootRadius(Command):
                 swerve.requests.ForwardPerspectiveValue.BLUE_ALLIANCE
             )
         )
-
-        self.r_dist = 0
-        self.radius = 3
 
         # DO NOT ADD SHOOTER TO THIS, WE DON'T WANT THIS INTERRUPTING SHOOT
         self.addRequirements(self.swerve_subsystem)
@@ -64,7 +63,39 @@ class GotoShootRadius(Command):
 
         self.r_dist = math.hypot(x_dist, y_dist)
 
-        self.radius = self.shooter.set_radius_pair(self.r_dist)
+        temp_theta = (
+            self.target_theta + math.pi if self.blue_alliance else self.target_theta
+        )
+        ignore_pairs = []
+
+        if abs(temp_theta) < 1.85:
+            ignore_pairs = [0, 1, 2, 3]
+        # NO SHOOTING - 1.85 to 1.85
+
+        elif abs(temp_theta) < 2:
+            ignore_pairs = [0, 1, 3]
+        # ALLOW 3.4 - 1.85 to 2 -1.85 to -2
+
+        elif abs(temp_theta) < 2.25:
+            ignore_pairs = [0, 3]
+        # ALLOW 2.8 3.4 - 2 to 2.25 -2 -2.25
+
+        elif temp_theta < 2.9 and temp_theta > -2.75:
+            ignore_pairs = []
+        # ALLOW 2.235 2.8 3.4 4.1 - 2.25 to 2.9 -2.25 to -2.75
+
+        else:
+            ignore_pairs = [2, 3]
+        # NO 3.4 4.1 - 2.9 to -2.75
+
+        pair = self.shooter.set_radius_pair(self.r_dist, ignore_pairs)
+        if pair is None:
+            self.no_pair = True
+            return
+        self.no_pair = False
+
+        self.radius = pair[0]
+
         r_output = self.drive_pid.calculate(self.radius, self.r_dist)
 
         ux = x_dist / self.r_dist
@@ -85,7 +116,7 @@ class GotoShootRadius(Command):
         )
 
     def isFinished(self) -> bool:
-        if (
+        if self.no_pair or (
             abs(self.r_dist - self.radius) < TRANSLATION_THRESHOLD
             and abs(self.current_theta - self.target_theta) < ROTATION_THRESHOLD
         ):

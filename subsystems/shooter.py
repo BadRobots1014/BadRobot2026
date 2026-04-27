@@ -3,7 +3,6 @@ import threading
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
-import wpimath.units
 
 from hardware.base.encoder import Encoder
 from hardware.base.motorcontroller import MotorController
@@ -20,7 +19,7 @@ SHOOTER_D = 0
 SHOOTER_F = 0.00181111111  # trusting dre
 
 # radius: meters, shooter speed: rpm
-CLOSE_SHOOT_PAIR = (wpimath.units.inchesToMeters(64.5 + 23.51), 2700)
+SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
 
 
 class ShooterSubsystem(Subsystem):
@@ -43,7 +42,7 @@ class ShooterSubsystem(Subsystem):
         self.time_of_stall = -1
         self.start_unjam = -1
 
-        self.closest_pair = CLOSE_SHOOT_PAIR
+        self.closest_pair = (0, 0)
 
         # Config shoot motor
         self.shoot_config = MotorControllerConfig(
@@ -154,18 +153,27 @@ class ShooterSubsystem(Subsystem):
             self._shooter_f_sub, ntcore.EventFlags.kValueAll, _on_shooter_f_changed
         )
 
-    def set_radius_pair(self, _r_dist: float) -> float:
-        # close_dist = math.fabs(r_dist - CLOSE_SHOOT_PAIR[0])
-        # far_dist = math.fabs(r_dist - FAR_SHOOT_PAIR[0])
-        #
-        # print(str(close_dist) + " " + str(far_dist))
-        #
-        # if close_dist < far_dist:
-        #     self.closest_pair = CLOSE_SHOOT_PAIR
-        # else:
-        #     self.closest_pair = FAR_SHOOT_PAIR
+    def set_radius_pair(
+        self, _r_dist: float, ignore_pairs: list[int]
+    ) -> tuple[float, float] | None:
+        min = 9999
+        min_pair = (0, 0)
 
-        return self.closest_pair[0]
+        for i in range(len(SHOOT_PAIRS)):
+            if i in ignore_pairs:
+                continue
+            pair = SHOOT_PAIRS[i]
+            delta = abs(_r_dist - pair[0])
+            if delta < min:
+                min = delta
+                min_pair = pair
+
+        if min_pair == (0, 0):
+            return None
+
+        self.closest_pair = min_pair
+
+        return min_pair
 
     def set_shoot_voltage(self, volts: float) -> None:
         self.shoot_motor.set_voltage(volts)
