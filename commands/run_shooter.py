@@ -21,8 +21,6 @@ class RunShooterCommand(commands2.Command):
                 self.shooter.set_shoot_velocity(
                     self.shooter.get_shoot_velocity_from_closest_pair()
                 )
-
-                print(self.shooter.get_shoot_velocity_from_closest_pair())
         else:
             self.shooter.set_shoot_velocity(
                 self.shooter.get_shoot_velocity_from_networktables()

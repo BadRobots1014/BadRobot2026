@@ -97,7 +97,6 @@ class GotoShootRadius(Command):
         self.radius = pair[0]
 
         r_output = self.drive_pid.calculate(self.radius, self.r_dist)
-        print("THETA:" + str(self.current_theta) + " PAIR: " + str(self.radius))
 
         ux = x_dist / self.r_dist
         uy = y_dist / self.r_dist
