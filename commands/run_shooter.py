@@ -25,7 +25,6 @@ class RunShooterCommand(commands2.Command):
             self.shooter.set_shoot_velocity(
                 self.shooter.get_shoot_velocity_from_networktables()
             )
-        self.shooter.shoot_motor.set_velocity(self.shooter.shoot_velocity)
 
     # we're up to speed
     def isFinished(self) -> bool:
