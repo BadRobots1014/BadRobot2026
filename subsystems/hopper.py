@@ -29,6 +29,8 @@ class HopperSubsystem(Subsystem):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
+        self.is_hopper_extended = False
+
         counter_clockwise_positive = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )

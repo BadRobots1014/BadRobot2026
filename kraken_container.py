@@ -357,8 +357,8 @@ class KrakenRobotContainer:
                 self.drive_pid,
                 self.rotate_pid,
                 self.get_hub,
-                self.is_blue,
-            ),
+                self.is_blue
+            ).withTimeout(4),
         )
 
         NamedCommands.registerCommand(
@@ -828,6 +828,9 @@ class KrakenRobotContainer:
             self.drivetrain.pigeon2.get_angular_velocity_z_device().value
             > LIMELIGHT_MAX_ANGULAR_VELOCITY
         )
+
+        # reject before hopper is out
+        reject_pose_ll4 |= not self._hopper.is_hopper_extended
 
         llx = cam_measurement_ll4[0].x
         lly = cam_measurement_ll4[0].y

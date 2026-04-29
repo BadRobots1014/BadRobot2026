@@ -47,4 +47,5 @@ class ExtendHopperCommand(Command):
         return False
 
     def end(self, interrupted: bool) -> None:
+        self.hopper.is_hopper_extended = True
         self.hopper.set_extension_voltage(0)
