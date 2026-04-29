@@ -19,7 +19,7 @@ SHOOTER_D = 0
 SHOOTER_F = 0.00181111111  # trusting dre
 
 # radius: meters, shooter speed: rpm
-SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
+SHOOT_PAIRS = [(2.235, 2700), (2.845, 2900), (3.454, 3200), (4.165, 3400)]
 
 
 class ShooterSubsystem(Subsystem):
