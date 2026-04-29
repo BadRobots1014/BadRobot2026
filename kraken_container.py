@@ -357,7 +357,7 @@ class KrakenRobotContainer:
                 self.drive_pid,
                 self.rotate_pid,
                 self.get_hub,
-                self.is_blue
+                self.is_blue,
             ).withTimeout(4),
         )
 
@@ -794,8 +794,10 @@ class KrakenRobotContainer:
         self.camera_ll4.set_throttle(99)  # 99 equals 1% (process 1, skip 99)
         self._hopper.set_coast()
         self.hopper_brake_mode = False
+        self.camera_ll4.check_fms_capture_replay()
 
     def driveInit(self) -> None:
+        self.camera_ll4.check_fms_enable_replay()
         self.camera_ll4.set_throttle(0)  # Process all frames
         self.camera_ll4.set_imu_mode(4)
         self._hopper.set_brake()
@@ -804,6 +806,7 @@ class KrakenRobotContainer:
     def teleop_init(self) -> None:
         self.camera_ll4.set_teleop_fiducial_id_filters()
         self.driveInit()
+        self.camera_ll4.check_fms_capture_replay()
 
     def auto_init(self) -> None:
         self.camera_ll4.set_auto_fiducial_id_filters()

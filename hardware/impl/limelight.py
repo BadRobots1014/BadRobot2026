@@ -1,6 +1,6 @@
 import ntcore
 from ntcore import NetworkTableInstance
-from wpilib import Timer
+from wpilib import DriverStation, Timer
 from wpimath.geometry import Pose2d, Rotation2d
 
 
@@ -13,6 +13,8 @@ class Limelight:
         self.enabled = True
         self.name = name
 
+        self.captures = 0
+
         # setup network tables
         self.nt_inst = NetworkTableInstance.getDefault()
         self.nt_table = self.nt_inst.getTable(name)
@@ -24,6 +26,15 @@ class Limelight:
         self.enabled_listener = self.nt_inst.addListener(
             self.enabled_topic, ntcore.EventFlags.kValueAll, self._enabled_changed
         )
+
+        self.rewind_enable_topic = self.nt_table.getIntegerTopic("rewind_enable_set")
+        self.rewind_enable_pub = self.rewind_enable_topic.publish()
+
+        self.capture_rewind_topic = self.nt_table.getIntegerArrayTopic("capture_rewind")
+        self.capture_rewind_pub = self.capture_rewind_topic.publish()
+
+        if DriverStation.isFMSAttached():
+            self.rewind_enable_pub.set(1)
 
         # Getters
 
@@ -50,6 +61,14 @@ class Limelight:
 
         # Used in set_throttle — controls frame skipping for LL4 thermal management
         self.throttle_set_pub = self.nt_table.getIntegerTopic("throttle_set").publish()
+
+    def check_fms_enable_replay(self) -> None:
+        if DriverStation.isFMSAttached():
+            self.rewind_enable_pub.set(1)
+
+    def check_fms_capture_replay(self) -> None:
+        if DriverStation.isFMSAttached():
+            self.capture_rewind_pub.set([self.captures, 165])
 
     def _enabled_changed(self, event: ntcore.Event) -> None:
         self.enabled = event.data.value.getBoolean()
