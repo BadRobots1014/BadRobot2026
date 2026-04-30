@@ -10,6 +10,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+import robot
 
 SHOOTER_VELOCITY = 4500
 
@@ -19,7 +20,7 @@ SHOOTER_D = 0
 SHOOTER_F = 0.00181111111  # trusting dre
 
 # radius: meters, shooter speed: rpm
-SHOOT_PAIRS = [(2.235, 2700), (2.845, 2900), (3.454, 3200), (4.165, 3400)]
+SHOOT_PAIRS = [(3.8128, 3200)]
 
 
 class ShooterSubsystem(Subsystem):
@@ -36,7 +37,7 @@ class ShooterSubsystem(Subsystem):
 
         self.shoot_encoder = shoot_encoder
 
-        self.shoot_velocity = SHOOTER_VELOCITY
+        self.target_velocity = SHOOTER_VELOCITY
 
         # tracks time for automatic jamming procedures
         self.time_of_stall = -1
@@ -72,7 +73,7 @@ class ShooterSubsystem(Subsystem):
 
         # set nt defaults
         self._shooter_motor_velocity_pub = self._shooter_motor_velocity_topic.publish()
-        self._shooter_motor_velocity_pub.set(self.shoot_velocity)
+        self._shooter_motor_velocity_pub.set(self.target_velocity)
 
         # create nt subscribers
         self._shooter_motor_velocity_sub = self._shooter_motor_velocity_topic.subscribe(
@@ -98,14 +99,20 @@ class ShooterSubsystem(Subsystem):
         self._shooter_d_sub = self._shooter_d_topic.subscribe(SHOOTER_D)
         self._shooter_f_sub = self._shooter_f_topic.subscribe(SHOOTER_F)
 
+        self.shooter_test_radius_topic = self._shooter_table.getDoubleTopic(
+            "Shooter Test Radius"
+        )
+        self.shooter_test_radius_pub = self.shooter_test_radius_topic.publish()
+        self.shooter_test_radius_sub = self.shooter_test_radius_topic.subscribe(2)
+
         # set up listeners
 
         self.lock = threading.Lock()
 
         def _on_shooter_rpm_changed(event: ntcore.Event) -> None:
             with self.lock:
-                self.shoot_velocity = event.data.value.getDouble()
-                print(self.shoot_velocity)
+                self.target_velocity = event.data.value.getDouble()
+                print(self.target_velocity)
 
         self.shooterListenerHandle = self._inst.addListener(
             self._shooter_motor_velocity_sub,
@@ -156,7 +163,15 @@ class ShooterSubsystem(Subsystem):
     def set_radius_pair(
         self, _r_dist: float, ignore_pairs: list[int]
     ) -> tuple[float, float] | None:
-        min = 9999
+
+        if robot.TEST_MODE_ENABLED:
+            self.closest_pair = (
+                self.shooter_test_radius_sub.get(),
+                self._shooter_motor_velocity_sub.get(),
+            )
+            return None
+
+        min_r = 9999
         min_pair = (0, 0)
 
         for i in range(len(SHOOT_PAIRS)):
@@ -164,8 +179,8 @@ class ShooterSubsystem(Subsystem):
                 continue
             pair = SHOOT_PAIRS[i]
             delta = abs(_r_dist - pair[0])
-            if delta < min:
-                min = delta
+            if delta < min_r:
+                min_r = delta
                 min_pair = pair
 
         if min_pair == (0, 0):
@@ -178,10 +193,12 @@ class ShooterSubsystem(Subsystem):
     def set_shoot_voltage(self, volts: float) -> None:
         self.shoot_motor.set_voltage(volts)
 
-    def set_shoot_velocity(self, velocity: float) -> None:
+    def set_shooter_velocity(self, velocity: float) -> None:
+        print(velocity)
+        self.target_velocity = velocity
         self.shoot_motor.set_velocity(velocity)
 
-    def get_shoot_velocity_from_closest_pair(self) -> float:
+    def get_target_velocity_from_closest_pair(self) -> float:
         return self.closest_pair[1]
 
     def get_shoot_velocity_from_networktables(self) -> float:

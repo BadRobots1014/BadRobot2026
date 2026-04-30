@@ -16,7 +16,7 @@ def shooter() -> ShooterSubsystem:
 
 
 def test_default_shoot_velocity(shooter: ShooterSubsystem) -> None:
-    assert shooter.shoot_velocity == SHOOTER_VELOCITY
+    assert shooter.target_velocity == SHOOTER_VELOCITY
 
 
 def test_set_shoot_voltage(shooter: ShooterSubsystem) -> None:
@@ -25,7 +25,7 @@ def test_set_shoot_voltage(shooter: ShooterSubsystem) -> None:
 
 
 def test_set_shoot_velocity(shooter: ShooterSubsystem) -> None:
-    shooter.set_shoot_velocity(3000.0)
+    shooter.set_shooter_velocity(3000.0)
     shooter.shoot_motor.set_velocity.assert_called_once_with(3000.0)
 
 

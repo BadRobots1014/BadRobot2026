@@ -11,7 +11,7 @@ from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
-ROTATION_THRESHOLD = 0  # .1  # radians away from target_theta
+ROTATION_THRESHOLD = 0.05  # .1  # radians away from target_theta
 
 
 class GotoShootRadius(Command):
@@ -87,6 +87,8 @@ class GotoShootRadius(Command):
         else:
             ignore_pairs = [2, 3]
         # NO 3.4 4.1 - 2.9 to -2.75
+
+        ignore_pairs = []
 
         pair = self.shooter.set_radius_pair(self.r_dist, ignore_pairs)
         if pair is None:

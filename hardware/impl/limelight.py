@@ -39,7 +39,7 @@ class Limelight:
         # Getters
 
         # returns [x, y, x, roll, pitch, yaw, latency]
-        self.pose_topic = self.nt_table.getDoubleArrayTopic("botpose_orb_wpiblue")
+        self.pose_topic = self.nt_table.getDoubleArrayTopic("botpose_wpiblue")
         self.pose_sub = self.pose_topic.subscribe([0] * 7)
         # MegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch, MT2yaw]
         self.stddevs_sub = self.nt_table.getDoubleArrayTopic("stddevs").subscribe(
@@ -63,12 +63,13 @@ class Limelight:
         self.throttle_set_pub = self.nt_table.getIntegerTopic("throttle_set").publish()
 
     def check_fms_enable_replay(self) -> None:
-        if DriverStation.isFMSAttached():
+        if DriverStation.isFMSAttached() or True:
             self.rewind_enable_pub.set(1)
 
     def check_fms_capture_replay(self) -> None:
-        if DriverStation.isFMSAttached():
+        if DriverStation.isFMSAttached() or True:
             self.capture_rewind_pub.set([self.captures, 165])
+            self.captures += 1
 
     def _enabled_changed(self, event: ntcore.Event) -> None:
         self.enabled = event.data.value.getBoolean()

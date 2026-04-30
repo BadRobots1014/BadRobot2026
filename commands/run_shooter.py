@@ -1,3 +1,5 @@
+import math
+
 import commands2
 
 import robot
@@ -16,19 +18,23 @@ class RunShooterCommand(commands2.Command):
     def execute(self) -> None:
         if not robot.TEST_MODE_ENABLED:
             if self.rpm is not None:
-                self.shooter.set_shoot_velocity(self.rpm)
+                self.shooter.set_shooter_velocity(self.rpm)
             else:
-                self.shooter.set_shoot_velocity(
-                    self.shooter.get_shoot_velocity_from_closest_pair()
+                self.shooter.set_shooter_velocity(
+                    self.shooter.get_target_velocity_from_closest_pair()
                 )
         else:
-            self.shooter.set_shoot_velocity(
+            self.shooter.set_shooter_velocity(
                 self.shooter.get_shoot_velocity_from_networktables()
             )
 
     # we're up to speed
     def isFinished(self) -> bool:
-        return self.shooter.shoot_encoder.get_velocity() > self.shooter.shoot_velocity
+        # print(math.fabs(self.shooter.shoot_encoder.get_velocity()), self.shooter.target_velocity)
+        return (
+            math.fabs(self.shooter.shoot_encoder.get_velocity())
+            >= self.shooter.target_velocity
+        )
 
     def end(self, interrupted: bool) -> None:
-        self.shooter.shoot_motor.disable()
+        self.shooter.shoot_motor.set_voltage(0)

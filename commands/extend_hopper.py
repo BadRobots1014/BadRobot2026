@@ -1,4 +1,4 @@
-from commands2 import Command
+from commands2 import Command, InstantCommand, WaitCommand
 from phoenix6 import controls
 from wpimath._controls._controls.trajectory import TrapezoidProfile
 
@@ -21,6 +21,9 @@ class ExtendHopperCommand(Command):
         super().__init__()
         self.hopper = hopper
 
+        self.finished = False
+        self.waiting = False
+
         self.initial_pos = self.hopper.get_extension_position()
         self.profile = TrapezoidProfile(
             TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION)
@@ -40,12 +43,19 @@ class ExtendHopperCommand(Command):
         # self.hopper.set_extension_position_and_velocity(self.request)
         self.hopper.set_extension_voltage_from_networktable()
 
+    def setFinished(self) -> None:
+        self.finished = True
+
     def isFinished(self) -> bool:
         # Finish on limit
-        if self.hopper.forward_extended():
+        if self.finished:
             return True
+        if self.hopper.is_forward_extended() and not self.waiting:
+            # Schedule a command then check its status on every isFinished to see if it has completed
+            WaitCommand(0.05).andThen(InstantCommand(self.setFinished)).schedule()
+            self.waiting = True
         return False
 
     def end(self, interrupted: bool) -> None:
-        self.hopper.is_hopper_extended = True
+        self.hopper.has_hopper_extended = True
         self.hopper.set_extension_voltage(0)

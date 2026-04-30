@@ -9,12 +9,18 @@ from phoenix6.controls import Follower, PositionVoltage
 from phoenix6.controls.voltage_out import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import MotorAlignmentValue
+from wpilib import Timer
 
 from hardware.base.switch import LimitSwitch
 
-EXTENSION_VOLTAGE = 3
+EXTENSION_VOLTAGE = 4
 
 MAX_ENCODER_ROTATIONS = 10
+
+HEARTBEAT = False
+HEARTBEAT_DUTY_INTERVAL = 1000
+HEARTBEAT_DUTY_RUN = 25
+HEARTBEAT_VOLTAGE = 0.5
 
 
 class HopperSubsystem(Subsystem):
@@ -26,10 +32,11 @@ class HopperSubsystem(Subsystem):
     ):
         super().__init__()
 
+        self.last_heartbeat_ms = 0
         self.left_motor = left_motor
         self.right_motor = right_motor
 
-        self.is_hopper_extended = False
+        self.has_hopper_extended = False
 
         counter_clockwise_positive = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
@@ -130,26 +137,34 @@ class HopperSubsystem(Subsystem):
         )
 
     def periodic(self) -> None:
-        if self.forward_extended():
+        if self.is_forward_extended():
             self.set_rotations(MAX_ENCODER_ROTATIONS)
 
-        self.nt_table.putBoolean("Forward limit: ", self.forward_extended())
+        if HEARTBEAT and self.has_hopper_extended:
+            now_ms = int(Timer.getFPGATimestamp() * 1000)
+            if now_ms >= self.last_heartbeat_ms + HEARTBEAT_DUTY_INTERVAL:
+                self.last_heartbeat_ms = now_ms
+                self.left_motor.set_control(VoltageOut(-HEARTBEAT_VOLTAGE))
+            elif now_ms >= self.last_heartbeat_ms:  # + DUTY_RUN:
+                self.left_motor.set_control(VoltageOut(0))
+
+        self.nt_table.putBoolean("Forward limit: ", self.is_forward_extended())
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
 
     def set_extension_voltage(self, voltage: float) -> None:
-        if (self.forward_extended()) or (voltage < 0 and self.backward_extended()):
+        if (self.is_forward_extended()) or (voltage < 0 and self.backward_extended()):
             self.left_motor.set_control(VoltageOut(0))
         else:
             self.left_motor.set_control(VoltageOut(voltage))
 
     def set_extension_voltage_from_networktable(self) -> None:
-        if not self.forward_extended():
+        if not self.is_forward_extended():
             self.left_motor.set_control(VoltageOut(-self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))
 
     def set_retraction_voltage_from_networktable(self) -> None:
-        if not self.backward_extended() and not self.forward_extended():
+        if not self.backward_extended() and not self.is_forward_extended():
             self.left_motor.set_control(VoltageOut(self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))
@@ -157,7 +172,7 @@ class HopperSubsystem(Subsystem):
     def set_extension_position_and_velocity(self, request: PositionVoltage) -> None:
         self.left_motor.set_control(request)
 
-    def forward_extended(self) -> bool:
+    def is_forward_extended(self) -> bool:
         return self.forward_limit_switch.get_state()
 
     def set_rotations(self, rotations: float = 0) -> None:

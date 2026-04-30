@@ -37,7 +37,7 @@ def test_forward_extended_delegates_to_switch(
     hopper: HopperSubsystem,
 ) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
-    assert hopper.forward_extended() is True
+    assert hopper.is_forward_extended() is True
 
 
 def test_extension_voltage_blocked_at_forward_limit(

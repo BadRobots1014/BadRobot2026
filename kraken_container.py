@@ -154,11 +154,11 @@ PATHFINDING_CONSTRAINTS = PathConstraints(
 
 # TODO: needs tuning
 
-TURNING_PID_P = 1
+TURNING_PID_P = 0.9
 TURNING_PID_I = 0
 TURNING_PID_D = 0
 
-CORRECTION_PID_P = 3
+CORRECTION_PID_P = 2
 CORRECTION_PID_I = 0
 CORRECTION_PID_D = 0
 
@@ -341,7 +341,7 @@ class KrakenRobotContainer:
             "EmptyHopper",
             ParallelCommandGroup(
                 ShootWhenReady(
-                    self._shooter, self._kicker, self._conveyor, self._intake, 3500
+                    self._shooter, self._kicker, self._conveyor, self._intake, 2600
                 ),
                 AutoShootWithIntake(self._intake),
             ).withTimeout(4),
@@ -725,7 +725,6 @@ class KrakenRobotContainer:
         self._auxiliary_controller.create_button(
             CROSS_BUTTON, "Intake wheel in"
         ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
-
         # Intake wheel dump (HOLD)
         intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
         self._auxiliary_controller.create_button(
@@ -746,7 +745,7 @@ class KrakenRobotContainer:
 
         self._test_controller.create_axis(
             R2_TRIGGER_AXIS, "shoot", AXIS_THRESHOLD_VALUE
-        ).whileTrue(RunShooterCommand(self._shooter, rpm=None))
+        ).whileTrue(RunShooterCommand(self._shooter, rpm=3500))
         self._test_controller.create_axis(
             L2_TRIGGER_AXIS, "extend hopper test", AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self._hopper))
@@ -833,25 +832,31 @@ class KrakenRobotContainer:
         )
 
         # reject before hopper is out
-        reject_pose_ll4 |= not self._hopper.is_hopper_extended
+        # reject_pose_ll4 |= not self._hopper.has_hopper_extended
 
-        llx = cam_measurement_ll4[0].x
-        lly = cam_measurement_ll4[0].y
+        # llx = cam_measurement_ll4[0].x
+        # lly = cam_measurement_ll4[0].y
+        #
+        # posex = self.drivetrain.get_state().pose.x
+        # posey = self.drivetrain.get_state().pose.y
+        #
+        # x = posex - llx
+        # y = posey - lly
 
-        posex = self.drivetrain.get_state().pose.x
-        posey = self.drivetrain.get_state().pose.y
-
-        x = posex - llx
-        y = posey - lly
-
-        if math.hypot(x, y) > 1:
-            reject_pose_ll4 = True
+        # if math.hypot(x, y) > 1:
+        #     reject_pose_ll4 = True
 
         self.rejected_pub.set(reject_pose_ll4)
 
+        modified_stddevs = (
+            cam_measurement_ll4[2][0] / 3,
+            cam_measurement_ll4[2][1] / 3,
+            cam_measurement_ll4[2][2],
+        )
+
         if not reject_pose_ll4:
             self.drivetrain.add_vision_measurement(
-                cam_measurement_ll4[0], cam_measurement_ll4[1], cam_measurement_ll4[2]
+                cam_measurement_ll4[0], cam_measurement_ll4[1], modified_stddevs
             )
 
         return None

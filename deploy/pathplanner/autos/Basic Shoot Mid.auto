@@ -9,6 +9,18 @@
           "data": {
             "pathName": "Shoot Mid"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "EmptyHopper"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "from middle shoot to right corner"
+          }
         }
       ]
     }
