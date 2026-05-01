@@ -63,9 +63,11 @@ def test_shoot_kicker_normal_applies_positive_voltage(
 # --- ExtendHopperCommand ---
 
 
-def test_extend_finished_when_forward_limit_hit(hopper: HopperSubsystem) -> None:
+def test_extend_waiting_when_forward_limit_hit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
-    assert ExtendHopperCommand(hopper).isFinished() is True
+    command = ExtendHopperCommand(hopper)
+    command.isFinished()
+    assert command.waiting is True
 
 
 def test_extend_not_finished_without_forward_limit(hopper: HopperSubsystem) -> None:
