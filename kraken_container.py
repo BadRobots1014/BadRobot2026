@@ -341,7 +341,7 @@ class KrakenRobotContainer:
             "EmptyHopper",
             ParallelCommandGroup(
                 ShootWhenReady(
-                    self._shooter, self._kicker, self._conveyor, self._intake, 2600
+                    self._shooter, self._kicker, self._conveyor, self._intake, 2700
                 ),
                 AutoShootWithIntake(self._intake),
             ).withTimeout(4),
