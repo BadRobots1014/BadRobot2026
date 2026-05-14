@@ -6,7 +6,7 @@
 import math
 
 import commands2
-from commands2 import ConditionalCommand, ParallelCommandGroup
+from commands2 import CommandScheduler, ConditionalCommand, ParallelCommandGroup
 from commands2.button import Trigger
 from commands2.sysid import SysIdRoutine
 from cscore import CameraServer, HttpCamera
@@ -81,7 +81,7 @@ FLIGHT_STICK_X_AXIS = 0
 FLIGHT_STICK_Y_AXIS = 1
 FLIGHT_STICK_YAW_AXIS = 2
 
-AXIS_THRESHOLD_VALUE = 0.67
+AXIS_THRESHOLD_VALUE = 0.05
 
 # Controller button mappings
 CROSS_BUTTON = 1
@@ -154,13 +154,13 @@ PATHFINDING_CONSTRAINTS = PathConstraints(
 
 # TODO: needs tuning
 
-TURNING_PID_P = 0.9
+TURNING_PID_P = 1
 TURNING_PID_I = 0
-TURNING_PID_D = 0
+TURNING_PID_D = 0.03
 
-CORRECTION_PID_P = 2
+CORRECTION_PID_P = 3
 CORRECTION_PID_I = 0
-CORRECTION_PID_D = 0
+CORRECTION_PID_D = 0.1
 
 
 class KrakenRobotContainer:
@@ -358,6 +358,7 @@ class KrakenRobotContainer:
                 self.rotate_pid,
                 self.get_hub,
                 self.is_blue,
+                [self._primary_controller, self._auxiliary_controller],
             ).withTimeout(4),
         )
 
@@ -544,7 +545,7 @@ class KrakenRobotContainer:
         ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
-                    NUDGE_SPEED
+                    NUDGE_SPEED * self._primary_controller.getRawAxis(R2_TRIGGER_AXIS)
                 ).with_velocity_y(0)
             )
         )
@@ -555,7 +556,7 @@ class KrakenRobotContainer:
         ).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(
-                    -NUDGE_SPEED
+                    -NUDGE_SPEED * self._primary_controller.getRawAxis(L2_TRIGGER_AXIS)
                 ).with_velocity_y(0)
             )
         )
@@ -677,6 +678,10 @@ class KrakenRobotContainer:
             ExtendHopperCommand(self._hopper)
         )
 
+        self._auxiliary_controller.bind_pov_down(
+            "show manual retract hopper"
+        ).whileTrue(ExtendHopperCommand(self._hopper))
+
         # Spin up shooter L2
         self._auxiliary_controller.create_axis(
             L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
@@ -702,6 +707,7 @@ class KrakenRobotContainer:
                 self.rotate_pid,
                 self.get_hub,
                 self.is_blue,
+                [self._primary_controller, self._auxiliary_controller],
             )
             # goto_radius
         )
@@ -832,7 +838,7 @@ class KrakenRobotContainer:
         )
 
         # reject before hopper is out
-        # reject_pose_ll4 |= not self._hopper.has_hopper_extended
+        reject_pose_ll4 |= not self._hopper.has_hopper_extended
 
         # llx = cam_measurement_ll4[0].x
         # lly = cam_measurement_ll4[0].y
@@ -858,6 +864,8 @@ class KrakenRobotContainer:
             self.drivetrain.add_vision_measurement(
                 cam_measurement_ll4[0], cam_measurement_ll4[1], modified_stddevs
             )
+
+        SmartDashboard.putData(CommandScheduler.getInstance())
 
         return None
 

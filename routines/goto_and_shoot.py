@@ -1,7 +1,6 @@
 from collections.abc import Callable
 
 from commands2 import (
-    ParallelCommandGroup,
     ParallelDeadlineGroup,
     SequentialCommandGroup,
 )
@@ -43,15 +42,15 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                 ),
                 RunShooterCommand(_shooter, rpm=None),
             ),
-            ParallelCommandGroup(
-                GotoShootRadius(
-                    drivetrain,
-                    _shooter,
-                    hub,
-                    blue_alliance,
-                    drive_pid,
-                    rotate_pid,
-                ),
-                ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
-            ),
+            # ParallelCommandGroup(
+            #     GotoShootRadius(
+            #         drivetrain,
+            #         _shooter,
+            #         hub,
+            #         blue_alliance,
+            #         drive_pid,
+            #         rotate_pid,
+            #     ),
+            ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
+            # ),
         )

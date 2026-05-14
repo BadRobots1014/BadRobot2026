@@ -33,7 +33,7 @@ class RunShooterCommand(commands2.Command):
         # print(math.fabs(self.shooter.shoot_encoder.get_velocity()), self.shooter.target_velocity)
         return (
             math.fabs(self.shooter.shoot_encoder.get_velocity())
-            >= self.shooter.target_velocity
+            >= self.shooter.target_velocity + 50
         )
 
     def end(self, interrupted: bool) -> None:

@@ -10,7 +10,7 @@ import kraken_container
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
-TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
+TRANSLATION_THRESHOLD = 0.2  # distance in meters away from r
 ROTATION_THRESHOLD = 0.05  # .1  # radians away from target_theta
 
 
