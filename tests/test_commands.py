@@ -67,7 +67,7 @@ def test_extend_waiting_when_forward_limit_hit(hopper: HopperSubsystem) -> None:
     hopper.forward_limit_switch.get_state.return_value = True
     command = ExtendHopperCommand(hopper)
     command.isFinished()
-    assert command.waiting is True
+    assert command.isFinished() is True
 
 
 def test_extend_not_finished_without_forward_limit(hopper: HopperSubsystem) -> None:

@@ -358,7 +358,6 @@ class KrakenRobotContainer:
                 self.rotate_pid,
                 self.get_hub,
                 self.is_blue,
-                [self._primary_controller, self._auxiliary_controller],
             ).withTimeout(4),
         )
 
@@ -707,7 +706,6 @@ class KrakenRobotContainer:
                 self.rotate_pid,
                 self.get_hub,
                 self.is_blue,
-                [self._primary_controller, self._auxiliary_controller],
             )
             # goto_radius
         )
