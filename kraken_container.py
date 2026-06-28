@@ -425,8 +425,8 @@ class KrakenRobotContainer:
         return raw
 
     def getTargetAngle(self) -> Rotation2d:
-        x = self.getRightX()
-        y = self.getRightY()
+        x = self._primary_controller.getMappedAxis(RIGHT_X_AXIS)
+        y = self._primary_controller.getMappedAxis(RIGHT_Y_AXIS)
         if math.sqrt(x * x + y * y) > TURN_TO_THETA_DEADBAND:
             self.last_angle = Rotation2d.fromRotations(math.atan2(x, y) / (2 * math.pi))
         return self.last_angle
@@ -450,9 +450,9 @@ class KrakenRobotContainer:
         and then passing it to a JoystickButton.
         """
 
-        def get_drive_command() -> (
-            swerve.requests.FieldCentricFacingAngle | swerve.requests.FieldCentric
-        ):
+        def get_drive_command(
+            target_angle: Rotation2d = None,
+        ) -> swerve.requests.FieldCentricFacingAngle | swerve.requests.FieldCentric:
             velocity_x = self._primary_controller.getMappedAxis(LEFT_Y_AXIS) * MAX_SPEED
             velocity_y = self._primary_controller.getMappedAxis(LEFT_X_AXIS) * MAX_SPEED
             rotational_rate = (
@@ -487,7 +487,14 @@ class KrakenRobotContainer:
                     -MAX_ANGULAR_SPEED, min(MAX_ANGULAR_SPEED, rotational_rate)
                 )
 
-            if self.turn_to_theta_sub.get():
+            if target_angle is not None:
+                return (
+                    self._turn_to_theta_drive.with_velocity_x(velocity_x)
+                    .with_velocity_y(velocity_y)
+                    .with_target_direction(target_angle)
+                    .with_heading_pid(10, 0, 0)
+                )
+            elif self.turn_to_theta_sub.get():
                 return (
                     self._turn_to_theta_drive.with_velocity_x(velocity_x)
                     .with_velocity_y(velocity_y)
@@ -605,34 +612,16 @@ class KrakenRobotContainer:
             TRIANGLE_BUTTON, "point forward"
         ).whileTrue(
             self.drivetrain.apply_request(
-                lambda: (
-                    self._turn_to_theta_drive.with_velocity_x(
-                        self.getLeftY() * MAX_SPEED
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        self.getLeftX() * MAX_SPEED
-                    )  # Drive left with negative X (left)
-                    .with_target_direction(
-                        Rotation2d.fromDegrees(0)
-                    )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(6, 0, 0)
+                lambda: get_drive_command(Rotation2d.fromDegrees(0)).with_heading_pid(
+                    6, 0, 0
                 )
             ),
         )
 
         self._primary_controller.create_button(CIRCLE_BUTTON, "point right").whileTrue(
             self.drivetrain.apply_request(
-                lambda: (
-                    self._turn_to_theta_drive.with_velocity_x(
-                        self.getLeftY() * MAX_SPEED
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        self.getLeftX() * MAX_SPEED
-                    )  # Drive left with negative X (left)
-                    .with_target_direction(
-                        Rotation2d.fromDegrees(270)
-                    )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(6, 0, 0)
+                lambda: get_drive_command(Rotation2d.fromDegrees(270)).with_heading_pid(
+                    6, 0, 0
                 )
             ),
         )
@@ -641,34 +630,16 @@ class KrakenRobotContainer:
             CROSS_BUTTON, "point backwards"
         ).whileTrue(
             self.drivetrain.apply_request(
-                lambda: (
-                    self._turn_to_theta_drive.with_velocity_x(
-                        self.getLeftY() * MAX_SPEED
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        self.getLeftX() * MAX_SPEED
-                    )  # Drive left with negative X (left)
-                    .with_target_direction(
-                        Rotation2d.fromDegrees(180)
-                    )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(6, 0, 0)
+                lambda: get_drive_command(Rotation2d.fromDegrees(180)).with_heading_pid(
+                    6, 0, 0
                 )
             ),
         )
 
         self._primary_controller.create_button(SQUARE_BUTTON, "point left").whileTrue(
             self.drivetrain.apply_request(
-                lambda: (
-                    self._turn_to_theta_drive.with_velocity_x(
-                        self.getLeftY() * MAX_SPEED
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        self.getLeftX() * MAX_SPEED
-                    )  # Drive left with negative X (left)
-                    .with_target_direction(
-                        Rotation2d.fromDegrees(90)
-                    )  # Drive counterclockwise with negative X (left)
-                    .with_heading_pid(6, 0, 0)
+                lambda: get_drive_command(Rotation2d.fromDegrees(90)).with_heading_pid(
+                    6, 0, 0
                 )
             ),
         )
