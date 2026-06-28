@@ -6,7 +6,7 @@
 import math
 
 import commands2
-from commands2 import CommandScheduler, ConditionalCommand, ParallelCommandGroup
+from commands2 import CommandScheduler, ParallelCommandGroup
 from commands2.button import Trigger
 from commands2.sysid import SysIdRoutine
 from cscore import CameraServer, HttpCamera
@@ -102,7 +102,7 @@ POV_DOWN = 180
 
 
 # drive speeds/limits
-SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
+SLOW_SPEED_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
 NUDGE_SPEED = 0.4 * MAX_SPEED
@@ -123,6 +123,8 @@ FLIGHT_STICK_PORT = 3
 TURN_TO_THETA_PORT = 4
 
 JOYSTICK_SLEW_RATE = 3
+
+DEMONSTRATION_MODE = True
 
 # point towards locations
 BLUE_HUB_TRANSLATION = Translation2d(4.62, 4.04)
@@ -180,6 +182,7 @@ class KrakenRobotContainer:
             SignalLogger.stop()
 
         self.slow_mode = False
+        self.demonstration_aux_enabled = True
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
@@ -394,7 +397,7 @@ class KrakenRobotContainer:
         else:
             raw = -(self._primary_controller.getRawAxis(LEFT_X_AXIS) ** 3)
         if self.slow_mode:
-            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+            raw *= SLOW_SPEED_MODIFIER
         return raw
 
     def getLeftY(self) -> float:
@@ -403,7 +406,7 @@ class KrakenRobotContainer:
         else:
             raw = -(self._primary_controller.getRawAxis(LEFT_Y_AXIS) ** 3)
         if self.slow_mode:
-            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+            raw *= SLOW_SPEED_MODIFIER
         return raw
 
     def getRightX(self) -> float:
@@ -412,13 +415,13 @@ class KrakenRobotContainer:
         else:
             raw = -(self._primary_controller.getRawAxis(RIGHT_X_AXIS) ** 3)
         if self.slow_mode:
-            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+            raw *= SLOW_SPEED_MODIFIER
         return raw
 
     def getRightY(self) -> float:
         raw = -(self._primary_controller.getRawAxis(RIGHT_Y_AXIS) ** 3)
         if self.slow_mode:
-            raw *= SLOW_SPEED_JOYSTICK_MODIFIER
+            raw *= SLOW_SPEED_MODIFIER
         return raw
 
     def getTargetAngle(self) -> Rotation2d:
@@ -447,39 +450,59 @@ class KrakenRobotContainer:
         and then passing it to a JoystickButton.
         """
 
-        # Note that X is defined as forward according to WPILib convention,
-        # and Y is defined as to the left according to WPILib convention.
-        self.drivetrain.setDefaultCommand(
-            ConditionalCommand(
-                self.drivetrain.apply_request(
-                    lambda: (
-                        self._turn_to_theta_drive.with_velocity_x(
-                            self.getLeftY() * MAX_SPEED
-                        )  # Drive forward with negative Y (forward)
-                        .with_velocity_y(
-                            self.getLeftX() * MAX_SPEED
-                        )  # Drive left with negative X (left)
-                        .with_target_direction(
-                            self.getTargetAngle()
-                        )  # Drive counterclockwise with negative X (left)
-                        .with_heading_pid(10, 0, 0)
-                    )
-                ),
-                self.drivetrain.apply_request(
-                    lambda: (
-                        self._drive.with_velocity_x(
-                            self.getLeftY() * MAX_SPEED
-                        )  # Drive forward with negative Y (forward)
-                        .with_velocity_y(
-                            self.getLeftX() * MAX_SPEED
-                        )  # Drive left with negative X (left)
-                        .with_rotational_rate(
-                            self.getRightX() * MAX_ANGULAR_SPEED
-                        )  # Drive counterclockwise with negative X (left)
-                    )
-                ),
-                self.turn_to_theta_sub.get,
+        def get_drive_command() -> (
+            swerve.requests.FieldCentricFacingAngle | swerve.requests.FieldCentric
+        ):
+            velocity_x = self._primary_controller.getMappedAxis(LEFT_Y_AXIS) * MAX_SPEED
+            velocity_y = self._primary_controller.getMappedAxis(LEFT_X_AXIS) * MAX_SPEED
+            rotational_rate = (
+                self._primary_controller.getMappedAxis(RIGHT_X_AXIS) * MAX_ANGULAR_SPEED
             )
+
+            if self.slow_mode:
+                velocity_x *= SLOW_SPEED_MODIFIER
+                velocity_y *= SLOW_SPEED_MODIFIER
+                rotational_rate *= SLOW_SPEED_MODIFIER
+
+            if DEMONSTRATION_MODE and self.demonstration_aux_enabled:
+                velocity_x += (
+                    self._auxiliary_controller.getMappedAxis(LEFT_Y_AXIS)
+                    * SLOW_SPEED_MODIFIER
+                    * MAX_SPEED
+                )
+                velocity_y += (
+                    self._auxiliary_controller.getMappedAxis(LEFT_X_AXIS)
+                    * SLOW_SPEED_MODIFIER
+                    * MAX_SPEED
+                )
+                rotational_rate += (
+                    self._auxiliary_controller.getMappedAxis(RIGHT_X_AXIS)
+                    * SLOW_SPEED_MODIFIER
+                    * MAX_ANGULAR_SPEED
+                )
+
+                velocity_x = max(-MAX_SPEED, min(MAX_SPEED, velocity_x))
+                velocity_y = max(-MAX_SPEED, min(MAX_SPEED, velocity_y))
+                rotational_rate = max(
+                    -MAX_ANGULAR_SPEED, min(MAX_ANGULAR_SPEED, rotational_rate)
+                )
+
+            if self.turn_to_theta_sub.get():
+                return (
+                    self._turn_to_theta_drive.with_velocity_x(velocity_x)
+                    .with_velocity_y(velocity_y)
+                    .with_target_direction(self.getTargetAngle())
+                    .with_heading_pid(10, 0, 0)
+                )
+            else:
+                return (
+                    self._drive.with_velocity_x(velocity_x)
+                    .with_velocity_y(velocity_y)
+                    .with_rotational_rate(rotational_rate)
+                )
+
+        self.drivetrain.setDefaultCommand(
+            self.drivetrain.apply_request(get_drive_command)
         )
 
         Trigger(lambda: self._flight_stick.getPOV() != -1).whileTrue(

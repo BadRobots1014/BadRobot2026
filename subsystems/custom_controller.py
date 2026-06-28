@@ -78,6 +78,10 @@ class CustomController(CommandGenericHID):
         self.add_pub(axis_to_string[axis], command_name)
         return self.axisGreaterThan(axis, threshold)
 
+    def getMappedAxis(self, axis: int) -> float:
+        # # Joysticks need to be inverted or drive won't work properly
+        return -(self.getRawAxis(axis) ** 3)
+
     def bind_pov_up(self, name: str) -> Trigger:
         self.add_pub("POVUP", name)
         return self.povUp()
