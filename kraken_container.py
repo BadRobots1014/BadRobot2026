@@ -624,8 +624,6 @@ class KrakenRobotContainer:
         )
 
         # Waggle
-
-        # Waggle
         self._primary_controller.bind_pov_down("waggle").whileTrue(
             Shimmy(self.drivetrain)
         )
@@ -774,7 +772,7 @@ class KrakenRobotContainer:
 
             # Shoot
             self._primary_controller.create_axis(
-                L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
+                R2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
             ).whileTrue(
                 ShootWhenReady(
                     self._shooter, self._kicker, self._conveyor, self._intake, rpm=None

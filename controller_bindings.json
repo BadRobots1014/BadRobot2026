@@ -7,10 +7,10 @@
     "POVRIGHT": "nudge right",
     "POVLEFT": "nudge left",
     "POVDOWN": "waggle",
-    "R2": "Reset Heading",
+    "R2": "shoot when ready",
     "R1": "enable aux controller",
     "POVUP": "Manual extend hopper",
-    "L2": "shoot when ready",
+    "L2": "collect",
     "L1": "dump"
   },
   "1": {}
