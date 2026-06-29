@@ -1,25 +1,18 @@
 {
   "0": {
-    "L1": "Strafe Left Around Tower",
-    "R1": "Strafe Right Around Tower",
-    "R2": "Reset Heading",
-    "L2": "nudge backwards",
-    "POVRIGHT": "nudge right",
-    "POVLEFT": "nudge left",
     "TRIANGLE": "point forward",
     "CIRCLE": "point right",
     "CROSS": "point backwards",
     "SQUARE": "point left",
-    "POVDOWN": "waggle"
+    "POVRIGHT": "nudge right",
+    "POVLEFT": "nudge left",
+    "POVDOWN": "waggle",
+    "R2": "Reset Heading",
+    "R1": "enable aux controller",
+    "POVUP": "Manual extend hopper"
   },
   "1": {
-    "POVUP": "Manual extend hopper",
-    "POVDOWN": "show manual retract hopper",
-    "L2": "shoot when ready",
-    "R2": "goto and shoot when ready (dangerous)",
-    "L1": "shoot when ready (rpm=None)",
-    "CROSS": "Intake wheel in",
-    "CIRCLE": "Intake wheel dump",
-    "SQUARE": "intake pulse"
+    "R2": "collect",
+    "L2": "shoot when ready"
   }
 }

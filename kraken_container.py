@@ -182,7 +182,6 @@ class KrakenRobotContainer:
             SignalLogger.stop()
 
         self.slow_mode = False
-        self.demonstration_aux_enabled = True
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
@@ -245,6 +244,16 @@ class KrakenRobotContainer:
         ).getBooleanTopic("turn_to_theta")
         self.turn_to_theta_pub = self.turn_to_theta_topic.publish()
         self.turn_to_theta_sub = self.turn_to_theta_topic.subscribe(defaultValue=False)
+
+        self.demonstration_aux_enabled_topic = self.nt_instance.getTable(
+            "SmartDashboard"
+        ).getBooleanTopic("demonstration_aux_enabled")
+        self.demonstration_aux_enabled_pub = (
+            self.demonstration_aux_enabled_topic.publish()
+        )
+        self.demonstration_aux_enabled_sub = (
+            self.demonstration_aux_enabled_topic.subscribe(defaultValue=False)
+        )
 
         # limit switches
         self.forward_limit_switch = (
@@ -464,7 +473,7 @@ class KrakenRobotContainer:
                 velocity_y *= SLOW_SPEED_MODIFIER
                 rotational_rate *= SLOW_SPEED_MODIFIER
 
-            if DEMONSTRATION_MODE and self.demonstration_aux_enabled:
+            if DEMONSTRATION_MODE and self.demonstration_aux_enabled_sub.get():
                 velocity_x += (
                     self._auxiliary_controller.getMappedAxis(LEFT_Y_AXIS)
                     * SLOW_SPEED_MODIFIER
@@ -561,53 +570,7 @@ class KrakenRobotContainer:
             drive_pid=self.drive_pid,
         )
 
-        self._primary_controller.create_button(
-            L1_BUTTON, "Strafe Left Around Tower"
-        ).whileTrue(strafe_l)
-        self._primary_controller.create_button(
-            R1_BUTTON, "Strafe Right Around Tower"
-        ).whileTrue(strafe_r)
-
-        # POV up - drive forward
-        self._primary_controller.create_axis(
-            R2_TRIGGER_AXIS, "nudge backwards", AXIS_THRESHOLD_VALUE
-        ).whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(
-                    NUDGE_SPEED * self._primary_controller.getRawAxis(R2_TRIGGER_AXIS)
-                ).with_velocity_y(0)
-            )
-        )
-
-        # POV down - drive backward
-        self._primary_controller.create_axis(
-            L2_TRIGGER_AXIS, "nudge backwards", AXIS_THRESHOLD_VALUE
-        ).whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(
-                    -NUDGE_SPEED * self._primary_controller.getRawAxis(L2_TRIGGER_AXIS)
-                ).with_velocity_y(0)
-            )
-        )
-
-        # POV right - drive right
-        self._primary_controller.bind_pov_right("nudge right").whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    -NUDGE_SPEED
-                )
-            )
-        )
-
-        # POV left - drive left
-        self._primary_controller.bind_pov_left("nudge left").whileTrue(
-            self.drivetrain.apply_request(
-                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
-                    NUDGE_SPEED
-                )
-            )
-        )
-
+        # Point in directions
         self._primary_controller.create_button(
             TRIANGLE_BUTTON, "point forward"
         ).whileTrue(
@@ -617,7 +580,6 @@ class KrakenRobotContainer:
                 )
             ),
         )
-
         self._primary_controller.create_button(CIRCLE_BUTTON, "point right").whileTrue(
             self.drivetrain.apply_request(
                 lambda: get_drive_command(Rotation2d.fromDegrees(270)).with_heading_pid(
@@ -625,7 +587,6 @@ class KrakenRobotContainer:
                 )
             ),
         )
-
         self._primary_controller.create_button(
             CROSS_BUTTON, "point backwards"
         ).whileTrue(
@@ -635,13 +596,35 @@ class KrakenRobotContainer:
                 )
             ),
         )
-
         self._primary_controller.create_button(SQUARE_BUTTON, "point left").whileTrue(
             self.drivetrain.apply_request(
                 lambda: get_drive_command(Rotation2d.fromDegrees(90)).with_heading_pid(
                     6, 0, 0
                 )
             ),
+        )
+
+        # Nudge
+        self._primary_controller.bind_pov_right("nudge right").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    -NUDGE_SPEED
+                )
+            )
+        )
+        self._primary_controller.bind_pov_left("nudge left").whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0).with_velocity_y(
+                    NUDGE_SPEED
+                )
+            )
+        )
+
+        # Waggle
+
+        # Waggle
+        self._primary_controller.bind_pov_down("waggle").whileTrue(
+            Shimmy(self.drivetrain)
         )
 
         # Reset the field-centric heading on Options button press
@@ -660,84 +643,138 @@ class KrakenRobotContainer:
             )
         )
 
-        self._primary_controller.bind_pov_down("waggle").whileTrue(
-            Shimmy(self.drivetrain)
-        )
+        if not DEMONSTRATION_MODE:
+            # Strafe around Hub
+            self._primary_controller.create_button(
+                L1_BUTTON, "Strafe Left Around Tower"
+            ).whileTrue(strafe_l)
+            self._primary_controller.create_button(
+                R1_BUTTON, "Strafe Right Around Tower"
+            ).whileTrue(strafe_r)
 
-        # AUX CONTROLLER -------------------------------------------------------------------------------
-
-        # manual extend
-        self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
-            ExtendHopperCommand(self._hopper)
-        )
-
-        self._auxiliary_controller.bind_pov_down(
-            "show manual retract hopper"
-        ).whileTrue(ExtendHopperCommand(self._hopper))
-
-        # Spin up shooter L2
-        self._auxiliary_controller.create_axis(
-            L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
-        ).whileTrue(
-            ShootWhenReady(
-                self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
-            ),
-        )
-
-        # Run kicker wheel when ready R2
-        self._auxiliary_controller.create_axis(
-            R2_TRIGGER_AXIS,
-            "goto and shoot when ready (dangerous)",
-            AXIS_THRESHOLD_VALUE,
-        ).whileTrue(
-            GotoAndShootRoutine(
-                self._shooter,
-                self._kicker,
-                self._conveyor,
-                self._intake,
-                self.drivetrain,
-                self.drive_pid,
-                self.rotate_pid,
-                self.get_hub,
-                self.is_blue,
+            # R2 up - drive forward
+            self._primary_controller.create_axis(
+                R2_TRIGGER_AXIS, "nudge forward", AXIS_THRESHOLD_VALUE
+            ).whileTrue(
+                self.drivetrain.apply_request(
+                    lambda: self._forward_straight.with_velocity_x(
+                        NUDGE_SPEED
+                        * self._primary_controller.getRawAxis(R2_TRIGGER_AXIS)
+                    ).with_velocity_y(0)
+                )
             )
-            # goto_radius
-        )
 
-        # uncomment if you want to use the regular kicker command
-        # self._auxiliary_controller.create_button(
-        #     R1_BUTTON,
-        #     "Run kicker wheel",
-        #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
-
-        self._auxiliary_controller.create_button(
-            L1_BUTTON, "shoot when ready (rpm=None)"
-        ).whileTrue(
-            ShootWhenReady(
-                self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
+            # L2 - drive backward
+            self._primary_controller.create_axis(
+                L2_TRIGGER_AXIS, "nudge backwards", AXIS_THRESHOLD_VALUE
+            ).whileTrue(
+                self.drivetrain.apply_request(
+                    lambda: self._forward_straight.with_velocity_x(
+                        -NUDGE_SPEED
+                        * self._primary_controller.getRawAxis(L2_TRIGGER_AXIS)
+                    ).with_velocity_y(0)
+                )
             )
-        )
 
-        # Intake wheel in (HOLD)
-        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
-        self._auxiliary_controller.create_button(
-            CROSS_BUTTON, "Intake wheel in"
-        ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
-        # Intake wheel dump (HOLD)
-        intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
-        self._auxiliary_controller.create_button(
-            CIRCLE_BUTTON, "Intake wheel dump"
-        ).whileTrue(intake_wheel_out)
+            # AUX CONTROLLER -------------------------------------------------------------------------------
 
-        # Intake wheel down up
-        self._auxiliary_controller.create_button(
-            SQUARE_BUTTON, "intake pulse"
-        ).whileTrue(AutoShootWithIntake(self._intake))
+            # manual extend
+            self._auxiliary_controller.bind_pov_up("Manual extend hopper").whileTrue(
+                ExtendHopperCommand(self._hopper)
+            )
 
-        # Party Mode
-        # self._auxiliary_controller.button(SHARE_BUTTON).toggleOnTrue(
-        #    PartyModeCommand(self._lights, self.music)
-        # )
+            self._auxiliary_controller.bind_pov_down(
+                "show manual retract hopper"
+            ).whileTrue(ExtendHopperCommand(self._hopper))
+
+            # Spin up shooter L2
+            self._auxiliary_controller.create_axis(
+                L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
+            ).whileTrue(
+                ShootWhenReady(
+                    self._shooter, self._kicker, self._conveyor, self._intake, rpm=3300
+                ),
+            )
+
+            # Run kicker wheel when ready R2
+            self._auxiliary_controller.create_axis(
+                R2_TRIGGER_AXIS,
+                "goto and shoot when ready (dangerous)",
+                AXIS_THRESHOLD_VALUE,
+            ).whileTrue(
+                GotoAndShootRoutine(
+                    self._shooter,
+                    self._kicker,
+                    self._conveyor,
+                    self._intake,
+                    self.drivetrain,
+                    self.drive_pid,
+                    self.rotate_pid,
+                    self.get_hub,
+                    self.is_blue,
+                )
+                # goto_radius
+            )
+
+            # uncomment if you want to use the regular kicker command
+            # self._auxiliary_controller.create_button(
+            #     R1_BUTTON,
+            #     "Run kicker wheel",
+            #     ).whileTrue(ShootKickerCommand(self._kicker, invert=False))
+
+            self._auxiliary_controller.create_button(
+                L1_BUTTON, "shoot when ready (rpm=None)"
+            ).whileTrue(
+                ShootWhenReady(
+                    self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
+                )
+            )
+
+            # Intake wheel in (HOLD)
+            intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+            self._auxiliary_controller.create_button(
+                CROSS_BUTTON, "Intake wheel in"
+            ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
+            # Intake wheel dump (HOLD)
+            intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
+            self._auxiliary_controller.create_button(
+                CIRCLE_BUTTON, "Intake wheel dump"
+            ).whileTrue(intake_wheel_out)
+
+            # Intake wheel down up
+            self._auxiliary_controller.create_button(
+                SQUARE_BUTTON, "intake pulse"
+            ).whileTrue(AutoShootWithIntake(self._intake))
+
+        else:  # Demonstration mode
+            # Enable aux
+            self._primary_controller.create_button(
+                R1_BUTTON, "enable aux controller"
+            ).whileTrue(
+                commands2.cmd.startEnd(
+                    lambda: self.demonstration_aux_enabled_pub.set(True),
+                    lambda: self.demonstration_aux_enabled_pub.set(False),
+                )
+            )
+
+            # manual extend
+            self._primary_controller.bind_pov_up("Manual extend hopper").whileTrue(
+                ExtendHopperCommand(self._hopper)
+            )
+
+            # Intake
+            self._primary_controller.create_axis(
+                R2_TRIGGER_AXIS, "collect", AXIS_THRESHOLD_VALUE
+            ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
+
+            # Shoot
+            self._primary_controller.create_axis(
+                L2_TRIGGER_AXIS, "shoot when ready", AXIS_THRESHOLD_VALUE
+            ).whileTrue(
+                ShootWhenReady(
+                    self._shooter, self._kicker, self._conveyor, self._intake, rpm=None
+                )
+            )
 
         # test controls -------------------------------------------------------
 
