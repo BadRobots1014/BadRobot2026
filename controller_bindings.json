@@ -9,10 +9,9 @@
     "POVDOWN": "waggle",
     "R2": "Reset Heading",
     "R1": "enable aux controller",
-    "POVUP": "Manual extend hopper"
+    "POVUP": "Manual extend hopper",
+    "L2": "shoot when ready",
+    "L1": "dump"
   },
-  "1": {
-    "R2": "collect",
-    "L2": "shoot when ready"
-  }
+  "1": {}
 }

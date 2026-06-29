@@ -570,6 +570,9 @@ class KrakenRobotContainer:
             drive_pid=self.drive_pid,
         )
 
+        intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
+        intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
+
         # Point in directions
         self._primary_controller.create_button(
             TRIANGLE_BUTTON, "point forward"
@@ -643,7 +646,7 @@ class KrakenRobotContainer:
             )
         )
 
-        if not DEMONSTRATION_MODE:
+        if not DEMONSTRATION_MODE:  # Normal Bindings
             # Strafe around Hub
             self._primary_controller.create_button(
                 L1_BUTTON, "Strafe Left Around Tower"
@@ -731,12 +734,10 @@ class KrakenRobotContainer:
             )
 
             # Intake wheel in (HOLD)
-            intake_wheel_in = RunIntakeCommand(self._intake, dump=False)
             self._auxiliary_controller.create_button(
                 CROSS_BUTTON, "Intake wheel in"
             ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
             # Intake wheel dump (HOLD)
-            intake_wheel_out = DumpRoutine(self._intake, self._kicker, self._conveyor)
             self._auxiliary_controller.create_button(
                 CIRCLE_BUTTON, "Intake wheel dump"
             ).whileTrue(intake_wheel_out)
@@ -764,8 +765,12 @@ class KrakenRobotContainer:
 
             # Intake
             self._primary_controller.create_axis(
-                R2_TRIGGER_AXIS, "collect", AXIS_THRESHOLD_VALUE
+                L2_TRIGGER_AXIS, "collect", AXIS_THRESHOLD_VALUE
             ).whileTrue(ExtendHopperCommand(self._hopper).andThen(intake_wheel_in))
+
+            self._primary_controller.create_button(L1_BUTTON, "dump").whileTrue(
+                ExtendHopperCommand(self._hopper).andThen(intake_wheel_out)
+            )
 
             # Shoot
             self._primary_controller.create_axis(
