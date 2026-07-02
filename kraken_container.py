@@ -460,8 +460,8 @@ class KrakenRobotContainer:
         """
 
         def get_drive_command(
-            target_angle: Rotation2d = None,
-        ) -> swerve.requests.FieldCentricFacingAngle | swerve.requests.FieldCentric:
+            target_angle: Rotation2d | None = None,
+        ) -> swerve.requests.FieldCentric | swerve.requests.FieldCentricFacingAngle:
             velocity_x = self._primary_controller.getMappedAxis(LEFT_Y_AXIS) * MAX_SPEED
             velocity_y = self._primary_controller.getMappedAxis(LEFT_X_AXIS) * MAX_SPEED
             rotational_rate = (
@@ -501,7 +501,7 @@ class KrakenRobotContainer:
                     self._turn_to_theta_drive.with_velocity_x(velocity_x)
                     .with_velocity_y(velocity_y)
                     .with_target_direction(target_angle)
-                    .with_heading_pid(10, 0, 0)
+                    .with_heading_pid(6, 0, 0)
                 )
             elif self.turn_to_theta_sub.get():
                 return (
@@ -578,32 +578,24 @@ class KrakenRobotContainer:
             TRIANGLE_BUTTON, "point forward"
         ).whileTrue(
             self.drivetrain.apply_request(
-                lambda: get_drive_command(Rotation2d.fromDegrees(0)).with_heading_pid(
-                    6, 0, 0
-                )
+                lambda: get_drive_command(target_angle=Rotation2d.fromDegrees(0))
             ),
         )
         self._primary_controller.create_button(CIRCLE_BUTTON, "point right").whileTrue(
             self.drivetrain.apply_request(
-                lambda: get_drive_command(Rotation2d.fromDegrees(270)).with_heading_pid(
-                    6, 0, 0
-                )
+                lambda: get_drive_command(target_angle=Rotation2d.fromDegrees(270))
             ),
         )
         self._primary_controller.create_button(
             CROSS_BUTTON, "point backwards"
         ).whileTrue(
             self.drivetrain.apply_request(
-                lambda: get_drive_command(Rotation2d.fromDegrees(180)).with_heading_pid(
-                    6, 0, 0
-                )
+                lambda: get_drive_command(target_angle=Rotation2d.fromDegrees(180))
             ),
         )
         self._primary_controller.create_button(SQUARE_BUTTON, "point left").whileTrue(
             self.drivetrain.apply_request(
-                lambda: get_drive_command(Rotation2d.fromDegrees(90)).with_heading_pid(
-                    6, 0, 0
-                )
+                lambda: get_drive_command(target_angle=Rotation2d.fromDegrees(90))
             ),
         )
 

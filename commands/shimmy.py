@@ -30,7 +30,7 @@ class Shimmy(Command):
         self.angle = 0
         self.start_time = 0
         self.shimmy_pid = PIDController(SHIMMY_P, SHIMMY_I, SHIMMY_D)
-        wpilib.SmartDashboard.putData(self.shimmy_pid)
+        wpilib.SmartDashboard.putData("shimmy PID", self.shimmy_pid)
 
     def initialize(self) -> None:
         self.angle = self.drive.get_state().pose.rotation().radians()
