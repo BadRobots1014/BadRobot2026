@@ -397,6 +397,7 @@ class KrakenRobotContainer:
         CameraServer.addCamera(self.camera)
 
         self.last_angle = Rotation2d.fromRotations(0)
+        self._robot_periodic_counter = 0
 
     # Joysticks need to be inverted or drive won't work properly
 
@@ -845,51 +846,58 @@ class KrakenRobotContainer:
         # All code below is limelight, so skip adding it if in sim
         if not self.is_real_bot:
             return None
-        SmartDashboard.putBoolean("Hopper Idle Mode", self.hopper_brake_mode)
 
-        # Push gyro data to limelight (set to external IMU)
-        robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
-        self.camera_ll4.robot_orientation_set(robot_yaw)
+        self._robot_periodic_counter += 1
 
-        # Add vision
-        cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
-        reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
+        if self._robot_periodic_counter % 10 == 0:
+            SmartDashboard.putBoolean("Hopper Idle Mode", self.hopper_brake_mode)
 
-        reject_pose_ll4 |= (
-            # OR with tv rejection
-            self.drivetrain.pigeon2.get_angular_velocity_z_device().value
-            > LIMELIGHT_MAX_ANGULAR_VELOCITY
-        )
+        # Push gyro data to limelight (set to external IMU) every few cycles.
+        # Doing this every 20 ms can starve the scheduler and make the controller feel delayed.
+        if self._robot_periodic_counter % 5 == 0:
+            robot_yaw = self.drivetrain.get_state().pose.rotation().degrees()
+            self.camera_ll4.robot_orientation_set(robot_yaw)
 
-        # reject before hopper is out
-        reject_pose_ll4 |= not self._hopper.has_hopper_extended
+            # Add vision every few cycles instead of every loop.
+            cam_measurement_ll4 = self.camera_ll4.get_vision_measurement()
+            reject_pose_ll4 = self.camera_ll4.tv_sub.get() < 1
 
-        # llx = cam_measurement_ll4[0].x
-        # lly = cam_measurement_ll4[0].y
-        #
-        # posex = self.drivetrain.get_state().pose.x
-        # posey = self.drivetrain.get_state().pose.y
-        #
-        # x = posex - llx
-        # y = posey - lly
-
-        # if math.hypot(x, y) > 1:
-        #     reject_pose_ll4 = True
-
-        self.rejected_pub.set(reject_pose_ll4)
-
-        modified_stddevs = (
-            cam_measurement_ll4[2][0] / 3,
-            cam_measurement_ll4[2][1] / 3,
-            cam_measurement_ll4[2][2],
-        )
-
-        if not reject_pose_ll4:
-            self.drivetrain.add_vision_measurement(
-                cam_measurement_ll4[0], cam_measurement_ll4[1], modified_stddevs
+            reject_pose_ll4 |= (
+                # OR with tv rejection
+                self.drivetrain.pigeon2.get_angular_velocity_z_device().value
+                > LIMELIGHT_MAX_ANGULAR_VELOCITY
             )
 
-        SmartDashboard.putData(CommandScheduler.getInstance())
+            # reject before hopper is out
+            reject_pose_ll4 |= not self._hopper.has_hopper_extended
+
+            # llx = cam_measurement_ll4[0].x
+            # lly = cam_measurement_ll4[0].y
+            #
+            # posex = self.drivetrain.get_state().pose.x
+            # posey = self.drivetrain.get_state().pose.y
+            #
+            # x = posex - llx
+            # y = posey - lly
+
+            # if math.hypot(x, y) > 1:
+            #     reject_pose_ll4 = True
+
+            self.rejected_pub.set(reject_pose_ll4)
+
+            modified_stddevs = (
+                cam_measurement_ll4[2][0] / 3,
+                cam_measurement_ll4[2][1] / 3,
+                cam_measurement_ll4[2][2],
+            )
+
+            if not reject_pose_ll4:
+                self.drivetrain.add_vision_measurement(
+                    cam_measurement_ll4[0], cam_measurement_ll4[1], modified_stddevs
+                )
+
+        if self._robot_periodic_counter % 50 == 0:
+            SmartDashboard.putData(CommandScheduler.getInstance())
 
         return None
 
