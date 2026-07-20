@@ -102,7 +102,7 @@ POV_DOWN = 180
 
 
 # drive speeds/limits
-SLOW_SPEED_MODIFIER = 0.5
+SLOW_SPEED_MODIFIER = 0.2
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
 NUDGE_SPEED = 0.4 * MAX_SPEED

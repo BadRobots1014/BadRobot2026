@@ -43,7 +43,7 @@ class ShooterSubsystem(Subsystem):
         self.time_of_stall = -1
         self.start_unjam = -1
 
-        self.closest_pair = (0, 0)
+        self.closest_pair = (0.0, self.target_velocity)
 
         # Config shoot motor
         self.shoot_config = MotorControllerConfig(
@@ -166,13 +166,13 @@ class ShooterSubsystem(Subsystem):
 
         if robot.TEST_MODE_ENABLED:
             self.closest_pair = (
-                self.shooter_test_radius_sub.get(),
-                self._shooter_motor_velocity_sub.get(),
+                float(self.shooter_test_radius_sub.get()),
+                float(self._shooter_motor_velocity_sub.get() or self.target_velocity),
             )
             return None
 
         min_r = 9999
-        min_pair = (0, 0)
+        min_pair = (0.0, 0.0)
 
         for i in range(len(SHOOT_PAIRS)):
             if i in ignore_pairs:
@@ -183,7 +183,8 @@ class ShooterSubsystem(Subsystem):
                 min_r = delta
                 min_pair = pair
 
-        if min_pair == (0, 0):
+        if min_pair == (0.0, 0.0):
+            self.closest_pair = (0.0, self.target_velocity)
             return None
 
         self.closest_pair = min_pair
@@ -199,7 +200,8 @@ class ShooterSubsystem(Subsystem):
         self.shoot_motor.set_velocity(velocity)
 
     def get_target_velocity_from_closest_pair(self) -> float:
-        return self.closest_pair[1]
+        velocity = self.closest_pair[1]
+        return velocity if velocity != 0 else self.target_velocity
 
     def get_shoot_velocity_from_networktables(self) -> float:
         return self._shooter_motor_velocity_sub.get()
