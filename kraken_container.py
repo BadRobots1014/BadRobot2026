@@ -33,6 +33,10 @@ class KrakenRobotContainer:
         self.auxiliary = AuxController(self.robot)
         self.test = TestController(self.robot)
 
+        self.primary.configure()
+        self.auxiliary.configure()
+        self.test.configure()
+
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.ll_table = self.nt_instance.getTable("limelight")
 
