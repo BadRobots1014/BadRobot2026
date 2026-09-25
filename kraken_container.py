@@ -4,64 +4,18 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 import math
-
 import commands2
-from commands2 import ConditionalCommand, ParallelCommandGroup
-from commands2.button import Trigger
-from commands2.sysid import SysIdRoutine
 from cscore import CameraServer, HttpCamera
 import ntcore
-from pathplannerlib.auto import (
-    AutoBuilder,
-    NamedCommands,
-    PathConstraints,
-)
-from pathplannerlib.path import Translation2d
-from phoenix6 import SignalLogger, swerve
-import wpilib
+from pathplannerlib.auto import AutoBuilder
 from wpilib import DriverStation, SmartDashboard
-from wpilib.interfaces import GenericHID
-from wpimath.controller import PIDController
-import wpimath.filter
 from wpimath.geometry import Pose2d, Rotation2d
-from wpimath.units import rotationsToRadians
-
-from commands.extend_hopper import ExtendHopperCommand
-from commands.run_conveyor import RunConveyor
-from commands.run_intake import RunIntakeCommand
-from commands.run_kicker import RunKickerCommand
-from commands.run_shooter import RunShooterCommand
-from commands.shimmy import Shimmy
-from commands.strafe import Strafe
 from controllers.aux_controller import AuxController
 from controllers.main_controller import MainController
 from controllers.test_controller import TestController
-from generated.tuner_constants import TunerConstants
-from hardware.impl.andymark_magnetic import AndymarkMagnetic
-from hardware.impl.limelight import Limelight
-from hardware.impl.pwmled import PWMLED
-from hardware.impl.spark_flex_motor import SparkFlexMotorController
-from hardware.impl.talonfx import TalonFXMotorController
-from hardware.sim_hardware import DummyLED, DummyLimitSwitch
 from robot_class import RobotClass
-from routines.auto_shoot_with_intake import AutoShootWithIntake
-from routines.dump_routine import DumpRoutine
-from routines.goto_and_shoot import GotoAndShootRoutine
-from routines.shoot_when_ready import ShootWhenReady
-from subsystems import (
-    conveyor,
-    custom_controller,
-    hopper,
-    intake,
-    kicker,
-    pilights,
-    shooter,
-)
-from subsystems.custom_controller import CustomController
-from telemetry import Telemetry
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
-
 
 class KrakenRobotContainer:
     """
