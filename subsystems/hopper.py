@@ -11,23 +11,28 @@ from phoenix6.hardware import TalonFX
 from phoenix6.signals import MotorAlignmentValue
 
 from hardware.base.switch import LimitSwitch
+from hardware.impl.andymark_magnetic import AndymarkMagnetic
+from hardware.impl.talonfx import TalonFXMotorController
+from hardware.sim_hardware import DummyLimitSwitch
+from kraken_container import FORWARD_LIMIT_ID
 
 EXTENSION_VOLTAGE = 4.5
 
 MAX_ENCODER_ROTATIONS = 10
 
+RIGHT_PINION_ID = 45
+LEFT_PINION_ID = 46
+
 
 class HopperSubsystem(Subsystem):
     def __init__(
         self,
-        left_motor: TalonFX,
-        right_motor: TalonFX,
-        forward_limit_switch: LimitSwitch,
+        real_bot: bool
     ):
         super().__init__()
 
-        self.left_motor = left_motor
-        self.right_motor = right_motor
+        self.left_motor = TalonFXMotorController(LEFT_PINION_ID).get_motor_controller()
+        self.right_motor = TalonFXMotorController(RIGHT_PINION_ID).get_motor_controller()
 
         counter_clockwise_positive = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
@@ -98,7 +103,11 @@ class HopperSubsystem(Subsystem):
 
         self.left_motor.get_motor_voltage().set_update_frequency(100)
 
-        self.forward_limit_switch = forward_limit_switch
+        self.forward_limit_switch = (
+            AndymarkMagnetic(FORWARD_LIMIT_ID)
+            if real_bot
+            else DummyLimitSwitch(default_state=False)
+        )
 
         self.extension_voltage = EXTENSION_VOLTAGE
 

@@ -234,7 +234,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
         # Defer to manual init
         # self._configure_auto_builder()
 
-    def _configure_auto_builder(self) -> None:
+    def configure_auto_builder(self) -> None:
         config = RobotConfig.fromGUISettings()
         AutoBuilder.configure(
             lambda: self.get_state().pose,  # Supplier of current robot pose

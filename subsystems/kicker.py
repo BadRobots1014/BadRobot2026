@@ -10,6 +10,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
 KICKER_SHOOT_VOLTAGE = 10.0
 KICKER_DUMP_VOLTAGE = 6.0
@@ -19,17 +20,16 @@ KICKER_I = 0
 KICKER_D = 0
 KICKER_F = 0.00181111111  # trusting dre
 
+KICK_MOTOR_ID = 51
 
 class KickerSubsystem(Subsystem):
     def __init__(
         self,
-        kick_motor: MotorController,
-        kick_encoder: Encoder,
     ):
         super().__init__()
 
-        self.kick_motor = kick_motor
-        self.kick_encoder = kick_encoder
+        self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
+        self.kick_encoder = self.kick_motor.get_encoder()
 
         self.kick_shoot_voltage = KICKER_SHOOT_VOLTAGE
         self.kick_dump_voltage = KICKER_DUMP_VOLTAGE

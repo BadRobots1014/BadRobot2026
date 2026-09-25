@@ -10,6 +10,7 @@ from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
 from commands.run_shooter import RunShooterCommand
+from drive_wrapper import DriveWrapper
 from routines.shoot_when_ready import ShootWhenReady
 from subsystems.conveyor import ConveyorSubsystem
 from subsystems.intake import IntakeSubsystem
@@ -25,9 +26,7 @@ class GotoAndShootRoutine(SequentialCommandGroup):
         _kicker: KickerSubsystem,
         _conveyor: ConveyorSubsystem,
         _intake: IntakeSubsystem,
-        drivetrain: CommandSwerveDrivetrain,
-        drive_pid: PIDController,
-        rotate_pid: PIDController,
+        drivetrain: DriveWrapper,
         hub: Callable[[], Translation2d],
         blue_alliance: bool,
     ):
@@ -38,8 +37,6 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     _shooter,
                     hub,
                     blue_alliance,
-                    drive_pid,
-                    rotate_pid,
                 ),
                 RunShooterCommand(_shooter, rpm=None),
             ),
@@ -49,8 +46,6 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                     _shooter,
                     hub,
                     blue_alliance,
-                    drive_pid,
-                    rotate_pid,
                 ),
                 ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
             ),

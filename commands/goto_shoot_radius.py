@@ -7,6 +7,7 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 import kraken_container
+from drive_wrapper import DriveWrapper
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -17,24 +18,20 @@ ROTATION_THRESHOLD = 0  # .1  # radians away from target_theta
 class GotoShootRadius(Command):
     def __init__(
         self,
-        swerve_subsystem: CommandSwerveDrivetrain,
+        drive_wrapper: DriveWrapper,
         shooter: ShooterSubsystem,
         target_point: Callable[[], Translation2d],
         blue_alliance: bool,
-        drive_pid: PIDController,
-        rotate_pid: PIDController,
     ) -> None:
         """
         Attempt to maintain THRESHOLD distance from `target_point`
 
         :param target_point: WPILib position (blue centered) of desired location.
         """
-        self.swerve_subsystem = swerve_subsystem
+        self.drive_wrapper = drive_wrapper
         self.shooter = shooter
         self.target_point = target_point
         self.blue_alliance = blue_alliance
-        self.drive_pid = drive_pid
-        self.rotate_pid = rotate_pid
 
         self._drive = (
             swerve.requests.FieldCentric()
@@ -49,17 +46,23 @@ class GotoShootRadius(Command):
         )
 
         # DO NOT ADD SHOOTER TO THIS, WE DON'T WANT THIS INTERRUPTING SHOOT
-        self.addRequirements(self.swerve_subsystem)
+        self.addRequirements(self.drive_wrapper.drivetrain)
+
+        self.target_theta = 0
+        self.current_theta = 0
+        self.r_dist = 0
+        self.no_pair = False
+        self.radius = 0
 
         super().__init__()
 
     def execute(self) -> None:
-        bot_pos = self.swerve_subsystem.get_state().pose
+        bot_pos = self.drive_wrapper.drivetrain.get_state().pose
         x_dist = self.target_point().x - bot_pos.x
         y_dist = self.target_point().y - bot_pos.y
 
         self.target_theta = math.atan2(y_dist, x_dist)
-        self.current_theta = self.swerve_subsystem.get_state().pose.rotation().radians()
+        self.current_theta = self.drive_wrapper.drivetrain.get_state().pose.rotation().radians()
 
         self.r_dist = math.hypot(x_dist, y_dist)
 
@@ -80,7 +83,7 @@ class GotoShootRadius(Command):
             ignore_pairs = [0, 3]
         # ALLOW 2.8 3.4 - 2 to 2.25 -2 -2.25
 
-        elif temp_theta < 2.9 and temp_theta > -2.75:
+        elif 2.9 > temp_theta > -2.75:
             ignore_pairs = []
         # ALLOW 2.235 2.8 3.4 4.1 - 2.25 to 2.9 -2.25 to -2.75
 
@@ -96,7 +99,7 @@ class GotoShootRadius(Command):
 
         self.radius = pair[0]
 
-        r_output = self.drive_pid.calculate(self.radius, self.r_dist)
+        r_output = self.drive_wrapper.drive_pid.calculate(self.radius, self.r_dist)
 
         ux = x_dist / self.r_dist
         uy = y_dist / self.r_dist
@@ -105,11 +108,11 @@ class GotoShootRadius(Command):
         vy_radical = r_output * uy
 
         rotational_rate = (
-            self.rotate_pid.calculate(self.current_theta, self.target_theta)
+            self.drive_wrapper.rotate_pid.calculate(self.current_theta, self.target_theta)
             * kraken_container.MAX_ANGULAR_SPEED
         )
 
-        self.swerve_subsystem.set_control(
+        self.drive_wrapper.drivetrain.set_control(
             self._drive.with_velocity_x(vx_radical)
             .with_velocity_y(vy_radical)
             .with_rotational_rate(rotational_rate)
@@ -125,6 +128,6 @@ class GotoShootRadius(Command):
             return False
 
     def end(self, interrupted: bool) -> None:
-        self.swerve_subsystem.set_control(
+        self.drive_wrapper.drivetrain.set_control(
             self._drive.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
         )

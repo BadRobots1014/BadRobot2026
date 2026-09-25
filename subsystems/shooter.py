@@ -10,6 +10,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
 SHOOTER_VELOCITY = 4500
 
@@ -18,23 +19,23 @@ SHOOTER_I = 0
 SHOOTER_D = 0
 SHOOTER_F = 0.00181111111  # trusting dre
 
+MAIN_SHOOT_MOTOR_ID = 59
+FOLLOWER_SHOOT_MOTOR_ID = 55
+KICK_MOTOR_ID = 51
+SEESAW_MOTOR_ID = 53
+
 # radius: meters, shooter speed: rpm
 SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
 
-
 class ShooterSubsystem(Subsystem):
-    def __init__(
-        self,
-        main_shoot_motor: MotorController,
-        follower_shoot_motor: MotorController,
-        shoot_encoder: Encoder,
-    ):
+    def __init__(self,):
         super().__init__()
 
-        self.shoot_motor = main_shoot_motor
-        self.f_shoot_motor = follower_shoot_motor
+        self.shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
 
-        self.shoot_encoder = shoot_encoder
+        self.f_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
+
+        self.shoot_encoder = self.shoot_motor.get_encoder()
 
         self.shoot_velocity = SHOOTER_VELOCITY
 

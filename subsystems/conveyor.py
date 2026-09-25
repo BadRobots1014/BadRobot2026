@@ -9,11 +9,12 @@ from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
 CONVEYOR_VOLTAGE = 12
 
+CONVEYOR_ID = 56
 
 class ConveyorSubsystem(Subsystem):
-    def __init__(self, conveyor_motor: SparkFlexMotorController):
+    def __init__(self):
         super().__init__()
-        self.conveyor_motor = conveyor_motor
+        self.conveyor_motor = SparkFlexMotorController(CONVEYOR_ID)
 
         conveyor_config = MotorControllerConfig()
         self.conveyor_motor.apply_configs(conveyor_config)

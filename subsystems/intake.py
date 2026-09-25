@@ -9,19 +9,20 @@ from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
+from hardware.impl.spark_flex_motor import SparkFlexMotorController
 
 # Dumping velocity should be 1500
 INTAKE_VOLTAGE = 9
 DUMP_VOLTAGE = -5.0
 
+INTAKE_MOTOR_CAN_ID = 52
 
 class IntakeSubsystem(Subsystem):
     def __init__(
-        self,
-        intake: MotorController,
+        self
     ) -> None:
         super().__init__()
-        self.intake_motor = intake
+        self.intake_motor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
 
         intake_config = MotorControllerConfig(
             inverted=False, idle_mode=MotorControllerIdleMode.BRAKE
