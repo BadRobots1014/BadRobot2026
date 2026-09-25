@@ -8,6 +8,7 @@ from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 from wpimath.units import rotationsToRadians
 
+import drive_wrapper
 import kraken_container  # import file instead of class for constants
 from drive_wrapper import DriveWrapper
 from subsystems.shooter import ShooterSubsystem
@@ -36,8 +37,8 @@ class Strafe(commands2.Command):
         self.target_point = target_point
         self._drive = (
             swerve.requests.FieldCentric()
-            .with_deadband(kraken_container.DRIVE_DEADBAND)
-            .with_rotational_deadband(kraken_container.ANGULAR_DEADBAND)
+            .with_deadband(drive_wrapper.DRIVE_DEADBAND)
+            .with_rotational_deadband(drive_wrapper.ANGULAR_DEADBAND)
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors

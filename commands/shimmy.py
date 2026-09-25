@@ -6,6 +6,7 @@ import wpilib
 from wpilib import Timer
 from wpimath._controls._controls.controller import PIDController
 
+import drive_wrapper
 import kraken_container
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
@@ -21,8 +22,8 @@ class Shimmy(Command):
         self.drive = drive
         self._drive = (
             swerve.requests.FieldCentric()
-            .with_deadband(kraken_container.DRIVE_DEADBAND)
-            .with_rotational_deadband(kraken_container.ANGULAR_DEADBAND)
+            .with_deadband(drive_wrapper.DRIVE_DEADBAND)
+            .with_rotational_deadband(drive_wrapper.ANGULAR_DEADBAND)
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors

@@ -16,13 +16,13 @@ class MainController(ControllerDefault):
 
     def configure(self):
         strafe_l = Strafe(
-            self.robot.drive_wrapper.drivetrain,
+            self.robot.drive_wrapper,
             self.robot.shooter,
             self.robot.get_hub,
             clockwise=True
         )
         strafe_r = Strafe(
-            self.robot.drive_wrapper.drivetrain,
+            self.robot.drive_wrapper,
             self.robot.shooter,
             self.robot.get_hub,
             clockwise=False

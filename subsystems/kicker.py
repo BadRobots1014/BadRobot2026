@@ -1,4 +1,5 @@
 import threading
+from unittest.mock import MagicMock
 
 from commands2 import Subsystem
 import ntcore
@@ -25,11 +26,16 @@ KICK_MOTOR_ID = 51
 class KickerSubsystem(Subsystem):
     def __init__(
         self,
+        real: bool
     ):
         super().__init__()
 
-        self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
-        self.kick_encoder = self.kick_motor.get_encoder()
+        if real:
+            self.kick_motor = SparkFlexMotorController(KICK_MOTOR_ID)
+            self.kick_encoder = self.kick_motor.get_encoder()
+        else:
+            self.kick_motor = MagicMock()
+            self.kick_encoder = MagicMock()
 
         self.kick_shoot_voltage = KICKER_SHOOT_VOLTAGE
         self.kick_dump_voltage = KICKER_DUMP_VOLTAGE

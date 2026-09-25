@@ -11,6 +11,7 @@ from hardware.impl.motor_controller_config import (
     MotorControllerIdleMode,
 )
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
+from unittest.mock import MagicMock
 
 SHOOTER_VELOCITY = 4500
 
@@ -28,14 +29,17 @@ SEESAW_MOTOR_ID = 53
 SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
 
 class ShooterSubsystem(Subsystem):
-    def __init__(self,):
+    def __init__(self, real: bool = False):
         super().__init__()
 
-        self.shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
-
-        self.f_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
-
-        self.shoot_encoder = self.shoot_motor.get_encoder()
+        if real:
+            self.shoot_motor = SparkFlexMotorController(MAIN_SHOOT_MOTOR_ID)
+            self.f_shoot_motor = SparkFlexMotorController(FOLLOWER_SHOOT_MOTOR_ID)
+            self.shoot_encoder = self.shoot_motor.get_encoder()
+        else:
+            self.shoot_motor = MagicMock()
+            self.f_shoot_motor = MagicMock()
+            self.shoot_encoder = MagicMock()
 
         self.shoot_velocity = SHOOTER_VELOCITY
 

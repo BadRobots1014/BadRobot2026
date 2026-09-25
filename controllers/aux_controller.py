@@ -57,7 +57,7 @@ class AuxController(ControllerDefault):
             self.L1_BUTTON, "shoot when ready (rpm=None)"
         ).whileTrue(
             ShootWhenReady(
-                self.robot.shooter, self.robot.kicker, self.robot.kicker, self.robot.intake, rpm=None
+                self.robot.shooter, self.robot.kicker, self.robot.conveyor, self.robot.intake, rpm=None
             )
         )
 

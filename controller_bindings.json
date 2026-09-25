@@ -7,9 +7,9 @@
     "POVRIGHT": "nudge right",
     "POVLEFT": "nudge left",
     "TRIANGLE": "point forward",
-    "CIRCLE": "point right",
-    "CROSS": "point backwards",
+    "CROSS": "point backward",
     "SQUARE": "point left",
+    "CIRCLE": "point right",
     "POVDOWN": "waggle"
   },
   "1": {

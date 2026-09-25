@@ -13,7 +13,7 @@ from subsystems.kicker import (
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(MagicMock(), MagicMock())
+    return KickerSubsystem(False)
 
 
 def test_default_kick_shoot_voltage(kicker: KickerSubsystem) -> None:

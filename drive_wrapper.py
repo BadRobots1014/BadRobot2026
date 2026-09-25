@@ -78,11 +78,11 @@ class DriveWrapper:
 
         self.drivetrain.configure_auto_builder()
 
-    def robot_centric_drive(self, vx, vy, angular):
-        self.drivetrain.apply_request(lambda: self.robot_centric.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(angular))
+    def field_centric_drive(self, vx, vy, angular):
+        return self.drivetrain.apply_request(lambda: self.field_centric.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(angular))
 
-    def field_centric_drive(self, vx, vy):
-        self.drivetrain.apply_request(lambda: self.field_centric.with_velocity_x(vx).with_velocity_y(vy))
+    def robot_centric_drive(self, vx, vy):
+        return self.drivetrain.apply_request(lambda: self.robot_centric.with_velocity_x(vx).with_velocity_y(vy))
 
     def theta_centric_drive(self, angle, vx, vy):
-        self.drivetrain.apply_request(lambda: self.turn_to_theta_drive.with_target_direction(Rotation2d.fromDegrees(angle)).with_velocity_x(vx).with_velocity_y(vy).with_heading_pid(10, 0 ,0))
+        return self.drivetrain.apply_request(lambda: self.turn_to_theta_drive.with_target_direction(Rotation2d.fromDegrees(angle)).with_velocity_x(vx).with_velocity_y(vy).with_heading_pid(10, 0 ,0))

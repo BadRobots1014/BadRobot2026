@@ -9,7 +9,7 @@ from controllers.controller import ControllerDefault
 from subsystems import custom_controller
 
 
-class TestController(ControllerDefault):
+class RobotTestController(ControllerDefault):
     def __init__(self, robot):
         super().__init__(self.TEST_PORT, robot)
 

@@ -1,4 +1,5 @@
 import threading
+from unittest.mock import MagicMock
 
 from commands2 import Subsystem
 import ntcore
@@ -19,10 +20,15 @@ INTAKE_MOTOR_CAN_ID = 52
 
 class IntakeSubsystem(Subsystem):
     def __init__(
-        self
+        self,
+        real: bool
     ) -> None:
         super().__init__()
-        self.intake_motor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
+
+        if real:
+            self.intake_motor = SparkFlexMotorController(INTAKE_MOTOR_CAN_ID)
+        else:
+            self.intake_motor = MagicMock()
 
         intake_config = MotorControllerConfig(
             inverted=False, idle_mode=MotorControllerIdleMode.BRAKE

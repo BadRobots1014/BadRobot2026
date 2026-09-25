@@ -12,7 +12,7 @@ from subsystems.shooter import (
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(MagicMock(), MagicMock(), MagicMock())
+    return ShooterSubsystem(False)
 
 
 def test_default_shoot_velocity(shooter: ShooterSubsystem) -> None:

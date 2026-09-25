@@ -1,4 +1,5 @@
 import threading
+from unittest.mock import MagicMock
 
 from commands2 import Subsystem
 import ntcore
@@ -14,7 +15,6 @@ from hardware.base.switch import LimitSwitch
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.talonfx import TalonFXMotorController
 from hardware.sim_hardware import DummyLimitSwitch
-from kraken_container import FORWARD_LIMIT_ID
 
 EXTENSION_VOLTAGE = 4.5
 
@@ -22,6 +22,7 @@ MAX_ENCODER_ROTATIONS = 10
 
 RIGHT_PINION_ID = 45
 LEFT_PINION_ID = 46
+FORWARD_LIMIT_ID = 18
 
 
 class HopperSubsystem(Subsystem):
@@ -31,8 +32,14 @@ class HopperSubsystem(Subsystem):
     ):
         super().__init__()
 
-        self.left_motor = TalonFXMotorController(LEFT_PINION_ID).get_motor_controller()
-        self.right_motor = TalonFXMotorController(RIGHT_PINION_ID).get_motor_controller()
+        if real_bot:
+            self.left_motor = TalonFXMotorController(LEFT_PINION_ID).get_motor_controller()
+            self.right_motor = TalonFXMotorController(RIGHT_PINION_ID).get_motor_controller()
+            self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
+        else:
+            self.left_motor = MagicMock()
+            self.right_motor = MagicMock()
+            self.forward_limit_switch = MagicMock()
 
         counter_clockwise_positive = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
@@ -102,12 +109,6 @@ class HopperSubsystem(Subsystem):
         )
 
         self.left_motor.get_motor_voltage().set_update_frequency(100)
-
-        self.forward_limit_switch = (
-            AndymarkMagnetic(FORWARD_LIMIT_ID)
-            if real_bot
-            else DummyLimitSwitch(default_state=False)
-        )
 
         self.extension_voltage = EXTENSION_VOLTAGE
 

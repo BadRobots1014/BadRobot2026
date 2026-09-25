@@ -20,12 +20,9 @@ def _controlled_voltage(mock: MagicMock) -> float:
 
 @pytest.fixture
 def hopper() -> HopperSubsystem:
-    left_motor = MagicMock()
-    left_motor.device_id = 1  # Follower requires an integer device_id
-    right_motor = MagicMock()
-    forward_limit_switch = MagicMock()
-    subsystem = HopperSubsystem(right_motor, left_motor, forward_limit_switch)
+    subsystem = HopperSubsystem(False)
     subsystem.left_motor.reset_mock()
+    subsystem.right_motor.reset_mock()
     return subsystem
 
 

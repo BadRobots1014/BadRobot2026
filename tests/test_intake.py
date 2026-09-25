@@ -21,8 +21,7 @@ def _controlled_voltage(mock: MagicMock) -> float:
 
 @pytest.fixture
 def intake() -> IntakeSubsystem:
-    intake_motor = MagicMock()
-    subsystem = IntakeSubsystem(intake_motor)
+    subsystem = IntakeSubsystem(False)
     subsystem.intake_motor.reset_mock()
     return subsystem
 

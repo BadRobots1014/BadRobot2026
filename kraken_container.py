@@ -12,7 +12,7 @@ from wpilib import DriverStation, SmartDashboard
 from wpimath.geometry import Pose2d, Rotation2d
 from controllers.aux_controller import AuxController
 from controllers.main_controller import MainController
-from controllers.test_controller import TestController
+from controllers.test_controller import RobotTestController
 from robot_class import RobotClass
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
@@ -31,7 +31,7 @@ class KrakenRobotContainer:
         # Use CommandGenericHID for controller compatibility
         self.primary = MainController(self.robot)
         self.auxiliary = AuxController(self.robot)
-        self.test = TestController(self.robot)
+        self.test = RobotTestController(self.robot)
 
         self.primary.configure()
         self.auxiliary.configure()
@@ -56,8 +56,6 @@ class KrakenRobotContainer:
         # TODO: move publishing stream url to limelight
         self.camera = HttpCamera("LimelightPublisher", "http://10.10.14.12:5801")
         CameraServer.addCamera(self.camera)
-
-        self.last_angle = Rotation2d.fromRotations(0)
 
     hopper_brake_mode = True
 

@@ -62,6 +62,7 @@ class ControllerDefault:
     def __init__(self, port, robot: RobotClass):
         self.controller = CustomController(port)
         self.robot = robot
+        self.last_angle = Rotation2d.fromRotations(0)
 
     def getLeftX(self) -> float:
         raw = -(self.controller.getRawAxis(self.LEFT_X_AXIS) ** 3)
@@ -76,7 +77,7 @@ class ControllerDefault:
         return raw
 
     def getRightX(self) -> float:
-        raw = -(self.controller.getRawAxis(self.robot.drive_wrapper.RIGHT_X_AXIS) ** 3)
+        raw = -(self.controller.getRawAxis(self.RIGHT_X_AXIS) ** 3)
         if self.robot.slow_mode:
             raw *= self.robot.drive_wrapper.SLOW_SPEED_JOYSTICK_MODIFIER
         return raw

@@ -16,22 +16,22 @@ from subsystems.shooter import ShooterSubsystem
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(MagicMock(), MagicMock(), MagicMock())
+    return ShooterSubsystem(False)
 
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(MagicMock(), MagicMock())
+    return KickerSubsystem(False)
 
 
 @pytest.fixture
 def intake() -> IntakeSubsystem:
-    return IntakeSubsystem(MagicMock())
+    return IntakeSubsystem(False)
 
 
 @pytest.fixture
 def hopper() -> HopperSubsystem:
-    return HopperSubsystem(MagicMock(), MagicMock(), MagicMock())
+    return HopperSubsystem(False)
 
 
 # --- ShootCommand ---
@@ -39,6 +39,7 @@ def hopper() -> HopperSubsystem:
 
 def test_shoot_command_sets_configured_velocity(shooter: ShooterSubsystem) -> None:
     RunShooterCommand(shooter, 4000).execute()
+    # shooter.shoot_motor.assert_called_once(4000)
     shooter.shoot_motor.set_velocity.assert_called_once_with(4000)
 
 

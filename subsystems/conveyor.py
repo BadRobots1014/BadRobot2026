@@ -1,4 +1,5 @@
 import threading
+from unittest.mock import MagicMock
 
 from commands2 import Subsystem
 import ntcore
@@ -12,9 +13,12 @@ CONVEYOR_VOLTAGE = 12
 CONVEYOR_ID = 56
 
 class ConveyorSubsystem(Subsystem):
-    def __init__(self):
+    def __init__(self, real: bool):
         super().__init__()
-        self.conveyor_motor = SparkFlexMotorController(CONVEYOR_ID)
+        if real:
+            self.conveyor_motor = SparkFlexMotorController(CONVEYOR_ID)
+        else:
+            self.conveyor_motor = MagicMock()
 
         conveyor_config = MotorControllerConfig()
         self.conveyor_motor.apply_configs(conveyor_config)

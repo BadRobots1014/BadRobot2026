@@ -31,12 +31,11 @@ class RobotClass:
         self.drive_wrapper = DriveWrapper(TunerConstants.create_drivetrain())
         self.slow_mode = False
 
-        self.shooter = ShooterSubsystem()
+        self.shooter = ShooterSubsystem(self.is_real_bot)
         self.hopper = HopperSubsystem(self.is_real_bot)
-        self.shooter = ShooterSubsystem()
-        self.kicker = KickerSubsystem()
-        self.conveyor = ConveyorSubsystem()
-        self.intake = IntakeSubsystem()
+        self.kicker = KickerSubsystem(self.is_real_bot)
+        self.conveyor = ConveyorSubsystem(self.is_real_bot)
+        self.intake = IntakeSubsystem(self.is_real_bot)
         self.lights = pilights.PiLights()
 
         self.camera_ll4 = Limelight("limelight-four", enabled=True)
