@@ -14,9 +14,6 @@ from drive_wrapper import DriveWrapper
 from subsystems.shooter import ShooterSubsystem
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
-MAX_ANGULAR_SPEED = rotationsToRadians(1.5)  # 3/4 of a rotation per second max angular velocity
-ANGULAR_DEADBAND = MAX_ANGULAR_SPEED * 0.02  # Add a 10% deadband
-
 class Strafe(commands2.Command):
     # pass in parent subsystem
     def __init__(
@@ -35,15 +32,6 @@ class Strafe(commands2.Command):
         self.shooter_subsystem = shooter
         self.clockwise = clockwise
         self.target_point = target_point
-        self._drive = (
-            swerve.requests.FieldCentric()
-            .with_deadband(drive_wrapper.DRIVE_DEADBAND)
-            .with_rotational_deadband(drive_wrapper.ANGULAR_DEADBAND)
-            .with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
-            )  # Use open-loop control for drive motors
-        )
-        self.max_angular_rate = MAX_ANGULAR_SPEED
 
         wpilib.SmartDashboard.putData("Strafe rotate pid", self.drive_wrapper.rotate_pid)
         wpilib.SmartDashboard.putData("Strafe radical pid", self.drive_wrapper.drive_pid)
@@ -60,7 +48,7 @@ class Strafe(commands2.Command):
 
         theta = math.atan2(y_dist, x_dist)
 
-        strafe_speed = kraken_container.MAX_SPEED / 3
+        strafe_speed = drive_wrapper.MAX_SPEED / 3
 
         r_dist = math.hypot(x_dist, y_dist)
         radius = self.shooter_subsystem.set_radius_pair(r_dist)
@@ -86,11 +74,7 @@ class Strafe(commands2.Command):
             self.drive_wrapper.rotate_pid.calculate(
                 self.drive_wrapper.drivetrain.get_state().pose.rotation().radians(), theta
             )
-            * self.max_angular_rate
+            * self.drive_wrapper.max_angular_speed
         )
 
-        self.drive_wrapper.drivetrain.set_control(
-            self._drive.with_velocity_x(vx)
-            .with_velocity_y(vy)
-            .with_rotational_rate(rotational_rate)
-        )
+        self.drive_wrapper.field_centric_drive(vx, vy, rotational_rate)
