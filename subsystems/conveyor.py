@@ -12,6 +12,7 @@ CONVEYOR_VOLTAGE = 12
 
 CONVEYOR_ID = 56
 
+
 class ConveyorSubsystem(Subsystem):
     def __init__(self, real: bool):
         super().__init__()

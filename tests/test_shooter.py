@@ -1,7 +1,5 @@
 """Unit tests for ShooterSubsystem."""
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from subsystems.shooter import (
@@ -12,7 +10,7 @@ from subsystems.shooter import (
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(False)
+    return ShooterSubsystem(real=False)
 
 
 def test_default_shoot_velocity(shooter: ShooterSubsystem) -> None:

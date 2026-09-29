@@ -8,13 +8,10 @@ import phoenix6
 from phoenix6 import configs
 from phoenix6.controls import Follower, PositionVoltage
 from phoenix6.controls.voltage_out import VoltageOut
-from phoenix6.hardware import TalonFX
 from phoenix6.signals import MotorAlignmentValue
 
-from hardware.base.switch import LimitSwitch
 from hardware.impl.andymark_magnetic import AndymarkMagnetic
 from hardware.impl.talonfx import TalonFXMotorController
-from hardware.sim_hardware import DummyLimitSwitch
 
 EXTENSION_VOLTAGE = 4.5
 
@@ -26,15 +23,16 @@ FORWARD_LIMIT_ID = 18
 
 
 class HopperSubsystem(Subsystem):
-    def __init__(
-        self,
-        real_bot: bool
-    ):
+    def __init__(self, real: bool):
         super().__init__()
 
-        if real_bot:
-            self.left_motor = TalonFXMotorController(LEFT_PINION_ID).get_motor_controller()
-            self.right_motor = TalonFXMotorController(RIGHT_PINION_ID).get_motor_controller()
+        if real:
+            self.left_motor = TalonFXMotorController(
+                LEFT_PINION_ID
+            ).get_motor_controller()
+            self.right_motor = TalonFXMotorController(
+                RIGHT_PINION_ID
+            ).get_motor_controller()
             self.forward_limit_switch = AndymarkMagnetic(FORWARD_LIMIT_ID)
         else:
             self.left_motor = MagicMock()

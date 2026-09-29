@@ -1,11 +1,9 @@
-import math
-
+from phoenix6 import SignalLogger
 import wpilib
 from wpilib import DriverStation
 from wpimath.geometry import Translation2d
-from wpimath.units import rotationsToRadians
-from phoenix6 import SignalLogger, swerve
 
+from drive_wrapper import DriveWrapper
 from generated.tuner_constants import TunerConstants
 from hardware.impl.limelight import Limelight
 from subsystems import pilights
@@ -14,11 +12,10 @@ from subsystems.hopper import HopperSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
-from drive_wrapper import DriveWrapper
-from telemetry import Telemetry
 
 BLUE_HUB_TRANSLATION = Translation2d(4.62, 4.04)
 RED_HUB_TRANSLATION = Translation2d(11.92, 4.04)
+
 
 class RobotClass:
     def __init__(self):

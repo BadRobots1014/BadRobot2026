@@ -5,8 +5,6 @@ from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
 
-from hardware.base.encoder import Encoder
-from hardware.base.motorcontroller import MotorController
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -23,11 +21,9 @@ KICKER_F = 0.00181111111  # trusting dre
 
 KICK_MOTOR_ID = 51
 
+
 class KickerSubsystem(Subsystem):
-    def __init__(
-        self,
-        real: bool
-    ):
+    def __init__(self, real: bool):
         super().__init__()
 
         if real:

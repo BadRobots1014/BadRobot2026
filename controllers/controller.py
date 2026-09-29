@@ -1,13 +1,12 @@
 import math
-from typing import Literal
 
 from wpimath.geometry import Rotation2d
 
 from robot_class import RobotClass
 from subsystems.custom_controller import CustomController
 
-class ControllerDefault:
 
+class ControllerDefault:
     # joysticks
     DRIVER_PORT = 0
     AUXILIARY_PORT = 1
@@ -22,17 +21,6 @@ class ControllerDefault:
     RIGHT_Y_AXIS = 5
     L2_TRIGGER_AXIS = 2
     R2_TRIGGER_AXIS = 3
-
-    FLIGHT_STICK_POV_VECTORS = {
-        0: (1, 0),
-        45: (1, 0),
-        90: (0, -1),
-        135: (-1, 0),
-        180: (-1, 0),
-        225: (-1, 0),
-        270: (0, 1),
-        315: (1, 0),
-    }
 
     FLIGHT_STICK_X_AXIS = 0
     FLIGHT_STICK_Y_AXIS = 1
@@ -59,7 +47,7 @@ class ControllerDefault:
 
     SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 
-    def __init__(self, port, robot: RobotClass):
+    def __init__(self, port: int, robot: RobotClass):
         self.controller = CustomController(port)
         self.robot = robot
         self.last_angle = Rotation2d.fromRotations(0)

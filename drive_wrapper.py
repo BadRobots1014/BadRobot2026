@@ -1,5 +1,7 @@
+from collections.abc import Callable
 import math
 
+import commands2
 from phoenix6 import swerve
 from wpimath._controls._controls.controller import PIDController
 from wpimath.geometry import Rotation2d
@@ -30,6 +32,7 @@ TURNING_PID_D = 0
 CORRECTION_PID_P = 3
 CORRECTION_PID_I = 0
 CORRECTION_PID_D = 0
+
 
 class DriveWrapper:
     def __init__(self, drivetrain: CommandSwerveDrivetrain):
@@ -74,15 +77,77 @@ class DriveWrapper:
         self.rotate_pid = PIDController(TURNING_PID_P, TURNING_PID_I, TURNING_PID_D)
         self.rotate_pid.enableContinuousInput(0, 2 * math.pi)
 
-        self.drive_pid = PIDController(CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D)
+        self.drive_pid = PIDController(
+            CORRECTION_PID_P, CORRECTION_PID_I, CORRECTION_PID_D
+        )
 
         self.drivetrain.configure_auto_builder()
 
-    def field_centric_drive(self, vx, vy, angular = 0):
-        return self.drivetrain.set_control(self.field_centric.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(angular))
+    def field_centric_drive_command(
+        self,
+        vx: Callable[[], float],
+        vy: Callable[[], float],
+        angular: Callable[[], float] = lambda: 0,
+    ) -> commands2.Command:
+        return self.drivetrain.apply_request(
+            lambda: (
+                self.field_centric.with_velocity_x(vx())
+                .with_velocity_y(vy())
+                .with_rotational_rate(angular())
+            )
+        )
 
-    def robot_centric_drive(self, vx, vy, angular = 0):
-        return self.drivetrain.set_control(self.robot_centric.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(angular))
+    def field_centric_drive(self, vx: float, vy: float, angular: float = 0) -> None:
+        self.drivetrain.set_control(
+            self.field_centric.with_velocity_x(vx)
+            .with_velocity_y(vy)
+            .with_rotational_rate(angular)
+        )
 
-    def theta_centric_drive(self, angle, vx, vy):
-        return self.drivetrain.set_control(self.turn_to_theta_drive.with_target_direction(Rotation2d.fromDegrees(angle)).with_velocity_x(vx).with_velocity_y(vy).with_heading_pid(10, 0 ,0))
+    def robot_centric_drive(self, vx: float, vy: float, angular: float = 0) -> None:
+        self.drivetrain.set_control(
+            self.robot_centric.with_velocity_x(vx)
+            .with_velocity_y(vy)
+            .with_rotational_rate(angular)
+        )
+
+    def robot_centric_drive_command(
+        self,
+        vx: Callable[[], float],
+        vy: Callable[[], float],
+        angular: Callable[[], float] = lambda: 0,
+    ) -> commands2.Command:
+        return self.drivetrain.apply_request(
+            lambda: (
+                self.robot_centric.with_velocity_x(vx())
+                .with_velocity_y(vy())
+                .with_rotational_rate(angular())
+            )
+        )
+
+    def theta_centric_drive(self, angle: float, vx: float, vy: float) -> None:
+        self.drivetrain.set_control(
+            self.turn_to_theta_drive.with_target_direction(
+                Rotation2d.fromDegrees(angle)
+            )
+            .with_velocity_x(vx)
+            .with_velocity_y(vy)
+            .with_heading_pid(10, 0, 0)
+        )
+
+    def theta_centric_drive_command(
+        self,
+        angle: Callable[[], float],
+        vx: Callable[[], float],
+        vy: Callable[[], float] = lambda: 0,
+    ) -> commands2.Command:
+        return self.drivetrain.apply_request(
+            lambda: (
+                self.turn_to_theta_drive.with_target_direction(
+                    Rotation2d.fromDegrees(angle())
+                )
+                .with_velocity_x(vx())
+                .with_velocity_y(vy())
+                .with_heading_pid(10, 0, 0)
+            )
+        )

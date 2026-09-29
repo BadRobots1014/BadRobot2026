@@ -3,15 +3,12 @@ import math
 
 from commands2 import Command
 from phoenix6 import swerve
-from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
-import kraken_container
-from drive_wrapper import DriveWrapper
-from subsystems.shooter import ShooterSubsystem
-from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 import drive_wrapper
-
+from drive_wrapper import DriveWrapper
+import kraken_container
+from subsystems.shooter import ShooterSubsystem
 
 TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
 ROTATION_THRESHOLD = 0  # .1  # radians away from target_theta
@@ -30,7 +27,7 @@ class GotoShootRadius(Command):
 
         :param target_point: WPILib position (blue centered) of desired location.
         """
-        self.drive_wrapper = drive_wrapper_instance # TODO find better name
+        self.drive_wrapper = drive_wrapper_instance  # TODO find better name
         self.shooter = shooter
         self.target_point = target_point
         self.blue_alliance = blue_alliance
@@ -64,7 +61,9 @@ class GotoShootRadius(Command):
         y_dist = self.target_point().y - bot_pos.y
 
         self.target_theta = math.atan2(y_dist, x_dist)
-        self.current_theta = self.drive_wrapper.drivetrain.get_state().pose.rotation().radians()
+        self.current_theta = (
+            self.drive_wrapper.drivetrain.get_state().pose.rotation().radians()
+        )
 
         self.r_dist = math.hypot(x_dist, y_dist)
 
@@ -110,7 +109,9 @@ class GotoShootRadius(Command):
         vy_radical = r_output * uy
 
         rotational_rate = (
-            self.drive_wrapper.rotate_pid.calculate(self.current_theta, self.target_theta)
+            self.drive_wrapper.rotate_pid.calculate(
+                self.current_theta, self.target_theta
+            )
             * kraken_container.MAX_ANGULAR_SPEED
         )
 

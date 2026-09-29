@@ -1,6 +1,6 @@
 """Unit tests for robot commands."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -16,22 +16,22 @@ from subsystems.shooter import ShooterSubsystem
 
 @pytest.fixture
 def shooter() -> ShooterSubsystem:
-    return ShooterSubsystem(False)
+    return ShooterSubsystem(real=False)
 
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(False)
+    return KickerSubsystem(real=False)
 
 
 @pytest.fixture
 def intake() -> IntakeSubsystem:
-    return IntakeSubsystem(False)
+    return IntakeSubsystem(real=False)
 
 
 @pytest.fixture
 def hopper() -> HopperSubsystem:
-    return HopperSubsystem(False)
+    return HopperSubsystem(real=False)
 
 
 # --- ShootCommand ---

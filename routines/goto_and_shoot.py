@@ -5,7 +5,6 @@ from commands2 import (
     ParallelDeadlineGroup,
     SequentialCommandGroup,
 )
-from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
@@ -16,7 +15,6 @@ from subsystems.conveyor import ConveyorSubsystem
 from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
-from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 
 class GotoAndShootRoutine(SequentialCommandGroup):

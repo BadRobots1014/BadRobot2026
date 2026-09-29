@@ -5,7 +5,6 @@ from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
 
-from hardware.base.motorcontroller import MotorController
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
@@ -18,11 +17,9 @@ DUMP_VOLTAGE = -5.0
 
 INTAKE_MOTOR_CAN_ID = 52
 
+
 class IntakeSubsystem(Subsystem):
-    def __init__(
-        self,
-        real: bool
-    ) -> None:
+    def __init__(self, real: bool) -> None:
         super().__init__()
 
         if real:

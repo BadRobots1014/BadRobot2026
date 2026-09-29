@@ -4,18 +4,20 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 import math
+
 import commands2
 from cscore import CameraServer, HttpCamera
 import ntcore
 from pathplannerlib.auto import AutoBuilder
-from wpilib import DriverStation, SmartDashboard
-from wpimath.geometry import Pose2d, Rotation2d
+from wpilib import SmartDashboard
+
 from controllers.aux_controller import AuxController
 from controllers.main_controller import MainController
 from controllers.test_controller import RobotTestController
 from robot_class import RobotClass
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
+
 
 class KrakenRobotContainer:
     """
@@ -86,7 +88,9 @@ class KrakenRobotContainer:
         SmartDashboard.putBoolean("Hopper Idle Mode", self.hopper_brake_mode)
 
         # Push gyro data to limelight (set to external IMU)
-        robot_yaw = self.robot.drive_wrapper.drivetrain.get_state().pose.rotation().degrees()
+        robot_yaw = (
+            self.robot.drive_wrapper.drivetrain.get_state().pose.rotation().degrees()
+        )
         self.robot.camera_ll4.robot_orientation_set(robot_yaw)
 
         # Add vision

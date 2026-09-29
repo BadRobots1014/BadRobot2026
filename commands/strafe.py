@@ -2,17 +2,13 @@ from collections.abc import Callable
 import math
 
 import commands2
-from phoenix6 import swerve
 import wpilib
-from wpimath.controller import PIDController
 from wpimath.geometry import Translation2d
-from wpimath.units import rotationsToRadians
 
 import drive_wrapper
-import kraken_container  # import file instead of class for constants
 from drive_wrapper import DriveWrapper
 from subsystems.shooter import ShooterSubsystem
-from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
+
 
 class Strafe(commands2.Command):
     # pass in parent subsystem
@@ -33,8 +29,12 @@ class Strafe(commands2.Command):
         self.clockwise = clockwise
         self.target_point = target_point
 
-        wpilib.SmartDashboard.putData("Strafe rotate pid", self.drive_wrapper.rotate_pid)
-        wpilib.SmartDashboard.putData("Strafe radical pid", self.drive_wrapper.drive_pid)
+        wpilib.SmartDashboard.putData(
+            "Strafe rotate pid", self.drive_wrapper.rotate_pid
+        )
+        wpilib.SmartDashboard.putData(
+            "Strafe radical pid", self.drive_wrapper.drive_pid
+        )
 
     # runs every scheduled tick (think of it as a while true)
     def execute(self) -> None:
@@ -72,7 +72,8 @@ class Strafe(commands2.Command):
 
         rotational_rate = (
             self.drive_wrapper.rotate_pid.calculate(
-                self.drive_wrapper.drivetrain.get_state().pose.rotation().radians(), theta
+                self.drive_wrapper.drivetrain.get_state().pose.rotation().radians(),
+                theta,
             )
             * self.drive_wrapper.max_angular_speed
         )

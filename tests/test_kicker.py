@@ -1,7 +1,5 @@
 """Unit tests for KickerSubsystem."""
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from subsystems.kicker import (
@@ -13,7 +11,7 @@ from subsystems.kicker import (
 
 @pytest.fixture
 def kicker() -> KickerSubsystem:
-    return KickerSubsystem(False)
+    return KickerSubsystem(real=False)
 
 
 def test_default_kick_shoot_voltage(kicker: KickerSubsystem) -> None:

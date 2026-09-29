@@ -6,14 +6,15 @@ from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
 from commands.run_shooter import RunShooterCommand
 from controllers.controller import ControllerDefault
+from robot_class import RobotClass
 from subsystems import custom_controller
 
 
 class RobotTestController(ControllerDefault):
-    def __init__(self, robot):
+    def __init__(self, robot: RobotClass) -> None:
         super().__init__(self.TEST_PORT, robot)
 
-    def configure(self):
+    def configure(self) -> None:
 
         self.controller.create_axis(
             self.R2_TRIGGER_AXIS, "shoot", self.AXIS_THRESHOLD_VALUE
@@ -23,7 +24,7 @@ class RobotTestController(ControllerDefault):
             self.L2_TRIGGER_AXIS, "extend hopper test", self.AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self.robot.hopper))
 
-        self.controller.create_button(self. L1_BUTTON, "kicker").whileTrue(
+        self.controller.create_button(self.L1_BUTTON, "kicker").whileTrue(
             RunKickerCommand(self.robot.kicker, invert=False)
         )
 
@@ -47,20 +48,30 @@ class RobotTestController(ControllerDefault):
             RunIntakeCommand(self.robot.intake, dump=True)
         )
 
-        self.robot.drive_wrapper.drivetrain.register_telemetry(self.robot.drive_wrapper.logger.telemeterize)
+        self.robot.drive_wrapper.drivetrain.register_telemetry(
+            self.robot.drive_wrapper.logger.telemeterize
+        )
         custom_controller.write_binds()
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
         (self.controller.button(self.SHARE_BUTTON)).whileTrue(
-            self.robot.drive_wrapper.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
+            self.robot.drive_wrapper.drivetrain.sys_id_dynamic(
+                SysIdRoutine.Direction.kForward
+            )
         )
         (self.controller.button(self.OPTIONS_BUTTON)).whileTrue(
-            self.robot.drive_wrapper.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
+            self.robot.drive_wrapper.drivetrain.sys_id_dynamic(
+                SysIdRoutine.Direction.kReverse
+            )
         )
         (self.controller.button(self.L3_BUTTON)).whileTrue(
-            self.robot.drive_wrapper.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
+            self.robot.drive_wrapper.drivetrain.sys_id_quasistatic(
+                SysIdRoutine.Direction.kForward
+            )
         )
         (self.controller.button(self.R3_BUTTON)).whileTrue(
-            self.robot.drive_wrapper.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
+            self.robot.drive_wrapper.drivetrain.sys_id_quasistatic(
+                SysIdRoutine.Direction.kReverse
+            )
         )

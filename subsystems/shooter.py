@@ -1,17 +1,15 @@
 import threading
+from unittest.mock import MagicMock
 
 from commands2 import Subsystem
 import ntcore
 from ntcore import NetworkTableInstance
 
-from hardware.base.encoder import Encoder
-from hardware.base.motorcontroller import MotorController
 from hardware.impl.motor_controller_config import (
     MotorControllerConfig,
     MotorControllerIdleMode,
 )
 from hardware.impl.spark_flex_motor import SparkFlexMotorController
-from unittest.mock import MagicMock
 
 SHOOTER_VELOCITY = 4500
 
@@ -27,6 +25,7 @@ SEESAW_MOTOR_ID = 53
 
 # radius: meters, shooter speed: rpm
 SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
+
 
 class ShooterSubsystem(Subsystem):
     def __init__(self, real: bool = False):

@@ -1,14 +1,11 @@
 import math
 
 from commands2 import Command
-from phoenix6 import swerve
 import wpilib
 from wpilib import Timer
 from wpimath._controls._controls.controller import PIDController
 
 from drive_wrapper import DriveWrapper
-import kraken_container
-from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 SHIMMY_P = 1
 SHIMMY_I = 0
@@ -35,7 +32,8 @@ class Shimmy(Command):
             (Timer.getFPGATimestamp() - self.start_time) * 16
         )
         vr = self.shimmy_pid.calculate(
-            self.drive_wrapper.drivetrain.get_state().pose.rotation().radians(), set_point
+            self.drive_wrapper.drivetrain.get_state().pose.rotation().radians(),
+            set_point,
         )
 
         self.drive_wrapper.field_centric_drive(0, 0, vr)
