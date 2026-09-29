@@ -21,6 +21,7 @@ class MotorControllerConfig:
     d: float
     f: float
 
+    # noqa PLR0917
     def __init__(
         self,
         inverted: bool = False,

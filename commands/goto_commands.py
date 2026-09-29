@@ -4,6 +4,7 @@ from commands2 import Command
 from pathplannerlib.auto import AutoBuilder, PathConstraints
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 
+import drive_wrapper
 from subsystems.swerve_drivetrain import CommandSwerveDrivetrain
 
 # TODO: arbitrary
@@ -13,17 +14,13 @@ DESIRED_RADIUS_METER = 5
 def goto_shoot_pos(
     target_point: Translation2d,
     swerve_subsystem: CommandSwerveDrivetrain,
-    max_speed: float,
-    max_angular_speed_rads: float,
-    max_acceleration: float,
-    max_angular_acceleration_rads: float,
 ) -> Command:
 
     path_constraints = PathConstraints(
-        max_speed,
-        max_acceleration,
-        max_angular_speed_rads,
-        max_angular_acceleration_rads,
+        drive_wrapper.MAX_SPEED,
+        drive_wrapper.MAX_ACCELERATION,
+        drive_wrapper.MAX_ANGULAR_SPEED,
+        drive_wrapper.MAX_ANGULAR_ACCELERATION,
     )
     # gets current bot pos
     bot_pos = swerve_subsystem.get_state().pose
