@@ -124,7 +124,7 @@ class MainController(ControllerDefault):
         # neutral mode is applied to the drive motors while disabled.
         Trigger(DriverStation.isDisabled).whileTrue(
             self.robot.drive_wrapper.drivetrain.apply_request(
-                self.robot.drive_wrapper.drivetrain.idle
+                lambda: self.robot.drive_wrapper.idle_request
             ).ignoringDisable(doesRunWhenDisabled=True)
         )
 

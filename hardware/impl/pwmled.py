@@ -39,7 +39,8 @@ class PWMLED(LEDController):
     def led_writter(
         self, led_index: typing.SupportsInt | typing.SupportsIndex, color: Color
     ) -> None:
-        self.buffer[led_index].setLED(color)
+        idx = int(led_index)
+        self.buffer[idx].setLED(color)
 
     def apply_pattern(self, pattern: LEDPattern) -> None:
         pattern.applyTo(self.buffer, self.led_writter)
