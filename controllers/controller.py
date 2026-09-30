@@ -2,6 +2,7 @@ import math
 
 from wpimath.geometry import Rotation2d
 
+import drive_wrapper
 from robot_class import RobotClass
 from subsystems.custom_controller import CustomController
 
@@ -67,7 +68,7 @@ class ControllerDefault:
     def getRightX(self) -> float:
         raw = -(self.controller.getRawAxis(self.RIGHT_X_AXIS) ** 3)
         if self.robot.slow_mode:
-            raw *= self.robot.drive_wrapper.SLOW_SPEED_JOYSTICK_MODIFIER
+            raw *= self.SLOW_SPEED_JOYSTICK_MODIFIER
         return raw
 
     def getRightY(self) -> float:
@@ -79,6 +80,6 @@ class ControllerDefault:
     def getTargetAngle(self) -> Rotation2d:
         x = self.getRightX()
         y = self.getRightY()
-        if math.sqrt(x * x + y * y) > self.robot.drive_wrapper.TURN_TO_THETA_DEADBAND:
+        if math.sqrt(x * x + y * y) > drive_wrapper.TURN_TO_THETA_DEADBAND:
             self.last_angle = Rotation2d.fromRotations(math.atan2(x, y) / (2 * math.pi))
         return self.last_angle

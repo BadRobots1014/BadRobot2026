@@ -64,9 +64,9 @@ class DriveWrapper:
         )
 
         # Other stuff
-        self.brake = swerve.requests.SwerveDriveBrake()
-        self.point = swerve.requests.PointWheelsAt()
-        self.idle = swerve.requests.Idle()
+        self.brake_request = swerve.requests.SwerveDriveBrake()
+        self.point_request = swerve.requests.PointWheelsAt()
+        self.idle_request = swerve.requests.Idle()
 
         # Apply requests in robot centric mode
         self.robot_centric = swerve.requests.RobotCentric().with_drive_request_type(

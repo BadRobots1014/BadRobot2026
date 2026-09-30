@@ -127,9 +127,9 @@ class Limelight:
             30,
         ]
         # ignore inner trench and climb tags
-        self.nt_table.putNumberArray("fiducial_id_filters_set", ids)
+        self.nt_table.putNumberArray("fiducial_id_filters_set", list(ids))
 
     def set_teleop_fiducial_id_filters(self) -> None:
         ids = list(range(1, 33))
         # ignore inner trench and climb tags
-        self.nt_table.putNumberArray("fiducial_id_filters_set", ids)
+        self.nt_table.putNumberArray("fiducial_id_filters_set", list(ids))
