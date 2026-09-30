@@ -6,15 +6,20 @@
 import math
 
 import commands2
+from commands2 import ParallelCommandGroup
 from cscore import CameraServer, HttpCamera
 import ntcore
-from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.auto import AutoBuilder, NamedCommands
 from wpilib import SmartDashboard
 
+from commands.extend_hopper import ExtendHopperCommand
+from commands.run_intake import RunIntakeCommand
 from controllers.aux_controller import AuxController
 from controllers.main_controller import MainController
 from controllers.test_controller import RobotTestController
 from robot_class import RobotClass
+from routines.auto_shoot_with_intake import AutoShootWithIntake
+from routines.shoot_when_ready import ShootWhenReady
 
 LIMELIGHT_MAX_ANGULAR_VELOCITY = 10
 
@@ -50,6 +55,47 @@ class KrakenRobotContainer:
         ).getBooleanTopic("turn_to_theta")
         self.turn_to_theta_pub = self.turn_to_theta_topic.publish()
         self.turn_to_theta_sub = self.turn_to_theta_topic.subscribe(defaultValue=False)
+
+        # register commads for PathPlanner
+        NamedCommands.registerCommand(
+            "Extend",
+            ExtendHopperCommand(self.robot.hopper).withTimeout(1),
+        )
+
+        NamedCommands.registerCommand(
+            "Slight Dump",
+            RunIntakeCommand(self.robot.intake, dump=True).withTimeout(0.1),
+        )
+
+        NamedCommands.registerCommand(
+            "RunIntake",
+            RunIntakeCommand(self.robot.intake, dump=False).withTimeout(6),
+        )
+
+        NamedCommands.registerCommand(
+            "ShootStarting8",
+            ShootWhenReady(
+                self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                self.robot.intake,
+                3500,
+            ).withTimeout(3),
+        )
+
+        NamedCommands.registerCommand(
+            "EmptyHopper",
+            ParallelCommandGroup(
+                ShootWhenReady(
+                    self.robot.shooter,
+                    self.robot.kicker,
+                    self.robot.conveyor,
+                    self.robot.intake,
+                    3500,
+                ),
+                AutoShootWithIntake(self.robot.intake),
+            ).withTimeout(4),
+        )
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
