@@ -4,6 +4,7 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 import math
+import threading
 
 import commands2
 from cscore import CameraServer, HttpCamera
@@ -41,9 +42,29 @@ class KrakenRobotContainer:
 
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.ll_table = self.nt_instance.getTable("limelight")
+        self.nt_table = self.nt_instance.getTable("limelight_override")
 
         self.rejected_sub = self.ll_table.getBooleanTopic("rejected")
         self.rejected_pub = self.rejected_sub.publish()
+
+        self.override_reject = False
+        self.override_reject_topic = self.nt_table.getBooleanTopic(
+            "override_limelight_reject"
+        )
+        self.override_reject_sub = self.override_reject_topic.subscribe(False)  # noqa FBT003
+        self.override_reject_pub = self.override_reject_topic.publish()
+
+        self.lock = threading.Lock()
+
+        def _on_override_reject(event: ntcore.Event) -> None:
+            with self.lock:
+                self.override_reject = event.data.value.getBoolean()
+
+        self.override_changed = self.nt_instance.addListener(
+            self.override_reject_sub,
+            ntcore.EventFlags.kValueAll,
+            _on_override_reject,
+        )
 
         self.turn_to_theta_topic = self.nt_instance.getTable(
             "SmartDashboard"
@@ -116,6 +137,9 @@ class KrakenRobotContainer:
             reject_pose_ll4 = True
 
         self.rejected_pub.set(reject_pose_ll4)
+
+        if self.override_reject and self.robot.camera_ll4.tv_sub.get() >= 1:
+            reject_pose_ll4 = False
 
         if not reject_pose_ll4:
             self.robot.drive_wrapper.drivetrain.add_vision_measurement(

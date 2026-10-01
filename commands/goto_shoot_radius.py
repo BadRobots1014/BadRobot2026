@@ -10,7 +10,7 @@ from drive_wrapper import DriveWrapper
 from subsystems.shooter import ShooterSubsystem
 
 TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
-ROTATION_THRESHOLD = 0  # .1  # radians away from target_theta
+ROTATION_THRESHOLD = 0.1  # .1  # radians away from target_theta
 
 
 class GotoShootRadius(Command):
@@ -127,6 +127,12 @@ class GotoShootRadius(Command):
         ):
             return True
         else:
+            print(
+                "Translation: ",
+                abs(self.r_dist - self.radius) < TRANSLATION_THRESHOLD,
+                "Rotation: ",
+                abs(self.current_theta - self.target_theta) < ROTATION_THRESHOLD,
+            )
             return False
 
     def end(self, interrupted: bool) -> None:

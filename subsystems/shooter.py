@@ -173,7 +173,7 @@ class ShooterSubsystem(Subsystem):
                 min_pair = pair
 
         if min_pair == (0, 0):
-            return self.closest_pair # TODO figure out a better way
+            return self.closest_pair  # TODO figure out a better way
             # return None
 
         self.closest_pair = min_pair
@@ -187,6 +187,7 @@ class ShooterSubsystem(Subsystem):
         self.shoot_motor.set_velocity(velocity)
 
     def get_shoot_velocity_from_closest_pair(self) -> float:
+        print("Closest Pair: ", self.closest_pair)
         return self.closest_pair[1]
 
     def get_shoot_velocity_from_networktables(self) -> float:
