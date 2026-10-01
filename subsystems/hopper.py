@@ -143,7 +143,7 @@ class HopperSubsystem(Subsystem):
         self.nt_table.putNumber("Extension encoder", self.get_extension_position())
 
     def set_extension_voltage(self, voltage: float) -> None:
-        if (self.forward_extended()) or (voltage < 0 and self.backward_extended()):
+        if (self.forward_extended()) or (voltage < 0):
             self.left_motor.set_control(VoltageOut(0))
         else:
             self.left_motor.set_control(VoltageOut(voltage))
@@ -155,7 +155,7 @@ class HopperSubsystem(Subsystem):
             self.left_motor.set_control(VoltageOut(0))
 
     def set_retraction_voltage_from_networktable(self) -> None:
-        if not self.backward_extended() and not self.forward_extended():
+        if not self.forward_extended():
             self.left_motor.set_control(VoltageOut(self.extension_voltage))
         else:
             self.left_motor.set_control(VoltageOut(0))

@@ -159,7 +159,7 @@ class ShooterSubsystem(Subsystem):
 
     def set_radius_pair(
         self, _r_dist: float, ignore_pairs: list[int]
-    ) -> tuple[float, float] | None:
+    ) -> tuple[float, float]:
         min = 9999
         min_pair = (0, 0)
 
@@ -173,7 +173,8 @@ class ShooterSubsystem(Subsystem):
                 min_pair = pair
 
         if min_pair == (0, 0):
-            return None
+            return self.closest_pair # TODO figure out a better way
+            # return None
 
         self.closest_pair = min_pair
 

@@ -7,7 +7,6 @@ from wpimath.geometry import Translation2d
 
 import drive_wrapper
 from drive_wrapper import DriveWrapper
-import kraken_container
 from subsystems.shooter import ShooterSubsystem
 
 TRANSLATION_THRESHOLD = 0.05  # distance in meters away from r
@@ -112,7 +111,7 @@ class GotoShootRadius(Command):
             self.drive_wrapper.rotate_pid.calculate(
                 self.current_theta, self.target_theta
             )
-            * kraken_container.MAX_ANGULAR_SPEED
+            * self.drive_wrapper.max_angular_speed
         )
 
         self.drive_wrapper.drivetrain.set_control(

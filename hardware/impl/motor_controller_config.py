@@ -21,8 +21,7 @@ class MotorControllerConfig:
     d: float
     f: float
 
-    # noqa PLR0917
-    def __init__(
+    def __init__(    # noqa PLR0917
         self,
         inverted: bool = False,
         idle_mode: MotorControllerIdleMode = MotorControllerIdleMode.BRAKE,
