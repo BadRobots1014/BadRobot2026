@@ -12,6 +12,7 @@ import ntcore
 from pathplannerlib.auto import AutoBuilder
 from wpilib import SmartDashboard
 
+from commands.register_commands import register_commands
 from controllers.aux_controller import AuxController
 from controllers.main_controller import MainController
 from controllers.test_controller import RobotTestController
@@ -71,6 +72,8 @@ class KrakenRobotContainer:
         ).getBooleanTopic("turn_to_theta")
         self.turn_to_theta_pub = self.turn_to_theta_topic.publish()
         self.turn_to_theta_sub = self.turn_to_theta_topic.subscribe(defaultValue=False)
+
+        register_commands(self.robot)
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
