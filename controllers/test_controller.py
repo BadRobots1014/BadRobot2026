@@ -1,6 +1,7 @@
 from commands2.sysid import SysIdRoutine
 
 from commands.extend_hopper import ExtendHopperCommand
+from commands.goto_shimmy import GoToShimmy
 from commands.run_conveyor import RunConveyor
 from commands.run_intake import RunIntakeCommand
 from commands.run_kicker import RunKickerCommand
@@ -48,6 +49,11 @@ class RobotTestController(ControllerDefault):
             RunIntakeCommand(self.robot.intake, dump=True)
         )
 
+        # TODO: uncomment sysid after testing
+        self.controller.create_button(self.OPTIONS_BUTTON, "shimmy goto").whileTrue(
+            GoToShimmy(self.robot.drive_wrapper, self.robot.shooter, self.robot.get_hub, self.robot.is_blue)
+        )
+
         self.robot.drive_wrapper.drivetrain.register_telemetry(
             self.robot.drive_wrapper.logger.telemeterize
         )
@@ -60,11 +66,11 @@ class RobotTestController(ControllerDefault):
                 SysIdRoutine.Direction.kForward
             )
         )
-        (self.controller.button(self.OPTIONS_BUTTON)).whileTrue(
-            self.robot.drive_wrapper.drivetrain.sys_id_dynamic(
-                SysIdRoutine.Direction.kReverse
-            )
-        )
+        # (self.controller.button(self.OPTIONS_BUTTON)).whileTrue(
+        #     self.robot.drive_wrapper.drivetrain.sys_id_dynamic(
+        #         SysIdRoutine.Direction.kReverse
+        #     )
+        # )
         (self.controller.button(self.L3_BUTTON)).whileTrue(
             self.robot.drive_wrapper.drivetrain.sys_id_quasistatic(
                 SysIdRoutine.Direction.kForward
