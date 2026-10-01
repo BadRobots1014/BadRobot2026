@@ -51,8 +51,12 @@ class Strafe(commands2.Command):
         strafe_speed = drive_wrapper.MAX_SPEED / 3
 
         r_dist = math.hypot(x_dist, y_dist)
-        radius = self.shooter_subsystem.set_radius_pair(r_dist, []) # TODO: What does ignore pairs mean?
-        r_output = self.drive_wrapper.drive_pid.calculate(r_dist, radius[0]) # How it was used before set_radius_pair was used
+        radius = self.shooter_subsystem.set_radius_pair(
+            r_dist, []
+        )  # TODO: What does ignore pairs mean?
+        r_output = self.drive_wrapper.drive_pid.calculate(
+            r_dist, radius[0]
+        )  # How it was used before set_radius_pair was used
 
         ux = x_dist / r_dist
         uy = y_dist / r_dist

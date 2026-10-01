@@ -173,7 +173,7 @@ class ShooterSubsystem(Subsystem):
                 min_pair = pair
 
         if min_pair == (0, 0):
-            return self.closest_pair # TODO figure out a better way
+            return self.closest_pair  # TODO figure out a better way
             # return None
 
         self.closest_pair = min_pair
