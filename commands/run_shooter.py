@@ -45,4 +45,4 @@ class RunShooterCommand(commands2.Command):
         )
 
     def end(self, interrupted: bool) -> None:
-        self.shooter.shoot_motor.disable()
+        self.shooter.shoot_motor.stop_motor()

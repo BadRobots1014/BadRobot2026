@@ -18,7 +18,8 @@ class RobotTestController(ControllerDefault):
 
         self.controller.create_axis(
             self.R2_TRIGGER_AXIS, "shoot", self.AXIS_THRESHOLD_VALUE
-        ).whileTrue(RunShooterCommand(self.robot.shooter, desired_rpm=None))
+        ).whileTrue(RunShooterCommand(self.robot.shooter, desired_rpm
+        =3300))
 
         self.controller.create_axis(
             self.L2_TRIGGER_AXIS, "extend hopper test", self.AXIS_THRESHOLD_VALUE
