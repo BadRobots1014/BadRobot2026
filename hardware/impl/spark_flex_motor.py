@@ -91,3 +91,7 @@ class SparkFlexMotorController(MotorController):
 
     def disable(self) -> None:
         self.motor.disable()
+
+    # Added because disable does extra things that we do not want. In 2027, we will use disable because this will be deprecated and the 2027 disable works like the 2026 stop_motor.
+    def stop_motor(self) -> None:
+        self.motor.stopMotor()
