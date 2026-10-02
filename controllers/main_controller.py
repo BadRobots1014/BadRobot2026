@@ -2,10 +2,12 @@ import commands2
 from commands2.button import Trigger
 from wpilib import DriverStation
 
+from commands.goto_shimmy import GoToShimmy
 from commands.shimmy import Shimmy
 from commands.strafe import Strafe
 from controllers.controller import ControllerDefault
 from robot_class import RobotClass
+from routines.goto_and_shoot_shimmy import GotoAndShootShimmyRoutine
 
 
 class MainController(ControllerDefault):
@@ -37,8 +39,14 @@ class MainController(ControllerDefault):
         )
 
         self.controller.create_button(
-            self.L1_BUTTON, "Strafe Left Around Tower"
-        ).whileTrue(strafe_l)
+            self.L1_BUTTON, "cool shimmy"
+        ).whileTrue(GotoAndShootShimmyRoutine(self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                self.robot.intake,
+                self.robot.drive_wrapper,
+                self.robot.get_hub,
+                self.robot.is_blue))
         self.controller.create_button(
             self.R1_BUTTON, "Strafe Right Around Tower"
         ).whileTrue(strafe_r)
