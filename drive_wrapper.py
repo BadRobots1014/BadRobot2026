@@ -15,7 +15,7 @@ from telemetry import Telemetry
 SLOW_SPEED_JOYSTICK_MODIFIER = 0.5
 MAX_SPEED = 1 * TunerConstants.speed_at_12_volts  # speed_at_12_volts desired top speed
 MAX_ACCELERATION = 3  # m/s^2
-NUDGE_SPEED = 0.4 * MAX_SPEED
+NUDGE_SPEED = 0.25 * MAX_SPEED
 MAX_ANGULAR_SPEED = rotationsToRadians(
     1.5
 )  # 3/4 of a rotation per second max angular velocity

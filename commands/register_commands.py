@@ -33,7 +33,8 @@ def register_commands(robot: RobotClass) -> None:
             robot.shooter,
             robot.kicker,
             robot.conveyor,
-            3500,
+            robot.intake,
+            rpm=3500,
         ).withTimeout(3),
     )
 
@@ -44,8 +45,8 @@ def register_commands(robot: RobotClass) -> None:
                 robot.shooter,
                 robot.kicker,
                 robot.conveyor,
-                3500,
+                robot.intake,
+                rpm=3500,
             ),
-            AutoShootWithIntake(robot.intake),
         ).withTimeout(4),
     )

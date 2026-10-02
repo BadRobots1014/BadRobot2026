@@ -1,24 +1,21 @@
 {
   "0": {
-    "L1": "cool shimmy",
-    "R1": "Strafe Right Around Tower",
-    "R2": "Reset Heading",
-    "L2": "nudge backwards",
+    "POVUP": "nudge forward",
+    "POVDOWN": "nudge backwards",
     "POVRIGHT": "nudge right",
     "POVLEFT": "nudge left",
+    "L2": "Intake wheel in",
+    "R2": "Reset Heading",
     "TRIANGLE": "point forward",
     "CROSS": "point backward",
     "SQUARE": "point left",
-    "CIRCLE": "point right",
-    "POVDOWN": "waggle"
+    "CIRCLE": "point right"
   },
   "1": {
+    "R2": "Reset Heading",
+    "L2": "shoot when ready (rpm=None)",
+    "CROSS": "GoTo",
     "POVUP": "Manual extend hopper",
-    "L2": "shoot when ready",
-    "R2": "goto and shoot when ready (dangerous)",
-    "L1": "shoot when ready (rpm=None)",
-    "CROSS": "Intake wheel in",
-    "CIRCLE": "Intake wheel dump",
-    "SQUARE": "intake pulse"
+    "POVDOWN": "Unjam"
   }
 }

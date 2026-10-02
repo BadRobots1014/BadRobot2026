@@ -1,3 +1,5 @@
+import commands2
+
 from commands.extend_hopper import ExtendHopperCommand
 from commands.goto_shoot_radius import GotoShootRadius
 from controllers.controller import ControllerDefault
@@ -7,7 +9,7 @@ from routines.dump_routine import DumpRoutine
 from routines.shoot_when_ready import ShootWhenReady
 
 
-class AuxController(ControllerDefault):
+class CharlieAuxController(ControllerDefault):
     def __init__(self, robot: RobotClass):
         super().__init__(self.AUXILIARY_PORT, robot)
 
@@ -15,15 +17,15 @@ class AuxController(ControllerDefault):
         intake_wheel_out = DumpRoutine(
             self.robot.intake, self.robot.kicker, self.robot.conveyor
         )
-        self.controller.create_button(
-            self.CIRCLE_BUTTON, "Intake wheel dump"
+        self.controller.create_axis(
+            self.R2_TRIGGER_AXIS, "Intake wheel dump", self.AXIS_THRESHOLD_VALUE
         ).whileTrue(intake_wheel_out)
 
-        self.controller.create_button(
-            self.L1_BUTTON, "shoot when ready (rpm=None)"
+        self.controller.create_axis(
+            self.L2_TRIGGER_AXIS, "shoot when ready (rpm=None)", self.AXIS_THRESHOLD_VALUE
         ).whileTrue(
             ShootWhenReady(
-                self.robot.shooter, self.robot.kicker, self.robot.conveyor, self.robot.intake, rpm=3300)
+                self.robot.shooter, self.robot.kicker, self.robot.conveyor, self.robot.intake, rpm=3200)
         )
 
         self.controller.create_button(self.CROSS_BUTTON, "GoTo").whileTrue(
@@ -41,4 +43,10 @@ class AuxController(ControllerDefault):
 
         self.controller.bind_pov_down("Unjam").whileTrue(
             AutoShootWithIntake(self.robot.intake)
+        )
+
+        self.controller.create_button(self.OPTIONS_BUTTON, "Reset Heading").onTrue(
+            self.robot.drive_wrapper.drivetrain.runOnce(
+                self.robot.drive_wrapper.drivetrain.seed_field_centric
+            ).andThen(commands2.InstantCommand(self.robot.camera_ll4.set_imu_mode(1)))
         )
