@@ -11,13 +11,13 @@ class RunShooterCommand(commands2.Command):
         self,
         shooter: ShooterSubsystem,
         desired_rpm: int | None,
-        end_after_reach: bool = False,
+        persist: bool = False,
     ):
         super().__init__()
         self.shooter = shooter
         self.rpm = 0 if desired_rpm is None else desired_rpm
         self.desired_rpm = desired_rpm
-        self.end_after_reach = end_after_reach
+        self.persist = persist
         self.addRequirements(shooter)
 
     def execute(self) -> None:
@@ -34,15 +34,13 @@ class RunShooterCommand(commands2.Command):
     # we're up to speed
     def isFinished(self) -> bool:
         print(
-            self.end_after_reach,
+            self.persist,
             self.shooter.shoot_encoder.get_velocity(),
             self.shooter.shoot_velocity,
             self.shooter.get_shoot_velocity_from_closest_pair(),
         )
-        return (
-            self.end_after_reach
-            and self.shooter.shoot_encoder.get_velocity() >= float(self.rpm - 50)
-        )
+        return self.shooter.shoot_encoder.get_velocity() >= float(self.rpm - 50)
 
     def end(self, interrupted: bool) -> None:
-        self.shooter.shoot_motor.disable()
+        if not self.persist:
+            self.shooter.shoot_motor.disable()

@@ -17,7 +17,7 @@ class ShootWhenReady(SequentialCommandGroup):
         rpm: int | None,
     ) -> None:
         super().__init__(
-            RunShooterCommand(shooter, desired_rpm=rpm, end_after_reach=True),
+            RunShooterCommand(shooter, desired_rpm=rpm, persist=False),
             ParallelCommandGroup(
                 RunShooterCommand(shooter, desired_rpm=rpm),
                 RunKickerCommand(kicker, invert=False),

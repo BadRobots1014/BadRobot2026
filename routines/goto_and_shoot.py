@@ -1,43 +1,15 @@
-# from collections.abc import Callable
-#
-# from commands2 import (
-#     ParallelCommandGroup,
-#     ParallelDeadlineGroup,
-#     SequentialCommandGroup,
-# )
-#
-# from commands.goto_shoot_radius import GotoShootRadius
-# from commands.run_shooter import RunShooterCommand
-# from drive_wrapper import DriveWrapper
-# from routines.shoot_when_ready import ShootWhenReady
-# from subsystems.conveyor import ConveyorSubsystem
-# from subsystems.intake import IntakeSubsystem
-# from subsystems.kicker import KickerSubsystem
-# from subsystems.shooter import ShooterSubsystem
-#
-#
-# class GotoAndShootRoutine(SequentialCommandGroup):
-#     def __init__(
-#         self,
-#         _shooter: ShooterSubsystem,
-#         _kicker: KickerSubsystem,
-#         _conveyor: ConveyorSubsystem,
-#         _intake: IntakeSubsystem,
-#         drivetrain: DriveWrapper,
-#         hub: Callable[[], Translation2d],
-#         blue_alliance: bool,
-#     ):
-#
 from collections.abc import Callable
 
 from commands2 import (
     ParallelCommandGroup,
     ParallelDeadlineGroup,
-    SequentialCommandGroup,
+    SequentialCommandGroup, WaitCommand,
 )
 from wpimath.geometry import Translation2d
 
 from commands.goto_shoot_radius import GotoShootRadius
+from commands.run_conveyor import RunConveyor
+from commands.run_kicker import RunKickerCommand
 from commands.run_shooter import RunShooterCommand
 from drive_wrapper import DriveWrapper
 from routines.shoot_when_ready import ShootWhenReady
@@ -46,35 +18,25 @@ from subsystems.intake import IntakeSubsystem
 from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 
-
 class GotoAndShootRoutine(SequentialCommandGroup):
     def __init__(
         self,
-        _shooter: ShooterSubsystem,
-        _kicker: KickerSubsystem,
-        _conveyor: ConveyorSubsystem,
-        _intake: IntakeSubsystem,
+        shooter: ShooterSubsystem,
+        kicker: KickerSubsystem,
+        conveyor: ConveyorSubsystem,
+        intake: IntakeSubsystem,
         drivetrain: DriveWrapper,
         hub: Callable[[], Translation2d],
-        blue_alliance: bool,
+        blue_alliance: bool
     ):
         super().__init__(
-            ParallelDeadlineGroup(
-                GotoShootRadius(
-                    drivetrain,
-                    _shooter,
-                    hub,
-                    blue_alliance,
-                ),
-                RunShooterCommand(_shooter, desired_rpm=None, end_after_reach=True),
+            ParallelCommandGroup(
+                GotoShootRadius(drivetrain, shooter, hub, blue_alliance),
+                RunShooterCommand(shooter, desired_rpm=None, persist=True),
             ),
             ParallelCommandGroup(
-                GotoShootRadius(
-                    drivetrain,
-                    _shooter,
-                    hub,
-                    blue_alliance,
-                ),
-                ShootWhenReady(_shooter, _kicker, _conveyor, rpm=None),
+                RunKickerCommand(kicker, invert=False),
+                WaitCommand(0.2).andThen(RunConveyor(conveyor, shoot_direction=True)),
+                GotoShootRadius(drivetrain, shooter, hub, blue_alliance),
             ),
         )

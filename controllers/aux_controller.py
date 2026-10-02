@@ -1,5 +1,6 @@
 from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
+from commands.run_shooter import RunShooterCommand
 from controllers.controller import ControllerDefault
 from robot_class import RobotClass
 from routines.auto_shoot_with_intake import AutoShootWithIntake
@@ -43,7 +44,7 @@ class AuxController(ControllerDefault):
                 self.robot.drive_wrapper,
                 self.robot.get_hub,
                 self.robot.is_blue,
-            )
+            ).finallyDo(lambda interrupted: RunShooterCommand(self.robot.shooter, desired_rpm=None, persist=False).schedule())
             # goto_radius
         )
 
