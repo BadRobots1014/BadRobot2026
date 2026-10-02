@@ -37,6 +37,7 @@ from commands2 import (
 )
 from wpimath.geometry import Translation2d
 
+from commands.goto_shimmy import GoToShimmy
 from commands.goto_shoot_radius import GotoShootRadius
 from commands.run_shooter import RunShooterCommand
 from drive_wrapper import DriveWrapper
@@ -47,7 +48,7 @@ from subsystems.kicker import KickerSubsystem
 from subsystems.shooter import ShooterSubsystem
 
 
-class GotoAndShootRoutine(SequentialCommandGroup):
+class GotoAndShootShimmyRoutine(SequentialCommandGroup):
     def __init__(
         self,
         _shooter: ShooterSubsystem,
@@ -69,12 +70,12 @@ class GotoAndShootRoutine(SequentialCommandGroup):
                 RunShooterCommand(_shooter, desired_rpm=None, end_after_reach=True),
             ),
             ParallelCommandGroup(
-                GotoShootRadius(
+                GoToShimmy(
                     drivetrain,
                     _shooter,
                     hub,
                     blue_alliance,
-                ),
+                ).repeatedly(),
                 ShootWhenReady(_shooter, _kicker, _conveyor, _intake, rpm=None),
             ),
         )

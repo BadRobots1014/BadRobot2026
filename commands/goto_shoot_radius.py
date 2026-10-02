@@ -127,12 +127,6 @@ class GotoShootRadius(Command):
         ):
             return True
         else:
-            print(
-                "Translation: ",
-                abs(self.r_dist - self.radius) < TRANSLATION_THRESHOLD,
-                "Rotation: ",
-                abs(self.current_theta - self.target_theta) < ROTATION_THRESHOLD,
-            )
             return False
 
     def end(self, interrupted: bool) -> None:

@@ -19,7 +19,7 @@ class ExtendAndIntakeRoutine(ParallelCommandGroup):
         super().__init__()
         self.addCommands(
             SequentialCommandGroup(
-                ExtendHopperCommand(hopper, extend=True),
+                ExtendHopperCommand(hopper),
                 RunIntakeCommand(intake, dump=False),
             )
         )
