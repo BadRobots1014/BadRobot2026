@@ -1,5 +1,12 @@
+import commands2
+from commands2.button import Trigger
+from wpilib import DriverStation
+
+from commands.extend_hopper import ExtendHopperCommand
+from commands.run_intake import RunIntakeCommand
 from controllers.controller import ControllerDefault
 from robot_class import RobotClass
+from routines.shoot_when_ready import ShootWhenReady
 
 
 class CharlieMainController(ControllerDefault):
@@ -20,89 +27,97 @@ class CharlieMainController(ControllerDefault):
 
         # NUDGING
 
-        # # POV up - drive forward
-        # self.controller.create_axis(
-        #     self.R2_TRIGGER_AXIS, "nudge backwards", self.AXIS_THRESHOLD_VALUE
-        # ).whileTrue(
-        #     self.robot.drive_wrapper.robot_centric_drive_command(
-        #         lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
-        #     )
-        # )
+        # POV up - drive forward
+        self.controller.bind_pov_up("nudge up").whileTrue(
+            self.robot.drive_wrapper.robot_centric_drive_command(
+                lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
+            )
+        )
 
-        # # POV down - drive backward
-        # self.controller.create_axis(
-        #     self.L2_TRIGGER_AXIS, "nudge backwards", self.AXIS_THRESHOLD_VALUE
-        # ).whileTrue(
-        #     self.robot.drive_wrapper.robot_centric_drive_command(
-        #         lambda: -self.robot.drive_wrapper.nudge_speed, lambda: 0
-        #     )
-        # )
+        # POV down - drive forward
+        self.controller.bind_pov_down("nudge up").whileTrue(
+            self.robot.drive_wrapper.robot_centric_drive_command(
+                lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
+            )
+        )
 
-        # # POV right - drive right
-        # self.controller.bind_pov_right("nudge right").whileTrue(
-        #     self.robot.drive_wrapper.robot_centric_drive_command(
-        #         lambda: 0, lambda: -self.robot.drive_wrapper.nudge_speed
-        #     )
-        # )
+        # POV left - drive forward
+        self.controller.bind_pov_left("nudge up").whileTrue(
+            self.robot.drive_wrapper.robot_centric_drive_command(
+                lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
+            )
+        )
 
-        # # POV left - drive left
-        # self.controller.bind_pov_left("nudge left").whileTrue(
-        #     self.robot.drive_wrapper.robot_centric_drive_command(
-        #         lambda: 0, lambda: self.robot.drive_wrapper.nudge_speed
-        #     )
-        # )
+        # POV right - drive forward
+        self.controller.bind_pov_right("nudge up").whileTrue(
+            self.robot.drive_wrapper.robot_centric_drive_command(
+                lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
+            )
+        )
+
+        # Intake
+        intake_wheel_in = RunIntakeCommand(self.robot.intake, dump=False)
+        self.controller.create_button(
+            self.L2_TRIGGER_AXIS, "Intake wheel in"
+        ).whileTrue(ExtendHopperCommand(self.robot.hopper).andThen(intake_wheel_in))
+
+        self.controller.create_button(self.R2_TRIGGER_AXIS, "auto shoot").whileTrue(
+            # TODO put auto shoot here
+            ShootWhenReady(
+                self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                rpm=None,
+            ),
+        )
 
         # # POINTING
 
-        # self.controller.create_button(self.TRIANGLE_BUTTON, "point forward").whileTrue(
-        #     self.robot.drive_wrapper.theta_centric_drive_command(
-        #         lambda: 0,
-        #         lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
-        #         lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
-        #     )
-        # )
+        self.controller.create_button(self.TRIANGLE_BUTTON, "point forward").whileTrue(
+            self.robot.drive_wrapper.theta_centric_drive_command(
+                lambda: 0,
+                lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
+                lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
+            )
+        )
 
-        # self.controller.create_button(self.CROSS_BUTTON, "point backward").whileTrue(
-        #     self.robot.drive_wrapper.theta_centric_drive_command(
-        #         lambda: 180,
-        #         lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
-        #         lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
-        #     )
-        # )
+        self.controller.create_button(self.CROSS_BUTTON, "point backward").whileTrue(
+            self.robot.drive_wrapper.theta_centric_drive_command(
+                lambda: 180,
+                lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
+                lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
+            )
+        )
 
-        # self.controller.create_button(self.SQUARE_BUTTON, "point left").whileTrue(
-        #     self.robot.drive_wrapper.theta_centric_drive_command(
-        #         lambda: 90,
-        #         lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
-        #         lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
-        #     )
-        # )
+        self.controller.create_button(self.SQUARE_BUTTON, "point left").whileTrue(
+            self.robot.drive_wrapper.theta_centric_drive_command(
+                lambda: 90,
+                lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
+                lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
+            )
+        )
 
-        # self.controller.create_button(self.CIRCLE_BUTTON, "point right").whileTrue(
-        #     self.robot.drive_wrapper.theta_centric_drive_command(
-        #         lambda: 270,
-        #         lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
-        #         lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
-        #     )
-        # )
+        self.controller.create_button(self.CIRCLE_BUTTON, "point right").whileTrue(
+            self.robot.drive_wrapper.theta_centric_drive_command(
+                lambda: 270,
+                lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
+                lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
+            )
+        )
 
         # # TODO: MAKE THIS A COMMAND INSTEAD OF THIS JARGON
 
-        # # Reset the field-centric heading on Options button press
-        # self.controller.create_button(self.OPTIONS_BUTTON, "Reset Heading").onTrue(
-        #     self.robot.drive_wrapper.drivetrain.runOnce(
-        #         self.robot.drive_wrapper.drivetrain.seed_field_centric
-        #     ).andThen(commands2.InstantCommand(self.robot.camera_ll4.set_imu_mode(1)))
-        # )
+        # Reset the field-centric heading on Options button press
+        self.controller.create_button(self.OPTIONS_BUTTON, "Reset Heading").onTrue(
+            self.robot.drive_wrapper.drivetrain.runOnce(
+                self.robot.drive_wrapper.drivetrain.seed_field_centric
+            ).andThen(commands2.InstantCommand(self.robot.camera_ll4.set_imu_mode(1)))
+        )
 
-        # # Idle while the robot is disabled. This ensures the configured
-        # # neutral mode is applied to the drive motors while disabled.
-        # Trigger(DriverStation.isDisabled).whileTrue(
-        #     self.robot.drive_wrapper.drivetrain.apply_request(
-        #         lambda: self.robot.drive_wrapper.idle_request
-        #     ).ignoringDisable(doesRunWhenDisabled=True)
-        # )
-
-        # self.controller.bind_pov_down("waggle").whileTrue(
-        #     Shimmy(self.robot.drive_wrapper)
-        # )
+        # Idle while the robot is disabled. This ensures the configured
+        # neutral mode is applied to the drive motors while disabled.
+        Trigger(DriverStation.isDisabled).whileTrue(
+            self.robot.drive_wrapper.drivetrain.apply_request(
+                lambda: self.robot.drive_wrapper.idle_request
+            ).ignoringDisable(doesRunWhenDisabled=True)
+        )
