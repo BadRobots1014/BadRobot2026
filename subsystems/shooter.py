@@ -24,7 +24,7 @@ KICK_MOTOR_ID = 51
 SEESAW_MOTOR_ID = 53
 
 # radius: meters, shooter speed: rpm
-SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2900), (4.165, 3100)]
+SHOOT_PAIRS = [(2.235, 2500), (2.845, 2600), (3.454, 2950), (4.165, 3100)]
 
 
 class ShooterSubsystem(Subsystem):
@@ -39,6 +39,7 @@ class ShooterSubsystem(Subsystem):
             self.shoot_motor = MagicMock()
             self.f_shoot_motor = MagicMock()
             self.shoot_encoder = MagicMock()
+            self.shoot_encoder.get_velocity.return_value = SHOOTER_VELOCITY
 
         self.shoot_velocity = SHOOTER_VELOCITY
 
@@ -161,7 +162,7 @@ class ShooterSubsystem(Subsystem):
         self, _r_dist: float, ignore_pairs: list[int]
     ) -> tuple[float, float]:
         min = 9999
-        min_pair = (0, 0)
+        min_pair = (3.454, 2950)
 
         for i in range(len(SHOOT_PAIRS)):
             if i in ignore_pairs:

@@ -13,10 +13,8 @@ from pathplannerlib.auto import AutoBuilder
 from wpilib import SmartDashboard
 
 from commands.register_commands import register_commands
-from controllers.aux_controller import AuxController
 from controllers.charlie_aux_controller import CharlieAuxController
 from controllers.charlie_main import CharlieMainController
-from controllers.main_controller import MainController
 from controllers.test_controller import RobotTestController
 from robot_class import RobotClass
 

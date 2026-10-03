@@ -3,11 +3,10 @@ from commands2.button import Trigger
 from wpilib import DriverStation
 
 from commands.extend_hopper import ExtendHopperCommand
+from commands.goto_shoot_radius import GotoShootRadius
 from commands.run_intake import RunIntakeCommand
 from controllers.controller import ControllerDefault
 from robot_class import RobotClass
-from routines.goto_and_shoot import GotoAndShootRoutine
-from routines.goto_and_shoot_shimmy import GotoAndShootShimmyRoutine
 from routines.shoot_when_ready import ShootWhenReady
 
 
@@ -64,16 +63,14 @@ class CharlieMainController(ControllerDefault):
         ).whileTrue(ExtendHopperCommand(self.robot.hopper).andThen(intake_wheel_in))
 
         self.controller.create_axis(
-            self.R2_TRIGGER_AXIS, "auto shoot", self.AXIS_THRESHOLD_VALUE
+            self.R2_TRIGGER_AXIS, "shoot", self.AXIS_THRESHOLD_VALUE
         ).whileTrue(
-            GotoAndShootRoutine(
+            ShootWhenReady(
                 self.robot.shooter,
                 self.robot.kicker,
                 self.robot.conveyor,
                 self.robot.intake,
-                self.robot.drive_wrapper,
-                self.robot.get_hub,
-                self.robot.is_blue,
+                rpm=None,
             )
         )
 
@@ -108,6 +105,15 @@ class CharlieMainController(ControllerDefault):
                 lambda: 270,
                 lambda: self.getLeftY() * self.robot.drive_wrapper.max_speed,
                 lambda: self.getLeftX() * self.robot.drive_wrapper.max_speed,
+            )
+        )
+
+        self.controller.create_button(self.R1_BUTTON, "auto align").whileTrue(
+            GotoShootRadius(
+                self.robot.drive_wrapper,
+                self.robot.shooter,
+                self.robot.get_hub,
+                self.robot.is_blue,
             )
         )
 

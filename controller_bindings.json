@@ -9,11 +9,13 @@
     "TRIANGLE": "point forward",
     "CROSS": "point backward",
     "SQUARE": "point left",
-    "CIRCLE": "point right"
+    "CIRCLE": "point right",
+    "R1": "auto align"
   },
   "1": {
     "R2": "Reset Heading",
     "L2": "shoot when ready (rpm=None)",
+    "L1": "Shoot when ready (auto RPM)",
     "CROSS": "GoTo",
     "POVUP": "Manual extend hopper",
     "POVDOWN": "Unjam"
