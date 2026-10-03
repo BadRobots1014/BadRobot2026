@@ -2,7 +2,7 @@ import commands2
 
 import robot
 from subsystems.shooter import ShooterSubsystem
-
+DEFAULT_RPM = 3200
 
 class RunShooterCommand(commands2.Command):
     shooter: ShooterSubsystem
@@ -26,6 +26,8 @@ class RunShooterCommand(commands2.Command):
                 self.shooter.set_shoot_velocity(self.rpm)
             else:
                 self.rpm = self.shooter.get_shoot_velocity_from_closest_pair()
+                if self.rpm == 0:
+                    self.rpm = DEFAULT_RPM
                 self.shooter.set_shoot_velocity(self.rpm)
         else:
             self.rpm = self.shooter.get_shoot_velocity_from_networktables()

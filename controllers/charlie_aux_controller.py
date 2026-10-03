@@ -22,10 +22,29 @@ class CharlieAuxController(ControllerDefault):
         ).whileTrue(intake_wheel_out)
 
         self.controller.create_axis(
-            self.L2_TRIGGER_AXIS, "shoot when ready (rpm=None)", self.AXIS_THRESHOLD_VALUE
+            self.L2_TRIGGER_AXIS,
+            "shoot when ready (rpm=None)",
+            self.AXIS_THRESHOLD_VALUE,
         ).whileTrue(
             ShootWhenReady(
-                self.robot.shooter, self.robot.kicker, self.robot.conveyor, self.robot.intake, rpm=3200)
+                self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                self.robot.intake,
+                rpm=3200,
+            )
+        )
+
+        self.controller.create_button(
+            self.L1_BUTTON, "Shoot when ready (auto RPM)"
+        ).whileTrue(
+            ShootWhenReady(
+                self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                self.robot.intake,
+                rpm=None,
+            )
         )
 
         self.controller.create_button(self.CROSS_BUTTON, "GoTo").whileTrue(

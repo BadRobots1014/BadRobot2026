@@ -6,6 +6,7 @@ from commands.extend_hopper import ExtendHopperCommand
 from commands.run_intake import RunIntakeCommand
 from controllers.controller import ControllerDefault
 from robot_class import RobotClass
+from routines.goto_and_shoot import GotoAndShootRoutine
 from routines.goto_and_shoot_shimmy import GotoAndShootShimmyRoutine
 from routines.shoot_when_ready import ShootWhenReady
 
@@ -29,18 +30,14 @@ class CharlieMainController(ControllerDefault):
         # NUDGING
 
         # POV up - drive forward
-        self.controller.bind_pov_up(
-             "nudge forward"
-        ).whileTrue(
+        self.controller.bind_pov_up("nudge forward").whileTrue(
             self.robot.drive_wrapper.robot_centric_drive_command(
                 lambda: self.robot.drive_wrapper.nudge_speed, lambda: 0
             )
         )
 
         # POV down - drive backward
-        self.controller.bind_pov_down(
-            "nudge backwards"
-        ).whileTrue(
+        self.controller.bind_pov_down("nudge backwards").whileTrue(
             self.robot.drive_wrapper.robot_centric_drive_command(
                 lambda: -self.robot.drive_wrapper.nudge_speed, lambda: 0
             )
@@ -66,10 +63,19 @@ class CharlieMainController(ControllerDefault):
             self.L2_TRIGGER_AXIS, "Intake wheel in", self.AXIS_THRESHOLD_VALUE
         ).whileTrue(ExtendHopperCommand(self.robot.hopper).andThen(intake_wheel_in))
 
-        self.controller.create_axis(self.R2_TRIGGER_AXIS, "auto shoot", self.AXIS_THRESHOLD_VALUE).whileTrue(
-            GotoAndShootShimmyRoutine(self.robot.shooter, self.robot.kicker, self.robot.conveyor, self.robot.intake, self.robot.drive_wrapper, self.robot.get_hub, self.robot.is_blue)
+        self.controller.create_axis(
+            self.R2_TRIGGER_AXIS, "auto shoot", self.AXIS_THRESHOLD_VALUE
+        ).whileTrue(
+            GotoAndShootRoutine(
+                self.robot.shooter,
+                self.robot.kicker,
+                self.robot.conveyor,
+                self.robot.intake,
+                self.robot.drive_wrapper,
+                self.robot.get_hub,
+                self.robot.is_blue,
+            )
         )
-
 
         # # POINTING
 
